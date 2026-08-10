@@ -15,8 +15,52 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from django.conf.urls.static import static
+from hypn0 import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
+
+if settings.DEBUG:
+    import mimetypes
+    import debug_toolbar
+    from django.views.static import serve
+
+    def _serve_public_root_file(request, path):
+        """Отдаёт файлы из корня `public` в dev-режиме в utf-8."""
+        response = serve(request, path, document_root=settings.PUBLIC_DIR)
+        content_type, _ = mimetypes.guess_type(path)
+        if content_type:
+            if content_type.startswith('text/'):
+                response['Content-Type'] = f'{content_type}; charset=utf-8'
+            else:
+                response['Content-Type'] = content_type
+        elif path.endswith('.txt'):
+            response['Content-Type'] = 'text/plain; charset=utf-8'
+        elif path.endswith('.html'):
+            response['Content-Type'] = 'text/html; charset=utf-8'
+        return response
+
+    def _iter_public_root_files():
+        """Находит все обычные файлы в корне `public`, кроме служебных артефактов."""
+        for file_path in sorted(settings.PUBLIC_DIR.iterdir()):
+            if not file_path.is_file():
+                continue
+            if file_path.name.startswith('.'):
+                continue
+            if file_path.name == 'README.md':
+                continue
+            yield file_path.name
+
+    PUBLIC_ROOT_URLPATTERNS = [
+        path(filename, _serve_public_root_file, {'path': filename})
+        for filename in _iter_public_root_files()
+    ]
+
+    urlpatterns = [path('__debug__/', include(debug_toolbar.urls)), ] + urlpatterns
+    # urlpatterns = [path('tmp/', views.tmp, name='web_tmp')] + urlpatterns
+    urlpatterns = [*PUBLIC_ROOT_URLPATTERNS, *urlpatterns]
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.PUBLIC_DIR.joinpath('static'))
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
