@@ -1,9 +1,14 @@
 [tool.poetry]
 name = "hypn0"
 version = "0.1.0"
-description = "Гипонтические SVG"
+description = "hypn0 - Гипонтические SVG"
 authors = ["erjemin <erjemin@gmail.com>"]
+license = "MIT"
 readme = "README.md"
+packages = [
+    { include = "hypn0", from = "hypn0" },
+#    { include = "hypn0-site", from = "hypn0" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.14"
@@ -13,6 +18,8 @@ django-environ = "^0.14.0"
 gunicorn = "^26.0.0"
 whitenoise = "^6.12.0"
 
+[tool.poetry.group.dev.dependencies]
+django-debug-toolbar = "^7.0"
 
 [build-system]
 requires = ["poetry-core"]
