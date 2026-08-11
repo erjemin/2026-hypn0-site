@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
+    'hypn0_site.apps.Hypn0SiteConfig'
 ]
 
 MIDDLEWARE = [
