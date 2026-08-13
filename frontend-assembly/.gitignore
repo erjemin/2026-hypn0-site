@@ -1,0 +1,16 @@
+# Каталог для NPM-сборки пакетов фронтенда (сайта и админки).
+
+# Папки`node_modules/` будет создана в процессе NPM-сборки.
+# Её соджержимое не должно попадать в репозиторий.
+# Готовая сборка будет перемещна в:
+# - ../public/static/js/alpine.min.js
+# - ../public/static/js/htmx.min.js
+# - ../public/static/css/tailwind.min.css
+#
+# Позже, возможно еще
+# ../public/static/codemirror/editor.js
+
+node_modules/
+
+src/
+
