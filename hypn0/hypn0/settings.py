@@ -40,7 +40,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default='DJANGO-INSECURE-CHANGE-ME!')
 ADMIN_URL = _normalize_admin_url(env('ADMIN_URL', default='admin/'))
 
 # ВНИМАНИЕ: не запускайте с отладкой в продакшен
-DEBUG = env.bool('DJANGO_DEBUG', default=False)
+DEBUG = env.bool('DJANGO_DEBUG', default=True)
 
 # Хосты, на которых будет работать сайт
 ALLOWED_HOSTS = env.list(
