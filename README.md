@@ -28,4 +28,4 @@ poetry run python main.py img.jpg
 
 ## Демо
 
-![Пример](public/static/img/cc.svg)
+![Пример](public/static/img/og-hypn0-default.svg)
