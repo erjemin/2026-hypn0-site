@@ -2,5 +2,225 @@
 
 
 {% block CONTENT %}
-<p>Привет</p>
+  <div class="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8" 
+       x-data="{activeTab:'style',cols:80,radius:8,blink:3,rotation:0,scale:1.0,angle:0}">
+
+    <!-- ЛЕВАЯ ПАНЕЛЬ: НАСТРОЙКИ -->
+    <aside class="space-y-6">
+      <form hx-post="/generate"
+            hx-target="#preview"
+            hx-trigger="change delay:500ms, submit"
+            hx-encoding="multipart/form-data"
+            class="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-zinc-800">
+
+        <!-- Загрузка файла -->
+        <div class="mb-8">
+          <label class="block text-sm font-bold mb-2 uppercase tracking-wider text-stone-500 dark:text-zinc-400">Источник</label>
+          <div class="relative group">
+            <input type="file" name="image" accept="image/*"
+                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+            <div
+              class="border-2 border-dashed border-stone-300 dark:border-zinc-700 group-hover:border-emerald-500 rounded-xl p-8 text-center transition-colors">
+              <span class="text-stone-400 group-hover:text-emerald-500">Перетащите фото или&nbsp;кликните</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Табы настроек -->
+        <nav class="flex border-b border-stone-200 dark:border-zinc-800 mb-6 overflow-x-auto no-scrollbar">
+          <button type="button" @click="activeTab = 'style'"
+                  :class="activeTab === 'style' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-stone-400'"
+                  class="pb-2 px-4 border-b-2 font-bold text-sm uppercase transition-all whitespace-nowrap">Гюко-элемент
+          </button>
+          <button type="button" @click="activeTab = 'params'"
+                  :class="activeTab === 'params' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-stone-400'"
+                  class="pb-2 px-4 border-b-2 font-bold text-sm uppercase transition-all whitespace-nowrap">Параметры
+          </button>
+          <button type="button" @click="activeTab = 'color'"
+                  :class="activeTab === 'color' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-stone-400'"
+                  class="pb-2 px-4 border-b-2 font-bold text-sm uppercase transition-all whitespace-nowrap">Цвета
+          </button>
+        </nav>
+
+        <!-- Контент табов -->
+        <div class="space-y-6">
+          <!-- Таб: Стиль (Фигуры) -->
+          <div x-show="activeTab === 'style'" class="grid grid-cols-4 gap-2">
+            <label class="cursor-pointer group">
+              <input type="radio" name="shape" value="circle" class="hidden peer" checked>
+              <div
+                class="aspect-square flex items-center justify-center border-2 border-stone-100 dark:border-zinc-800 rounded-lg peer-checked:border-emerald-500 peer-checked:bg-emerald-50/10 transition-all">
+                <div class="w-6 h-6 rounded-full bg-stone-400 group-hover:bg-emerald-500"></div>
+              </div>
+            </label>
+            <label class="cursor-pointer group">
+              <input type="radio" name="shape" value="square" class="hidden peer">
+              <div
+                class="aspect-square flex items-center justify-center border-2 border-stone-100 dark:border-zinc-800 rounded-lg peer-checked:border-emerald-500 peer-checked:bg-emerald-50/10 transition-all">
+                <div class="w-6 h-6 bg-stone-400 group-hover:bg-emerald-500"></div>
+              </div>
+            </label>
+            <!-- Другие фигуры добавятся позже -->
+          </div>
+
+          <!-- Таб: Цвет -->
+          <div x-show="activeTab === 'color'" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-stone-400 uppercase mb-1">Режим</label>
+              <select name="color_mode"
+                      class="w-full bg-stone-50 dark:bg-zinc-800 border-none rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                <option value="single">Один цвет</option>
+                <option value="duotone">Дуотон</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-400 uppercase mb-1">Основной цвет</label>
+              <input type="color" name="color" value="#800000"
+                     class="w-full h-10 border-none rounded-lg cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Таб: Параметры -->
+          <div x-show="activeTab === 'params'" class="space-y-4">
+            {# ПЛОТНОСТЬ СЕТКИ (ЧИСЛО КОЛОНОК) #}<div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs font-bold text-stone-400 uppercase">Плотность галлюцинации</label>
+                <span class="text-xs transition-colors duration-300"
+                      :class="cols >= 140 ? 'text-red-600' : (cols > 80 ? 'text-yellow-500' : 'text-emerald-600')"
+                      x-text="cols"></span>
+              </div>
+              <input type="range" name="cols" min="20" max="200" x-model="cols"
+                     @input="$el.dispatchEvent(new CustomEvent('input-change'))"
+                     :class="cols >= 140 ? 'accent-red-600' : (cols > 80 ? 'accent-yellow-500' : 'accent-emerald-500')""
+                     class="w-full transition-all duration-300">
+            </div>
+            {# РАЗМЕР ЭЛЕМЕНТА #}<div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs font-bold text-stone-400 uppercase">Размер гипно-точки</label>
+                <span class="text-xs text-emerald-600" x-text="radius"></span>
+              </div>
+              <input type="range" name="max_radius" min="3" max="20" x-model="radius"
+                     class="w-full accent-emerald-500">
+            </div>
+            {# МЕРЦАНИЕ #}<div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs font-bold text-stone-400 uppercase">Мерцание</label>
+                <span class="text-xs text-emerald-600" x-text="blink"></span>
+              </div>
+              <input type="range" name="blink" min="0" max="10" x-model="blink"
+                     class="w-full accent-emerald-500">
+            </div>
+            {# ПОВОРОТЫ #}<div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs font-bold text-stone-400 uppercase">Укачивание</label>
+                <span class="text-xs text-emerald-600" x-text="rotation"></span>
+              </div>
+              <input type="range" name="rotation" min="-15" max="15" x-model="rotation"
+                     class="w-full accent-emerald-500">
+            </div>
+            {# МАСШТАБ #}<div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs font-bold text-stone-400">Взз-з-з-з…</label>
+                <span class="text-xs text-emerald-600" x-text="scale"></span>
+              </div>
+              <input type="range" name="scale" min="0.9" max="1.1" step="0.2" x-model="scale"
+                     class="w-full accent-emerald-500">
+            </div>
+            {# НАКЛОН СЕТКИ #}<div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs font-bold text-stone-400 uppercase">Перекос</label>
+                <span class="text-xs text-emerald-600" x-text="angle"></span>
+              </div>
+              <input type="range" name="angle" min="-45" max="45" step="1" x-model="angle"
+                     class="w-full accent-emerald-500">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit"
+                class="w-full mt-8 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
+          ЗАПУСТИТЬ ГЛЮКОТРОН
+        </button>
+      </form>
+    </aside>
+
+    <!-- ПРАВАЯ ПАНЕЛЬ: ПРЕВЬЮ -->
+    <section class="flex flex-col gap-6">
+      <div id="preview"
+           class="flex-1 bg-stone-200 dark:bg-zinc-900 rounded-3xl min-h-[400px] flex items-center justify-center border border-stone-300 dark:border-zinc-800 overflow-hidden relative group">
+        <div class="text-stone-400 flex flex-col items-center gap-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 opacity-20" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <p class="font-medium opacity-50">Ваше искусство появится здесь</p>
+        </div>
+
+        <!-- Заглушка для кнопок действий (появятся при генерации) -->
+        <div
+          class="absolute bottom-6 right-6 flex gap-2 translate-y-20 group-hover:translate-y-0 transition-transform duration-300">
+          <button
+            class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur p-3 rounded-full shadow-xl hover:text-emerald-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </button>
+          <button
+            class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur p-3 rounded-full shadow-xl hover:text-emerald-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6L15.316 7.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6L15.316 7.342"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <button
+          class="bg-stone-800 text-white dark:bg-zinc-800 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-stone-700 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          КОПИРОВАТЬ SVG
+        </button>
+        <button
+          class="bg-emerald-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          СКАЧАТЬ
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- СЕКЦИЯ: ГАЛЕРЕЯ -->
+  <section class="mt-20">
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="text-3xl font-black uppercase tracking-tighter">Галерея транса</h2>
+      <a href="#" class="text-emerald-600 font-bold hover:underline">Смотреть все →</a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <template x-for="i in 6">
+        <div
+          class="aspect-square bg-stone-200 dark:bg-zinc-900 rounded-xl border border-stone-300 dark:border-zinc-800 overflow-hidden relative group cursor-pointer">
+          <div
+            class="absolute inset-0 flex items-center justify-center text-stone-400 group-hover:scale-110 transition-transform">
+            <svg class="w-8 h-8 opacity-20" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            </svg>
+          </div>
+          <div
+            class="absolute bottom-2 left-2 flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-white/80 dark:bg-zinc-900/80 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+            ♥ <span x-text="Math.floor(Math.random()*100)"></span>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
 {% endblock CONTENT %}
