@@ -11,7 +11,6 @@
     <title>{% block PAGE_TITLE %}hypn0: SVG-matrix of Hypnotoad — инструмент цифрового гипно-маркетинга{% endblock %}</title>
     <meta name="meta-title" content="{% block META_TITLE %}hypn0: SVG-matrix of Hypnotoad — инструмент цифрового гипно-маркетинга{% endblock %}" />
     <meta name="meta-description" content="{% block META_DESCRIPTION %}SVG-матрицы, блокирующие неокортекс. Алгоритмы мерцания и пульсаций, вводящие в транс. Новая web-технология удержания посетителей. Перед деплоем проконсультируйтесь с нейропсихологом{% endblock %}" />
-    <link rel="canonical" href="{% block CANONICAL %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}" />
     <meta property="og:site_name" content="hypn0.xyz" />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:title" content="{% block OG_TITLE %}hypn0: SVG-matrix of Hypnotoad — инструмент цифрового гипно-маркетинга{% endblock %}" />
@@ -26,9 +25,13 @@
     <meta name="twitter:image" content="{% block TWITTER_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}" />
     <meta name="theme-color" content="#F5F5F5" />
     {# Шутка #}<meta name="generator" content="Microsoft FrontPage 1.0" />
+    <meta name="apple-mobile-web-app-title" content="hypn0" />
+    {# !CANONICAL #}<link rel="canonical" href="{% block CANONICAL %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}" />
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
-    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}" />
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />{% if IS_DEBUG %}{% comment %}
+    <link rel="shortcut icon" href="{% static '/img/favicon.ico' %}" />
+    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}" sizes="180x180" />
+    <link rel="manifest" href="{% static 'img/site.webmanifest' %}" />{% if IS_DEBUG %}{% comment %}
     Переключение dev/prod стилей Tailwind CSS происходит
     АВТОМАТИЧЕСКИ через переменную IS_DEBUG (см. контексный-процессор
     frontend/context_processors.py), DEV: tailwindcss из CDN, компилируется прямо в браузере. Удобно
