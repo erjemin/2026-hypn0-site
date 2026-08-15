@@ -1,5 +1,5 @@
 <!doctype html>{% load static %}
-<html lang="ru">
+<html lang="ru" x-data="{ darkMode: false }" x-init="darkMode = localStorage.getItem('darkMode') === 'true'; $watch('darkMode', val => { if(val) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); })" x-bind:class="{ 'dark': darkMode }">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -31,7 +31,15 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
     <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" />
     <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}" sizes="180x180" />
-    <link rel="manifest" href="{% static 'img/site.webmanifest' %}" />{% if IS_DEBUG %}{% comment %}
+    <link rel="manifest" href="{% static 'img/site.webmanifest' %}" />
+    <script>
+        if (localStorage.getItem('darkMode') === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    {% if IS_DEBUG %}{% comment %}
     Переключение dev/prod стилей Tailwind CSS происходит
     АВТОМАТИЧЕСКИ через переменную IS_DEBUG (см. контексный-процессор
     frontend/context_processors.py), DEV: tailwindcss из CDN, компилируется прямо в браузере. Удобно
@@ -44,6 +52,13 @@
     подключается отдельным link.{% endcomment %}
     <style type="text/tailwindcss">
         {% include "css/tailwind-custom.css" %}
+        @theme {
+            --color-emerald-700: #047857;
+            --color-emerald-100: #d1fae5;
+            --color-zinc-950: #09090b;
+            --color-stone-50: #fafaf9;
+        }
+        @custom-variant dark (&:where(.dark, .dark *));
     </style>{% else %}{% comment %} PROD: заранее собранный Tailwind CLI файл (см.
     frontend-assembly/tailwind/input.css и package.json). CLI сканирует шаблоны проекта и генерирует
     только реально используемые классы, включая кастомные @theme/@layer директивы из того же самого
@@ -55,8 +70,11 @@
             "@type": "WebSite",
             "name": "hypn0.xyz",
             "url": "{{ request.scheme }}://{{ request.get_host }}/"
-        }
-    </script>{% block EXTRAHEAD %}{% endblock EXTRAHEAD %}
+        }{% block EXTRA_LD_JSON %}{% endblock EXTRA_LD_JSON %}
+    </script>
+    <script src="{% static 'js/alpine.min.js' %}" defer></script>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    {% block EXTRA_HEAD %}{% endblock EXTRA_HEAD %}
     <link rel="stylesheet" href="{% static 'css/hypn0.css' %}" />
 </head>
 <body class="bg-stone-50 text-emerald-700 dark:bg-zinc-950 dark:text-emerald-100 font-mono">{% block ADD_CSS1 %}{% endblock %}{% block ADD_CSS2 %}{% endblock %}{% block ADD_CSS3 %}{% endblock %}{% block BODY %}
@@ -66,7 +84,5 @@
   </main>
   {# {% include "blocks/footer.jinja2" %} #}{% endblock BODY %}{% if not ALLOW_TRACKING %}{# Если клиент еще не согласился на отслеживание покажем ему уведомление #}{% include "block/allow-tracking.html" %}{% else %}{# Если согласился -- отслеживаем#}
 <script src="{% static 'js/analytics.js' %}"></script>{% endif %}
-<script src="{% static 'js/alpine.min.js' %}"></script>
-<script src="{% static 'js/htmx.min.js' %}"></script>{% block ADD_JS1 %}{% endblock ADD_JS1 %}{% block ADD_JS2 %}{% endblock ADD_JS2 %}{% block ADD_JS3 %}{% endblock ADD_JS3 %}
-</body>
+{% block ADD_JS1 %}{% endblock ADD_JS1 %}{% block ADD_JS2 %}{% endblock ADD_JS2 %}{% block ADD_JS3 %}{% endblock ADD_JS3 %}</body>
 </html>
