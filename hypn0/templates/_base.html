@@ -52,13 +52,6 @@
     подключается отдельным link.{% endcomment %}
     <style type="text/tailwindcss">
         {% include "css/tailwind-custom.css" %}
-        @theme {
-            --color-emerald-700: #047857;
-            --color-emerald-100: #d1fae5;
-            --color-zinc-950: #09090b;
-            --color-stone-50: #fafaf9;
-        }
-        @custom-variant dark (&:where(.dark, .dark *));
     </style>{% else %}{% comment %} PROD: заранее собранный Tailwind CLI файл (см.
     frontend-assembly/tailwind/input.css и package.json). CLI сканирует шаблоны проекта и генерирует
     только реально используемые классы, включая кастомные @theme/@layer директивы из того же самого
