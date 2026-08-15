@@ -1,0 +1,17 @@
+{% load static %}<header class="sticky top-0 z-50  bg-gray-100/80 dark:bg-slate-800/70 backdrop-blur border-b border-gray-300 dark:border-gray-700">{% comment %}
+        Пункты меню — ссылки-кнопки, а не типовой текст, поэтому у каждой <a> явно
+        заданы border-0 (отключает пунктирное подчёркивание из общего стиля ссылок) и свой
+        цвет text-slate-900/dark:text-slate-100 (см. пояснение в css/tailwind-custom.css){% endcomment %}
+    <div class="max-w-7xl mx-auto px-2 grid grid-cols-[1fr_auto] gap-x-4">
+      {# ЛОГОТИП #}{% comment %}
+      border-0 — логотип оборачивается в ссылку без текста, отключаем типовое
+      пунктирное подчёркивание ссылки, которое иначе появится под картинкой.{% endcomment %}<div class="flex py-4">
+        <a href="/" class="border-0"><img src="{% static 'img/logo-hypn0.svg' %}" alt="Логотип hypn0"></a>
+      </div>{# /ЛОГОТИП #}
+      {# ПРАВОЕ МЕНЮ #}<menu class="flex items-center gap-x-4 justify-self-start text-xl font-semibold text-slate-900 dark:text-slate-100">
+        <a href="#" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg border-0 text-slate-900 dark:text-slate-100">галерея</a>
+        <a href="#" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg hidden md:block hyphens-none border-0 text-slate-900 dark:text-slate-100">блог</a>
+        <a href="#" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg hidden lg:block border-0 text-slate-900 dark:text-slate-100">◐</a>
+      </menu>{# /ПРАВОЕ МЕНЮ #}
+    </div>
+  </header>
