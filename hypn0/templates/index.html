@@ -3,7 +3,7 @@
 
 {% block CONTENT %}
   <div class="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8" 
-       x-data="{activeTab:'style',cols:80,radius:8,blink:6,rotation:0,scale:980,angle:0}">
+       x-data="{activeTab:'style',colors:['#a855ff'],cols:80,radius:8,blink:6,rotation:0,scale:980,angle:0}">
 
     <!-- ЛЕВАЯ ПАНЕЛЬ: НАСТРОЙКИ -->
     <aside class="space-y-6">
@@ -65,18 +65,47 @@
 
           <!-- Таб: Цвет -->
           <div x-show="activeTab === 'color'" class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-stone-400 uppercase mb-1">Режим</label>
-              <select name="color_mode"
-                      class="w-full bg-stone-50 dark:bg-zinc-800 border-none rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500">
-                <option value="single">Один цвет</option>
-                <option value="duotone">Дуотон</option>
-              </select>
+            <div class="flex items-center justify-between pb-1 border-b border-stone-100 dark:border-zinc-800">
+              <span class="text-xs font-bold text-stone-400 uppercase">Цветовая схема</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400"
+                    x-text="colors.length === 1 ? 'Монотон (1 цвет)' : (colors.length === 2 ? 'Дуотон (2 цвета)' : 'Триатон (3 цвета)')"></span>
             </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-400 uppercase mb-1">Основной цвет</label>
-              <input type="color" name="color" value="#800000"
-                     class="w-full h-10 border-none rounded-lg cursor-pointer">
+
+            <div class="space-y-3">
+              <template x-for="(color, index) in colors" :key="index">
+                <div class="flex items-center gap-2">
+                  <div class="flex-1">
+                    <div class="flex justify-between mb-1">
+                      <label class="text-xs font-bold text-stone-400 uppercase"
+                             x-text="colors.length === 1 ? 'Основной цвет' : ('Цвет ' + (index + 1))"></label>
+                      <span class="text-xs font-mono uppercase text-stone-500 dark:text-stone-400" x-text="colors[index]"></span>
+                    </div>
+                    <input type="color" name="colors" x-model="colors[index]"
+                           class="w-full h-10 border-none rounded-lg cursor-pointer bg-stone-50 dark:bg-zinc-800">
+                  </div>
+                  <template x-if="colors.length > 1">
+                    <button type="button"
+                            @click="colors.splice(index, 1); $nextTick(() => $el.closest('form').dispatchEvent(new Event('change')))"
+                            class="self-end mb-1 p-2 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100 dark:hover:bg-zinc-800 transition-colors"
+                            title="Удалить цвет">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </template>
+                </div>
+              </template>
+            </div>
+
+            <div x-show="colors.length < 3" class="pt-2">
+              <button type="button"
+                      @click="colors.push(colors.length === 1 ? '#f97316' : '#06b6d4'); $nextTick(() => $el.closest('form').dispatchEvent(new Event('change')))"
+                      class="w-full flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-bold uppercase rounded-xl border-2 border-dashed border-stone-300 dark:border-zinc-700 text-stone-500 dark:text-stone-400 hover:border-emerald-500 hover:text-emerald-500 transition-colors cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span x-text="colors.length === 1 ? 'Добавить второй цвет (Дуотон)' : 'Добавить третий цвет (Триатон)'"></span>
+              </button>
             </div>
           </div>
 
