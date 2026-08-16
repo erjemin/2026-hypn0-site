@@ -3,7 +3,7 @@
 
 {% block CONTENT %}
   <div class="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8" 
-       x-data="{activeTab:'style',cols:80,radius:8,blink:3,rotation:0,scale:1.0,angle:0}">
+       x-data="{activeTab:'style',cols:80,radius:8,blink:6,rotation:0,scale:980,angle:0}">
 
     <!-- ЛЕВАЯ ПАНЕЛЬ: НАСТРОЙКИ -->
     <aside class="space-y-6">
@@ -21,7 +21,7 @@
                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
             <div
               class="border-2 border-dashed border-stone-300 dark:border-zinc-700 group-hover:border-emerald-500 rounded-xl p-8 text-center transition-colors">
-              <span class="text-stone-400 group-hover:text-emerald-500">Перетащите фото или&nbsp;кликните</span>
+              <span class="text-stone-400 group-hover:text-emerald-500">Покорми Гипнoжабу,<br />притащи сюда img или&nbsp;кликни</span>
             </div>
           </div>
         </div>
@@ -91,47 +91,63 @@
               </div>
               <input type="range" name="cols" min="20" max="200" x-model="cols"
                      @input="$el.dispatchEvent(new CustomEvent('input-change'))"
-                     :class="cols >= 140 ? 'accent-red-600' : (cols > 80 ? 'accent-yellow-500' : 'accent-emerald-500')""
+                     :class="cols >= 140 ? 'accent-red-600' : (cols > 80 ? 'accent-yellow-500' : 'accent-emerald-500')"
                      class="w-full transition-all duration-300">
             </div>
             {# РАЗМЕР ЭЛЕМЕНТА #}<div>
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Размер гипно-точки</label>
-                <span class="text-xs text-emerald-600" x-text="radius"></span>
+                <span class="text-xs transition-colors duration-300"
+                      :class="radius < 4 ? 'text-red-600' : (radius < 5 ? 'text-yellow-600' : (radius > 15 ? 'text-red-600' : (radius > 12 ? 'text-yellow-600' : 'text-emerald-600')))"
+                      x-text="radius"></span>
               </div>
               <input type="range" name="max_radius" min="3" max="20" x-model="radius"
+                     @input="$el.dispatchEvent(new CustomEvent('input-change'))"
+                     :class="radius < 4 ? 'accent-red-600' : (radius < 5 ? 'accent-yellow-500' : (radius > 15 ? 'accent-red-600' : (radius > 12 ? 'accent-yellow-500' : 'accent-emerald-500')))"
                      class="w-full accent-emerald-500">
             </div>
             {# МЕРЦАНИЕ #}<div>
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Мерцание</label>
-                <span class="text-xs text-emerald-600" x-text="blink"></span>
+                <span class="text-xs transition-colors duration-300"
+                      :class="blink < 1 ? 'text-emerald-600' : (blink < 2 ? 'text-red-600' : (blink < 4 ? 'text-yellow-600' : 'text-emerald-600'))"
+                      x-text="blink"></span>
               </div>
               <input type="range" name="blink" min="0" max="10" x-model="blink"
+                     @input="$el.dispatchEvent(new CustomEvent('input-change'))"
+                     :class="blink < 1 ? 'accent-emerald-600' : (blink < 2 ? 'accent-red-600' : (blink < 4 ? 'accent-yellow-500' : 'accent-emerald-500'))"
                      class="w-full accent-emerald-500">
             </div>
             {# ПОВОРОТЫ #}<div>
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Укачивание</label>
-                <span class="text-xs text-emerald-600" x-text="rotation"></span>
+                <span class="text-xs transition-colors duration-300"
+                      :class="rotation < -7 ? 'text-red-600' : (rotation < -4 ? 'text-yellow-600' : (rotation > 7 ? 'text-red-600' : (rotation > 4 ? 'text-yellow-600' : 'text-emerald-600')))"
+                      x-text="rotation"></span>
               </div>
               <input type="range" name="rotation" min="-15" max="15" x-model="rotation"
+                     @input="$el.dispatchEvent(new CustomEvent('input-change'))"
+                     :class="rotation < -7 ? 'accent-red-600' : (rotation < -4 ? 'accent-yellow-500' : (rotation > 7 ? 'accent-red-600' : (rotation > 4 ? 'accent-yellow-500' : 'accent-emerald-500')))"
                      class="w-full accent-emerald-500">
             </div>
             {# МАСШТАБ #}<div>
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400">Взз-з-з-з…</label>
-                <span class="text-xs text-emerald-600" x-text="scale"></span>
+                <span class="text-xs transition-colors duration-300"
+                      :class="scale < 900 ? 'text-red-600' : (scale < 950 ? 'text-yellow-600' : (scale > 1030 ? 'text-red-600' : (scale > 1010 ? 'text-yellow-600' : 'text-emerald-600')))"
+                      x-text="scale"></span>
               </div>
-              <input type="range" name="scale" min="0.9" max="1.1" step="0.2" x-model="scale"
+              <input type="range" name="scale" min="800" max="1040" x-model="scale"
+                     @input="$el.dispatchEvent(new CustomEvent('input-change'))"
+                     :class="scale < 900 ? 'accent-red-600' : (scale < 950 ? 'accent-yellow-500' : (scale > 1030 ? 'accent-red-600' : (scale > 1010 ? 'accent-yellow-500' : 'accent-emerald-500')))"
                      class="w-full accent-emerald-500">
             </div>
             {# НАКЛОН СЕТКИ #}<div>
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Перекос</label>
-                <span class="text-xs text-emerald-600" x-text="angle"></span>
+                <span class="text-xs transition-colors duration-300 text-emerald-600" x-text="angle"></span>
               </div>
-              <input type="range" name="angle" min="-45" max="45" step="1" x-model="angle"
+              <input type="range" name="angle" min="-44" max="45" step="1" x-model="angle"
                      class="w-full accent-emerald-500">
             </div>
           </div>
@@ -149,10 +165,8 @@
       <div id="preview"
            class="flex-1 bg-stone-200 dark:bg-zinc-900 rounded-3xl min-h-[400px] flex items-center justify-center border border-stone-300 dark:border-zinc-800 overflow-hidden relative group">
         <div class="text-stone-400 flex flex-col items-center gap-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 opacity-20" fill="none" viewBox="0 0 24 24"
-               stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
           <p class="font-medium opacity-50">Ваше искусство появится здесь</p>
         </div>
