@@ -3,15 +3,53 @@
 
 {% block CONTENT %}
   <div class="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8  items-start"
-       x-data="{activeTab:'style',colors:['#a855ff'],cols:80,radius:8,blink:6,rotation:0,scale:980,angle:0}">
+       x-data="{
+         activeTab: 'style',
+         colors: ['#a855ff'],
+         cols: 80,
+         radius: 8,
+         blink: 6,
+         rotation: 0,
+         scale: 980,
+         angle: 0,
+         isLoading: false,
+         hasChanges: true,
+         hasImage: false,
+         timer: null,
+         startThinking() {
+           this.isLoading = true;
+           if (this.timer) clearTimeout(this.timer);
+           this.timer = setTimeout(() => {
+             this.isLoading = false;
+             this.hasChanges = false;
+           }, 8000);
+         }
+       }">
 
     <!-- ЛЕВАЯ ПАНЕЛЬ: НАСТРОЙКИ -->
     <aside class="space-y-6">
       <form hx-post="/generate"
             hx-target="#preview"
-            hx-trigger="change delay:500ms, submit"
+            hx-trigger="submit"
             hx-encoding="multipart/form-data"
-            class="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-zinc-800">
+            @submit="startThinking()"
+            @change="hasChanges = true"
+            @input="hasChanges = true"
+            @htmx:before-request="startThinking()"
+            class="relative bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-zinc-800 overflow-hidden">
+
+        <!-- Фоновая спираль размышления при генерации (прижата снизу на всю левую панель) -->
+        <div x-show="isLoading"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="absolute inset-0 z-20 pointer-events-none flex items-end justify-center overflow-hidden rounded-2xl bg-white/70 dark:bg-zinc-900/75 backdrop-blur-[2px]">
+          <img src="{% static 'img/thinking.svg' %}" alt="thinking"
+               class="w-96 h-96 -mb-24 opacity-25 animate-spin [animation-duration:10s]">
+        </div>
 
         <!-- Загрузка файла -->
         <div class="mb-8">
@@ -43,7 +81,7 @@
         </nav>
 
         <!-- Контент табов -->
-        <div class="space-y-6 min-h-[480px]">
+        <div class="space-y-6 min-h-[460px]">
           <!-- Таб: Стиль (Фигуры) -->
           <div x-show="activeTab === 'style'" class="grid grid-cols-4 gap-2">
             <!-- 1. Круг -->
@@ -281,9 +319,40 @@
           </div>
         </div>
 
+        <!-- Индикатор размышления / статус активности -->
+        <div class="h-8 mt-2 flex items-center justify-center">
+          <div x-show="isLoading"
+               x-transition
+               class="flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono tracking-wide animate-pulse">
+            <img src="{% static 'img/thinking.svg' %}" class="w-4 h-4 animate-spin [animation-duration:3s]">
+            <span>Глюкало думает...</span>
+          </div>
+          <div x-show="!isLoading && !hasChanges"
+               class="text-[11px] font-mono text-stone-400 dark:text-zinc-500 tracking-wider">
+            Параметры зафиксированы
+          </div>
+          <div x-show="!isLoading && hasChanges"
+               class="text-[11px] font-mono text-emerald-600 dark:text-emerald-500 font-semibold tracking-wider flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>Готово к запуску транса</span>
+          </div>
+        </div>
+
         <button type="submit"
-                class="w-full mt-8 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
-          ЗАПУСТИТЬ ГЛЮКОТРОН
+                :disabled="isLoading || !hasChanges"
+                :class="(!hasChanges || isLoading) 
+                        ? 'bg-stone-200 dark:bg-zinc-800 text-stone-400 dark:text-zinc-600 cursor-not-allowed shadow-none' 
+                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 active:scale-95 cursor-pointer'"
+                class="w-full mt-2 font-bold py-3.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+          <template x-if="isLoading">
+            <span class="flex items-center gap-2">
+              <img src="{% static 'img/thinking.svg' %}" class="w-5 h-5 animate-spin [animation-duration:2s]">
+              <span>ГЛЮКОТРОН В ТРАНСЕ...</span>
+            </span>
+          </template>
+          <template x-if="!isLoading">
+            <span>ЗАПУСТИТЬ ГЛЮКОТРОН</span>
+          </template>
         </button>
       </form>
     </aside>
@@ -292,11 +361,15 @@
     <section class="flex flex-col gap-6">
       <div id="preview"
            class="w-full h-[744px] bg-stone-200 dark:bg-zinc-900 rounded-3xl flex items-center justify-center border border-stone-300 dark:border-zinc-800 overflow-hidden relative group">
-        <div class="text-stone-400 flex flex-col items-center gap-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        
+        <div class="text-stone-400 flex flex-col items-center gap-4 text-center px-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+               :class="isLoading ? 'animate-pulse text-emerald-500 opacity-80' : 'opacity-50'">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          <p class="font-medium opacity-50">Ваше искусство появится здесь</p>
+          <p class="transition-all duration-300"
+             :class="isLoading ? 'text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider animate-pulse' : 'font-medium opacity-50'"
+             x-text="isLoading ? 'Гипножаба переваривает пиксели…' : 'Ваше искусство появится здесь'"></p>
         </div>
 
         <!-- Заглушка для кнопок действий (появятся при генерации) -->
