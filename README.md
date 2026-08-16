@@ -1,9 +1,10 @@
-# HypnoSVG
+# Hypn0
 
 Генератор гипнотических SVG-халтонов из изображений. Загрузи фото → настраивай фигуры, сетки, цвета и анимации → получи залипательную графику.
 
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12-blue)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Static Badge](https://img.shields.io/badge/ОРИГИНАЛ-git.cube2.ru-green)](https://git.cube2.ru/erjemin/2026-hypn0-site)
 
 ## Что это
 
@@ -28,4 +29,4 @@ poetry run python main.py img.jpg
 
 ## Демо
 
-![Пример](public/static/img/og-hypn0-default.svg)
+![Пример](public/static/img/thinking.svg)
