@@ -1,7 +1,7 @@
 from django.db import models
 from hypn0.settings import *
 
-class Item(models.Model):
+class TbHypn0Item(models.Model):
     """Единая модель для генераций, публичных шеров и витрины галереи."""
     class Level(models.IntegerChoices):
         CANDIDATE = LVL_CANDIDATE, 'Шум сознания'              # Свежая генерация. Запрет на удаление до Х дней.
@@ -112,11 +112,11 @@ class Item(models.Model):
         return f"{self.title} ({self.hash_id})"
 
 
-class HalftoneVote(models.Model):
+class TbVote(models.Model):
     """Анонимный учет голосов (лайков) без сохранения ПДн."""
 
     k_item = models.ForeignKey(
-        Item,
+        TbHypn0Item,
         on_delete=models.CASCADE,
         related_name="votes",
         verbose_name="Картина",
@@ -147,7 +147,7 @@ class HalftoneVote(models.Model):
         return f"Голос за {self.item.hash_id} [{self.fingerprint[:8]}...]"
 
 
-class BlogPost(models.Model):
+class TbBlogPost(models.Model):
     """
     Статьи блога, документация и инфо-страницы (Privacy Policy и др.).
 
