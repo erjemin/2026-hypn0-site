@@ -109,7 +109,7 @@ class TbHypn0Item(models.Model):
         ordering = ["-d_created_at"]
 
     def __str__(self) -> str:
-        return f"{self.title} ({self.hash_id})"
+        return f"{self.s_title} ({self.s_hash_id})"
 
 
 class TbVote(models.Model):
@@ -144,7 +144,7 @@ class TbVote(models.Model):
         ordering = ["-d_created_at"]
 
     def __str__(self) -> str:
-        return f"Голос за {self.item.hash_id} [{self.fingerprint[:8]}...]"
+        return f"Голос за {self.k_item.hash_id} [{self.s_fingerprint[:8]}...]"
 
 
 class TbBlogPost(models.Model):
