@@ -1,61 +1,73 @@
 from django.db import models
+from hypn0.settings import *
 
-
-class HalftoneItem(models.Model):
+class Item(models.Model):
     """Единая модель для генераций, публичных шеров и витрины галереи."""
+    class Level(models.IntegerChoices):
+        CANDIDATE = LVL_CANDIDATE, 'Шум сознания'              # Свежая генерация. Запрет на удаление до Х дней.
+        LEVEL_1 = LVL_PRE_MODERATED, 'Плеск бессознательного'  # Есть "лайки", не проверено, можно удалять при низком score
+        LEVEL_2 = LVL_MODERATED, 'Одобрено Мозговым Слизнем'   # Есть "лайки", проверено, можно удалять при низком score
+        IMMORTAL = LVL_LOCK_FOR_DELETION, 'Глубокий транс'     # Нельзя удалять, даже при низком score
 
-    hash_id = models.CharField(
+    s_hash_id = models.CharField(
         max_length=16,
         unique=True,
         db_index=True,
         verbose_name="Хэш-идентификатор",
     )
-    title = models.CharField(
-        max_length=150,
+    s_title = models.CharField(
+        max_length=255,
         verbose_name="Название картины",
     )
-    svg_file = models.FileField(
+    file_svg = models.FileField(
         upload_to="svg/%Y/%m/",
         verbose_name="SVG-файл",
     )
-
-    # Снимок параметров для возможного клонирования настроек
-    params_json = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name="Параметры генерации",
-    )
-    file_size = models.PositiveIntegerField(
+    i_sha1 = models.CharField(
+        max_length=40,
+        verbose_name="SHA1",
+        )
+    i_file_size = models.PositiveIntegerField(
         default=0,
         help_text="Размер файла в байтах",
         verbose_name="Размер файла",
     )
 
-    # Популярность и модерация
-    likes_count = models.PositiveIntegerField(
+    # Снимок параметров для возможного клонирования настроек
+    j_params = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Параметры генерации",
+        help_text="Метаданные и параметры для возможного клонирования настроек",
+    )
+
+    # Популярность
+    i_likes_count = models.PositiveIntegerField(
         default=0,
         db_index=True,
         verbose_name="Количество лайков",
     )
-    views_count = models.PositiveIntegerField(
+    i_views_count = models.PositiveIntegerField(
         default=0,
         verbose_name="Количество просмотров",
     )
-    reports_count = models.PositiveIntegerField(
+    i_reports_count = models.PositiveIntegerField(
         default=0,
         verbose_name="Количество жалоб",
     )
-    score = models.FloatField(
+    f_score = models.FloatField(
         default=0.0,
         db_index=True,
         help_text="Рейтинг для Smart Retention",
         verbose_name="Рейтинг популярности",
     )
 
-    is_curated = models.BooleanField(
-        default=False,
-        help_text="Выбор модератора / галерея (иммунитет к удалению)",
-        verbose_name="Выбор редакции",
+    # Модерация
+    i_level = models.IntegerField(
+        choices=Level.choices,
+        default=Level.CANDIDATE,
+        help_text="Уровень доступа",
+        verbose_name="Уровень доступа",
     )
     is_public = models.BooleanField(
         default=True,
@@ -64,32 +76,37 @@ class HalftoneItem(models.Model):
     )
 
     # Промо-блок (на перспективу)
-    promo_url = models.URLField(
+    s_promo_url = models.URLField(
         blank=True,
         default="",
         verbose_name="Промо-ссылка",
     )
-    promo_title = models.CharField(
+    s_promo_title = models.CharField(
         max_length=100,
         blank=True,
         default="",
         verbose_name="Бейдж/автор промо",
     )
-    promo_clicks = models.PositiveIntegerField(
+    i_promo_clicks = models.PositiveIntegerField(
         default=0,
         verbose_name="Клики по промо",
     )
 
-    created_at = models.DateTimeField(
+    d_created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
         verbose_name="Дата создания",
     )
+    d_updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        verbose_name="Дата обновления",
+        )
 
     class Meta:
         verbose_name = "Гипно-картина"
         verbose_name_plural = "Гипно-картины"
-        ordering = ["-created_at"]
+        ordering = ["-d_created_at"]
 
     def __str__(self) -> str:
         return f"{self.title} ({self.hash_id})"
@@ -98,19 +115,19 @@ class HalftoneItem(models.Model):
 class HalftoneVote(models.Model):
     """Анонимный учет голосов (лайков) без сохранения ПДн."""
 
-    item = models.ForeignKey(
-        HalftoneItem,
+    k_item = models.ForeignKey(
+        Item,
         on_delete=models.CASCADE,
         related_name="votes",
         verbose_name="Картина",
     )
-    fingerprint = models.CharField(
+    s_fingerprint = models.CharField(
         max_length=64,
         db_index=True,
         help_text="SHA256(visitor_uuid + SECRET_KEY) для защиты от накрутки и разделения устройств",
         verbose_name="Хэш устройства/отпечаток",
     )
-    created_at = models.DateTimeField(
+    d_created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Дата голосования",
     )
@@ -120,11 +137,11 @@ class HalftoneVote(models.Model):
         verbose_name_plural = "Голоса / Лайки"
         constraints = [
             models.UniqueConstraint(
-                fields=["item", "fingerprint"],
+                fields=["k_item", "s_fingerprint"],
                 name="unique_item_fingerprint_vote",
             )
         ]
-        ordering = ["-created_at"]
+        ordering = ["-d_created_at"]
 
     def __str__(self) -> str:
         return f"Голос за {self.item.hash_id} [{self.fingerprint[:8]}...]"
@@ -137,7 +154,7 @@ class BlogPost(models.Model):
     + виртуальные поля для управления типографом etpgrf
     """
 
-    title = models.CharField(
+    s_title = models.CharField(
         max_length=200,
         help_text="HTML-заголовок, очищенный и типографированный etpgrf",
         verbose_name="Заголовок",
@@ -147,17 +164,17 @@ class BlogPost(models.Model):
         unique=True,
         verbose_name="URL-слаг",
     )
-    summary = models.TextField(
-        max_length=500,
+    s_summary = models.TextField(
+        max_length=1024,
         blank=True,
         help_text="HTML-контент тизера, очищенный и типографированный etpgrf",
         verbose_name="Краткое описание / Лид",
     )
-    content = models.TextField(
+    s_content = models.TextField(
         help_text="HTML-контент статьи, очищенный и типографированный etpgrf",
         verbose_name="Основной HTML-контент",
     )
-    cover_image = models.ImageField(
+    f_cover_img = models.ImageField(
         upload_to="blog/covers/%Y/",
         blank=True,
         null=True,
@@ -168,17 +185,17 @@ class BlogPost(models.Model):
         default=False,
         verbose_name="Опубликовано",
     )
-    published_at = models.DateTimeField(
+    d_published_at = models.DateTimeField(
         null=True,
         blank=True,
         db_index=True,
         verbose_name="Дата публикации",
     )
-    created_at = models.DateTimeField(
+    d_created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Дата создания",
     )
-    updated_at = models.DateTimeField(
+    d_created_at = models.DateTimeField(
         auto_now=True,
         verbose_name="Дата обновления",
     )
@@ -186,7 +203,7 @@ class BlogPost(models.Model):
     class Meta:
         verbose_name = "Статья блога / Страница"
         verbose_name_plural = "Статьи блога / Страницы"
-        ordering = ["-published_at", "-created_at"]
+        ordering = ["-d_published_at", "-d_created_at"]
 
     def __str__(self) -> str:
-        return self.title
+        return self.s_title

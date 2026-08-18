@@ -199,6 +199,13 @@ STORAGES = {
     },
 }
 
+# Специфичные для проекта настройки
+LVL_CANDIDATE = 10
+LVL_PRE_MODERATED = 20
+LVL_MODERATED = 30
+LVL_LOCK_FOR_DELETION = 40
+
+
 if DEBUG:
     # В деве оставляем стандартную отдачу статики Django без WhiteNoise.
     STORAGES['staticfiles'] = {
