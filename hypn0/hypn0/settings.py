@@ -199,11 +199,22 @@ STORAGES = {
     },
 }
 
-# Специфичные для проекта настройки
-LVL_CANDIDATE = 10
-LVL_PRE_MODERATED = 20
+# СПЕЦИФИЧНЫЕ ДЛЯ ПРОЕКТА НАСТРОЙКИ
+# ====== Уровни для SVG-генераций (используется для чисти файлов при достижении лимитов) ======
+LVL_CANDIDATE = 0
+LVL_PRE_MODERATED = 10
 LVL_MODERATED = 30
-LVL_LOCK_FOR_DELETION = 40
+LVL_LOCK_FOR_DELETION = 1000
+
+# ====== Гамма для вычисления рейтинга ======
+GAMMA = 1.5
+
+# ====== HASHIDS настройка для s_hash_id ======
+# Криптографическое кодирование ID svg-файлов генерации в компактные, необратимые коды.
+# Благодаря hashids невозможно восстановить исходный ID из кода,
+# даже зная алгоритм (в отличие от простого XOR).
+HASHIDS_SALT = env('HASHIDS_SALT', default='your-secret-salt-change-me')
+HASHIDS_MIN_LENGTH = env.int('HASHIDS_MIN_LENGTH', default=6)
 
 
 if DEBUG:
