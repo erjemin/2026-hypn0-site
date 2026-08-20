@@ -21,6 +21,7 @@ class TbHypn0Item(models.Model):
     • f_score: оценка для стратегии хранения и умной очистки (Smart Retention)
     • i_level: уровень хранения (свежее, модерированное, защищенное от удаления)
     • is_public: публичный (доступный по внешней ссылке)
+    • s_author_fingerprint: хеш-код браузера автора
     • s_promo_url: промо-ссылка (с дополнительной об авторе-спонсоре)
     • s_promo_title: заголовок промо-ссылки или бейджа
     • i_promo_clicks: количество кликов по промо-ссылке
@@ -105,6 +106,14 @@ class TbHypn0Item(models.Model):
         verbose_name="Публичный доступ",
     )
 
+    # Автор
+    s_author_fingerprint = models.CharField(
+        max_length=64,
+        db_index=True,   # ??? -- подумать нужно или нет
+        help_text="SHA256(visitor_uuid + SECRET_KEY) для защиты от накрутки и разделения устройств",
+        verbose_name="Хэш устройства/отпечаток",
+    )
+
     # Промо-блок (на перспективу)
     s_promo_url = models.URLField(
         blank=True,
@@ -143,19 +152,21 @@ class TbHypn0Item(models.Model):
 
     def increment_views(self):
         """Безопасный инкремент просмотров"""
-        TbHypn0Item.objects.filter(id=self.id).update(i_views_count=F('i_views_count') + 1)
+        TbHypn0Item.objects.get(id=self.id).update(i_views_count=F('i_views_count') + 1)
 
     def increment_likes(self):
         """Безопасный инкремент лайков"""
-        TbHypn0Item.objects.filter(id=self.id).update(i_likes_count=F('i_likes_count') + 1)
+        TbHypn0Item.objects.get(id=self.id).update(i_likes_count=F('i_likes_count') + 1)
+        # Здесь будет код для записи в TbVote
 
     def increment_claims(self):
         """Безопасный инкремент жалоб"""
-        TbHypn0Item.objects.filter(id=self.id).update(i_claims_count=F('i_claims_count') + 1)
+        TbHypn0Item.objects.get(id=self.id).update(i_claims_count=F('i_claims_count') + 1)
+        # Здесь будет код для записи в TbVote
 
     def increment_promo_clicks(self):
         """Безопасный инкремент кликов по промо"""
-        TbHypn0Item.objects.filter(id=self.id).update(i_promo_clicks=F('i_promo_clicks') + 1)
+        TbHypn0Item.objects.get(id=self.id).update(i_promo_clicks=F('i_promo_clicks') + 1)
 
     def rescore(self):
         """Пересчет рейтинга i_promo_clicks
@@ -163,9 +174,9 @@ class TbHypn0Item(models.Model):
         («гравитации»), а не слепой Х-дневный таймер:
         $$\text{Score} = \frac{\text{Likes} + \text{Bonus}_{\text{moderator}}}{(\text{Age in hours} + 2)^\gamma}$$
         """
-        age_ih_hours = (timezone.now - self.d_created_at).total_seconds() / 3600 + 1
+        age_ih_hours = (timezone.now() - self.d_created_at).total_seconds() / 3600 + 1
         new_score = (self.i_likes_count + self.i_level) / ((age_ih_hours + 2) ** GAMMA)
-        TbHypn0Item.objects.filter(id=self.id).update(i_promo_clicks=new_score)
+        TbHypn0Item.objects.get(id=self.id).update(f_score=new_score)
 
     def save(self, *args, **kwargs):
         """
@@ -205,9 +216,14 @@ class TbVote(models.Model):
 
     Поля:
     • k_item: ключ объекта (foreign key), за который голосуют
+    • i_direction: направление голоса
     • s_fingerprint: Хэш-отпечаток клиент/браузер/secret для защиты он накрутки
     • d_created_at: дата создания
     """
+
+    class Direction(models.IntegerChoices):
+        LIKE = VOTE_LIKE, 'Like'
+        CLIME = VOTE_CLAIM, 'Clime'
 
     k_item = models.ForeignKey(
         TbHypn0Item,
@@ -215,9 +231,15 @@ class TbVote(models.Model):
         related_name="votes",
         verbose_name="Картина",
     )
+    i_direction = models.IntegerField(
+        choices=Direction.choices,
+        default=Direction.LIKE,
+        verbose_name="Направление",
+        help_text="Направление голоса",
+    )
     s_fingerprint = models.CharField(
         max_length=64,
-        db_index=True,
+        db_index=True,   # ??? -- подумать нужно или нет
         help_text="SHA256(visitor_uuid + SECRET_KEY) для защиты от накрутки и разделения устройств",
         verbose_name="Хэш устройства/отпечаток",
     )
@@ -238,7 +260,7 @@ class TbVote(models.Model):
         ordering = ["-d_created_at"]
 
     def __str__(self) -> str:
-        return f"Голос за {self.k_item.hash_id} [{self.s_fingerprint[:8]}...]"
+        return f"Голос за {self.k_item.s_hash_id} [{self.s_fingerprint[:8]}...]"
 
 
 class TbBlogPost(models.Model):

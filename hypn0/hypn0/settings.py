@@ -206,6 +206,10 @@ LVL_PRE_MODERATED = 10
 LVL_MODERATED = 30
 LVL_LOCK_FOR_DELETION = 1000
 
+# ====== Направление и веса для голосования (ТОЛЛЬКО ЦЕЛЫЕ ЧИСЛА) ======
+VOTE_LIKE = 1
+VOTE_CLAIM = -2
+
 # ====== Гамма для вычисления рейтинга ======
 GAMMA = 1.5
 
