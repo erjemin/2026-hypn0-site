@@ -1,4 +1,5 @@
-from django.db import models
+import hashlib
+from django.db import models, transaction, IntegrityError
 from django.db.models import F
 from hashids import Hashids
 from hypn0.settings import *
@@ -76,6 +77,9 @@ class TbHypn0Item(models.Model):
         default=0,
         db_index=True,
         verbose_name="Число лайков",
+        help_text="Число лайков гипнотической SVG-картины. Поле используется для отображения в интерфейсе. Для расчета"
+                  " рейтинга популярности намеренно НЕ ИСПОЛЬЗУЕТСЯ. Рейтинг будет рассчитан на основе таблицы"
+                  " <tt>Голоса/Лайка</tt> с учетом весов лайков и клаймов.",
     )
     i_views_count = models.PositiveIntegerField(
         default=0,
@@ -84,6 +88,9 @@ class TbHypn0Item(models.Model):
     i_claims_count = models.PositiveIntegerField(
         default=0,
         verbose_name="Число жалоб",
+        help_text="Число жалоб на гипнотическую SVG-картину. Поле используется для отображения в интерфейсе. Для расчета"
+                  " рейтинга популярности намеренно НЕ ИСПОЛЬЗУЕТСЯ. Рейтинг будет рассчитан на основе таблицы"
+                  " <tt>Голоса/Лайка</tt> с учетом весов лайков и клаймов.",
     )
     f_score = models.FloatField(
         default=0.0,
@@ -143,21 +150,66 @@ class TbHypn0Item(models.Model):
 
     def increment_views(self):
         """Безопасный инкремент просмотров"""
-        TbHypn0Item.objects.get(id=self.id).update(i_views_count=F('i_views_count') + 1)
+        TbHypn0Item.objects.filter(id=self.id).update(i_views_count=F('i_views_count') + 1)
 
-    def increment_likes(self):
-        """Безопасный инкремент лайков"""
-        TbHypn0Item.objects.get(id=self.id).update(i_likes_count=F('i_likes_count') + 1)
-        # Здесь будет код для записи в TbVote
+    def vote(self, visitor_uuid_or_fp: str, direction: int = VOTE_LIKE) -> bool:
+        """
+        Универсальный метод учета голоса (лайк, жалоба или авторство).
 
-    def increment_claims(self):
-        """Безопасный инкремент жалоб"""
-        TbHypn0Item.objects.get(id=self.id).update(i_claims_count=F('i_claims_count') + 1)
-        # Здесь будет код для записи в TbVote
+        Принимает:
+        - visitor_uuid_or_fp: UUIDv4 из куки hypn0_vid или готовый 64-символьный SHA256-хэш отпечатка
+        - direction: направление голоса (Direction.LIKE, Direction.CLAIM, Direction.AUTHOR)
+
+        Возвращает:
+        - True: голос успешно зафиксирован и счетчик увеличен
+        - False: голос уже существовал (защита от повторного голосования) или передан пустой токен
+        """
+        if not visitor_uuid_or_fp:
+            return False
+
+        # Если передан сырой UUID устройства, вычисляем SHA256 отпечаток
+        if len(visitor_uuid_or_fp) == 64:
+            fingerprint = visitor_uuid_or_fp
+        else:
+            fingerprint = hashlib.sha256(f"{visitor_uuid_or_fp}:{SECRET_KEY}".encode()).hexdigest()
+
+        try:
+            # В SQLite при возникновении IntegrityError текущая транзакция может перейти в состояние ошибки. Чтобы это
+            # не затрагивало последующие операции с базой, try-записи изолирована в `with transaction.atomic()`
+            with transaction.atomic():
+                TbVote.objects.create(
+                    k_item=self,
+                    i_direction=direction,
+                    s_fingerprint=fingerprint,
+                )
+        except IntegrityError:
+            # Нарушение UniqueConstraint (k_item, s_fingerprint) — голос с этого устройства уже учтен
+            return False
+
+        # Атомарный инкремент нужного счетчика в зависимости от направления
+        # Используем `objects.filter()` вместо `objects.get()`, так как метод .update() вызывается только у QuerySet.
+        if direction in (TbVote.Direction.LIKE, TbVote.Direction.AUTHOR):
+            TbHypn0Item.objects.filter(id=self.id).update(i_likes_count=F('i_likes_count') + 1)
+        elif direction == TbVote.Direction.CLAIM:
+            TbHypn0Item.objects.filter(id=self.id).update(i_claims_count=F('i_claims_count') + 1)
+
+        # Рейтинг популярности f_score намеренно НЕ пересчитывается на лету при каждом лайке:
+        # 1. f_score зависит от времени (возраста картины), поэтому непрерывно меняется сам по себе.
+        # 2. Значение f_score необходимо только периодическому процессу умной очистки диска (Smart Retention).
+        # 3. Пересчет вынесен в пакетную cron-задачу перед ротацией хранилища, что исключает лишние I/O-операции в SQLite.
+        return True
+
+    def increment_likes(self, visitor_uuid_or_fp: str) -> bool:
+        """Безопасный инкремент лайков с фиксацией в TbVote"""
+        return self.vote(visitor_uuid_or_fp, direction=TbVote.Direction.LIKE)
+
+    def increment_claims(self, visitor_uuid_or_fp: str) -> bool:
+        """Безопасный инкремент жалоб с фиксацией в TbVote"""
+        return self.vote(visitor_uuid_or_fp, direction=TbVote.Direction.CLAIM)
 
     def increment_promo_clicks(self):
         """Безопасный инкремент кликов по промо"""
-        TbHypn0Item.objects.get(id=self.id).update(i_promo_clicks=F('i_promo_clicks') + 1)
+        TbHypn0Item.objects.filter(id=self.id).update(i_promo_clicks=F('i_promo_clicks') + 1)
 
     def rescore(self):
         r"""Пересчет рейтинга популярности картины
@@ -167,7 +219,7 @@ class TbHypn0Item(models.Model):
         """
         age_in_hours = (timezone.now() - self.d_created_at).total_seconds() / 3600 + 1
         new_score = (self.i_likes_count + self.i_level) / ((age_in_hours + 2) ** GAMMA)
-        TbHypn0Item.objects.get(id=self.id).update(f_score=new_score)
+        TbHypn0Item.objects.filter(id=self.id).update(f_score=new_score)
 
     def save(self, *args, **kwargs):
         """
@@ -247,8 +299,8 @@ class TbVote(models.Model):
     )
 
     class Meta:
-        verbose_name = "Голос / Лайк"
-        verbose_name_plural = "Голоса / Лайки"
+        verbose_name = "Голос/Лайк"
+        verbose_name_plural = "Голоса/Лайки"
         constraints = [
             models.UniqueConstraint(
                 fields=["k_item", "s_fingerprint"],
