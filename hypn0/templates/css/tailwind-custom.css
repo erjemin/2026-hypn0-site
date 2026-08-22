@@ -74,6 +74,10 @@
   добавить border-0 (убирает пунктир) и свой text-slate-900 dark:text-
   slate-100 (задаёт свой цвет вместо цвета типовой ссылки) — это и сделано
   в block/header.html.{% endcomment %} */
+  [x-cloak] {
+    display: none !important;
+  }
+
   a {
     @apply border-b border-dotted
       /* В светлой теме: глубокий изумрудный, в темной: блеклый лайм (отлично читается) */

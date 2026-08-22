@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.http import HttpRequest
 
-# Имя куки, которая ставится клиенту, когда он СОГЛАСИЛСЯ на отслеживание
-# (Google Tag Manager, Яндекс.Метрика и т.п.). Если кука присутствует —
-# предупреждение о трекинге больше не показываем.
-ALLOW_TRACKING_COOKIE_NAME = "allow_tracking"
+# Имя куки с UUID устройства посетителя. Устанавливается при согласии
+# с условиями ("Подчиниться Гипножабе!").
+# Одновременно служит:
+# 1) Флагом согласия на отслеживание (ALLOW_TRACKING).
+# 2) Анонимным идентификатором устройства для учета голосов (TbVote) без сбора ПДн.
+ALLOW_TRACKING_COOKIE_NAME = "hypn0_vid"
 
 
 def site_context(request: HttpRequest) -> dict:

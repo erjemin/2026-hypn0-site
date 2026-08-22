@@ -1,4 +1,4 @@
-{# НИЖНИЙ POPUP О КУКУХ И ОТСЛЕЖИВАНИИ #}<div id="allow-tracking-popup" class="sticky bottom-0 z-50 bg-gray-100/80 dark:bg-slate-800/70 backdrop-blur border-t border-gray-300 dark:border-gray-700">
+{# НИЖНИЙ POPUP О КУКУХ И ОТСЛЕЖИВАНИИ #}<div id="allow-tracking-popup" x-data="{ agreed: !!localStorage.getItem('hypn0_vid') }" x-show="!agreed" x-cloak class="sticky bottom-0 z-50 bg-gray-100/80 dark:bg-slate-800/70 backdrop-blur border-t border-gray-300 dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-[auto_1fr] gap-x-4">
         <p class="flex-col px-6 py-6">
             Внимание! В&nbsp;соответствии с&nbsp;152-<abbr title="Федеральный закон">ФЗ</abbr>
@@ -8,6 +8,6 @@
             впадаете в&nbsp;транс и&nbsp;принимаете условия нашей <a href="/info/privacy-policy">политики
             коконфи&shy;денциаль&shy;ности</a>. <strong>Не&nbsp;пытайтесь переключить вкладку!</strong>
         </p>
-        <button x-data @click="document.cookie='allow_tracking=1; path=/; max-age=31536000'; $el.closest('#allow-tracking-popup').remove()" class="text-lg px-6 py-2 my-6 border-2 rounded-md bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white">Подчиниться Гипножабе!</button>
+        <button @click="const vid = crypto.randomUUID(); localStorage.setItem('hypn0_vid', vid); document.cookie = `hypn0_vid=${vid}; path=/; max-age=63072000; SameSite=Lax`; agreed = true" class="text-lg px-6 py-2 my-6 border-2 rounded-md bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white">Подчиниться Гипножабе!</button>
     </div>
 </div>{# / НИЖНИЙ POPUP О КУКУХ И ОТСЛЕЖИВАНИИ #}
