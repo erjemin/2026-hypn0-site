@@ -51,21 +51,21 @@
 │   │           ├── 404.html
 │   │           └── 500.html
 │   │
-│   └── halftone/                      # Django app
+│   └── hypn0_site/                    # Основное Django app
 │       ├── __init__.py
 │       ├── urls.py
 │       ├── views.py                   # главная + генерация
 │       ├── forms.py                   # формы параметров
-│       ├── models.py                  # FeaturedSVG + votes
+│       ├── models.py                  # TbHypn0Item, TbVote, TbBlogPost
 │       ├── services/
 │       │   ├── __init__.py
-│       │   └── halftone.py            # ядро из main.py
+│       │   └── halftone.py            # ядро генерации
 │       ├── templates/
 │       │   └── halftone/
 │       │       └── index.html
 │       └── management/
 │           └── commands/
-│               ├── cleanup_temp.py      # очистка temp (14 дней)
+│               ├── cleanup_storage.py   # очистка по рейтингу Smart Retention
 │               └── cleanup_reports.py   # удаление по жалобам
 │
 ├── .gitea/workflows/                  # CI/CD
@@ -115,12 +115,12 @@ def generate_halftone_svg(
 ```python
 # Главная — GET → рендерим index.html
 # Генерация — POST (HTMX) → возвращаем SVG фрагмент
-# Скачивание — GET /download/{temp_id} → отдаём файл + удаляем исходник
-# Просмотр публичного — GET /view/{hash} → отдаём SVG из temp/
-# Галерея — GET /gallery → список FeaturedSVG
-# Просмотр в галерее — GET /gallery/{hash}
-# Report — POST /report/{hash} → increment reports_count
-# Promote (admin) — админ переносит SVG из temp → gallery
+# Скачивание — GET /download/{hash_id} → отдаём файл
+# Просмотр публичного — GET /view/{hash_id} → отдаём страницу просмотра
+# Галерея — GET /gallery → список TbHypn0Item
+# Просмотр в галерее — GET /gallery/{hash_id}
+# Vote/Report — POST /gallery/{hash_id}/vote → учет голоса в TbVote (Like/Claim)
+# Promote (admin) — модератор повышает i_level (Level.LEVEL_2 или Level.IMMORTAL)
 ```
 
 ### 3. Фронтенд (`hypn0/halftone/templates/halftone/index.html`)
@@ -335,8 +335,17 @@ HTMX: форма с `hx-post`, `hx-encoding="multipart/form-data"` → SVG вс�
 - **Куки-согласие и идентификация устройства (Cookie-токен):**
   - При согласии с правилами («Подчиниться Гипножабе!» в `allow-tracking.html`) клиенту выставляется долгоживущая анонимная кука устройства `hypn0_vid` со случайным UUID (`Max-Age=2 года`, `SameSite=Lax`, `HttpOnly`).
   - **Голосование доступно только при наличии согласия на куки:** Если посетитель не принял соглашение (кука отсутствует), голосование заблокировано интерфейсом и отклоняется бэкендом (с требованием подчиниться Гипножабе).
-- **Лайки и учет голосов:**
-  - **Бэкенд:** Голоса учитываются анонимно через связку `(item_id, fingerprint)`. Поле `fingerprint` формируется как необратимый хэш: `sha256(visitor_uuid + SECRET_KEY)`. Это надежно разделяет разные компьютеры в одной корпоративной сети/NAT и не содержит открытых ПДн (Zero-PII).
+- **Учет голосов, защита от накрутки и определение авторства (`TbVote`):**
+  - **Бэкенд:** Голоса учитываются анонимно через модель `TbVote` со связкой `(k_item, s_fingerprint)`. Поле `s_fingerprint` формируется как необратимый хэш: `sha256(visitor_uuid + SECRET_KEY)`. Это надежно разделяет разные компьютеры в одной корпоративной сети/NAT и не содержит открытых ПДн (Zero-PII).
+  - **Направление голоса (`i_direction` / `Direction`):**
+    - `Direction.LIKE` (`+1`) — обычный лайк посетителя.
+    - `Direction.CLAIM` (`-2`) — жалоба / клейм на неподобающий контент.
+    - `Direction.AUTHOR` (`+2`) — голос создателя картины.
+  - **Идентификация автора через `Direction.AUTHOR`:**
+    - При генерации картины в `TbVote` автоматически создается запись с `i_direction=Direction.AUTHOR`.
+    - Это исключает необходимость хранить отдельное поле `s_author_fingerprint` в `TbHypn0Item` (нет дублирования данных).
+    - Благодаря `UniqueConstraint(fields=["k_item", "s_fingerprint"])` автор автоматически защищен от «самолайка» (повторный лайк со своего браузера не пройдет).
+    - Свежая генерация сразу получает стартовый вес (`+2`), предотвращающий мгновенное удаление при низком `f_score`.
   - **Фронтенд:** Для быстродействия UI и исключения лишней нагрузки список лайкнутых картин дублируется локально на клиенте в **`localStorage`** (`hypn0_votes`). На базе Alpine.js выполняется мгновенная индикация проголосованных работ.
 - **Соответствие GDPR / 152-ФЗ:** Персональные данные не собираются и не хранятся.
 
@@ -347,91 +356,111 @@ HTMX: форма с `hx-post`, `hx-encoding="multipart/form-data"` → SVG вс�
 
 #### 4.3. Стратегия хранения и умной очистки (Smart Retention)
 Проект не выступает постоянным файлообменником или бесплатным CDN. Пользователь скачивает сгенерированный SVG для личного использования.
-Для оптимизации диска на сервере используется динамическая очистка на основе рейтинга популярности («гравитации»), а не слепой 14-дневный таймер:
+Для оптимизации диска на сервере используется динамическая очистка на основе рейтинга популярности («гравитации»), а не слепой таймер:
 
 $$\text{Score} = \frac{\text{Likes} + \text{Bonus}_{\text{moderator}}}{(\text{Age in hours} + 2)^\gamma}$$
 
 - **Квота хранилища:** Задается жесткий лимит объема (например, 500 МБ или N тысяч файлов).
-- **Очистка (`manage.py cleanup_storage`):** При превышении лимита удаляются файлы с наименьшим `Score`.
-- **Иммунитет к удалению:** Работы, отмеченные модератором (`is_curated=True` / `Bonus`), и закрепленные промо-картины сохраняются бессрочно.
+- **Уровни хранения (`i_level` / `TbHypn0Item.Level`):**
+  - `CANDIDATE` (`LVL_CANDIDATE`): свежая генерация, защита от удаления на начальный период.
+  - `LEVEL_1` (`LVL_MIN_VOTES`): получен минимум лайков («Лёгкий транс»).
+  - `LEVEL_2` (`LVL_MODERATED`): проверено и одобрено («Одобрено Мозговым Слизнем»), удаление возможно при низком `f_score`.
+  - `IMMORTAL` (`LVL_LOCK_FOR_DELETION`): полный иммунитет к удалению даже при низком рейтинге («Глубокий транс»).
+- **Очистка (`manage.py cleanup_storage`):** При превышении квоты диска удаляются файлы с наименьшим `f_score` (не затрагивая защищенные уровни).
 
 #### 4.4. SEO, шеринг и коммерциализация
 - **Вшивание ссылки в SVG (Zero-cost Branding):** В скачиваемый SVG на этапе генерации добавляется мета-комментарий со ссылкой на генератор (`<!-- Generated by Hypn0 Generator (https://hypn0.ru) -->` и `<metadata>`).
 - **Страница просмотра (`/v/<hash>`):** Для внешнего шеринга и индексации поисковиками генерируется легкая HTML-страница с OpenGraph разметкой и кнопкой «Открыть настройки в генераторе».
-- **Возможность промо/коммерциализации:** Поддержка опциональных полей (промо-ссылка, бейдж автора/спонсора, счетчик кликов).
+- **Возможность промо/коммерциализации:** Поддержка опциональных полей (`s_promo_url`, `s_promo_title`, `i_promo_clicks`).
 
 #### 4.5. Блог, статические страницы и типографика (HTML + `etpgrf`)
 - **Отказ от конвертации Markdown «на лету»:** Вместо оверхеда с парсингом Markdown статьи и инфо-страницы хранятся напрямую в формате **HTML**.
 - **Очистка HTML в админке:** При вводе/сохранении в Django Admin контент проходит валидацию и санитизацию (очистку от вредоносного или мусорного HTML/инлайн-стилей).
 - **Типографирование через `etpgrf`:** Для безупречной верстки текста (неразрывные пробелы, висячая пунктуация, кавычки-елочки, тире) используется библиотека типографирования **`etpgrf`**.
 
-#### 4.6. Архитектура моделей
+#### 4.6. Архитектура моделей (Венгерская нотация и типизация)
+
+В моделях используется венгерская нотация префиксов полей (`s_` — string/text/url, `i_` — integer, `f_` — float, `j_` — json, `k_` — foreign key, `d_` — datetime, `is_` — boolean, `file_`  — file), а также оптимизированные типы первичных ключей (`SmallAutoField`, `AutoField`, `BigAutoField`).
 
 ```python
-class HalftoneItem(models.Model):
+class TbHypn0Item(models.Model):
     """
     Единая модель для генераций, публичных шеров и витрины галереи.
     """
-    hash_id = models.CharField(max_length=16, unique=True, db_index=True)
-    title = models.CharField(max_length=150, verbose_name="Название картины")
-    svg_file = models.FileField(upload_to="svg/%Y/%m/")
-    
-    # Снимок параметров для возможного клонирования настроек
-    params_json = models.JSONField(default=dict, blank=True)
-    file_size = models.PositiveIntegerField(default=0, help_text="Размер файла в байтах")
+    class Level(models.IntegerChoices):
+        CANDIDATE = LVL_CANDIDATE, 'Candidate: Шум сознания'             # Свежая генерация
+        LEVEL_1 = LVL_MIN_VOTES, 'Level 1: Лёгкий транс'                 # Есть первичные голоса
+        LEVEL_2 = LVL_MODERATED, 'Moderated: Одобрено Мозговым Слизнем'  # Модерировано
+        IMMORTAL = LVL_LOCK_FOR_DELETION, 'Locked: Глубокий транс'       # Иммунитет к удалению
 
-    # Популярность и модерация
-    likes_count = models.PositiveIntegerField(default=0, db_index=True)
-    views_count = models.PositiveIntegerField(default=0)
-    reports_count = models.PositiveIntegerField(default=0)
-    score = models.FloatField(default=0.0, db_index=True, help_text="Рейтинг для Smart Retention")
+    id = models.AutoField(primary_key=True, verbose_name="ID")           # 4 байта, до ~2.14 млрд
+    s_hash_id = models.CharField(max_length=16, unique=True, verbose_name="ID-Хэш")
+    s_title = models.CharField(max_length=255, verbose_name="Заголовок")
+    file_svg = models.FileField(upload_to="svg/%Y/%m/", verbose_name="SVG-файл")
+    i_file_size = models.PositiveIntegerField(default=0, verbose_name="Размер файла (байт)")
     
-    is_curated = models.BooleanField(default=False, help_text="Выбор модератора / галерея (иммунитет к удалению)")
-    is_public = models.BooleanField(default=True, help_text="Доступность по прямой ссылке")
+    # Метаданные и снимок параметров алгоритма генерации
+    j_metadata = models.JSONField(default=dict, blank=True, verbose_name="Метаданные")
+
+    # Популярность, модерация и рейтинг Smart Retention
+    i_likes_count = models.PositiveIntegerField(default=0, db_index=True, verbose_name="Лайки")
+    i_views_count = models.PositiveIntegerField(default=0, verbose_name="Просмотры")
+    i_claims_count = models.PositiveIntegerField(default=0, verbose_name="Жалобы")
+    f_score = models.FloatField(default=0.0, db_index=True, verbose_name="Рейтинг Smart Retention")
+    i_level = models.IntegerField(choices=Level.choices, default=Level.CANDIDATE, verbose_name="Уровень хранения")
+    
+    is_public = models.BooleanField(default=True, verbose_name="Публичный доступ")
     
     # Промо-блок (на перспективу)
-    promo_url = models.URLField(blank=True, default="", verbose_name="Промо-ссылка")
-    promo_title = models.CharField(max_length=100, blank=True, default="", verbose_name="Бейдж/автор")
-    promo_clicks = models.PositiveIntegerField(default=0)
+    s_promo_url = models.URLField(blank=True, default="", verbose_name="Промо-ссылка")
+    s_promo_title = models.CharField(max_length=100, blank=True, default="", verbose_name="Бейдж/автор")
+    i_promo_clicks = models.PositiveIntegerField(default=0, verbose_name="Клики по промо")
 
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    d_created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="Дата создания")
+    d_updated_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name="Дата обновления")
 
 
-class HalftoneVote(models.Model):
+class TbVote(models.Model):
     """
-    Анонимный учет голосов (лайков) без сохранения ПДн.
+    Анонимный учет голосов (лайков, жалоб, авторства) без сохранения ПДн.
     """
-    item = models.ForeignKey(HalftoneItem, on_delete=models.CASCADE, related_name="votes")
-    fingerprint = models.CharField(
+    class Direction(models.IntegerChoices):
+        LIKE = VOTE_LIKE, 'Like (+1)'
+        CLAIM = VOTE_CLAIM, 'Claim (-2)'
+        AUTHOR = VOTE_AUTHOR, 'Author Like (+2)'
+
+    id = models.BigAutoField(primary_key=True, verbose_name="ID")        # 8 байт, до ~9×10¹⁸
+    k_item = models.ForeignKey(TbHypn0Item, on_delete=models.CASCADE, related_name="votes", verbose_name="Картина")
+    i_direction = models.IntegerField(choices=Direction.choices, default=Direction.LIKE, verbose_name="Направление")
+    s_fingerprint = models.CharField(
         max_length=64,
         db_index=True,
-        help_text="SHA256(visitor_uuid + SECRET_KEY) для защиты от накрутки и разделения устройств"
+        verbose_name="Хэш устройства",
+        help_text="SHA256(visitor_uuid + SECRET_KEY) для защиты от накрутки"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    d_created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата голосования")
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["item", "fingerprint"], name="unique_item_fingerprint_vote")
+            models.UniqueConstraint(fields=["k_item", "s_fingerprint"], name="unique_item_fingerprint_vote")
         ]
 
 
-class BlogPost(models.Model):
+class TbBlogPost(models.Model):
     """
     Статьи блога, документация и инфо-страницы (Privacy Policy и др.).
-    
-    + виртуальные поля для управления типографом etpgrf
     """
-    title = models.CharField(max_length=200, help_text="HTML-заголовок, очищенный и типографированный etpgrf")
-    slug = models.SlugField(max_length=200, unique=True)
-    summary = models.TextField(max_length=500, blank=True, help_text="HTML-контент тизера, очищенный и типографированный etpgrf")
-    content = models.TextField(help_text="HTML-контент статьи, очищенный и типографированный etpgrf")
-    cover_image = models.ImageField(upload_to="blog/covers/%Y/", blank=True, null=True)
+    id = models.SmallAutoField(primary_key=True, verbose_name="ID")      # 2 байта, до 32 767 записей
+    s_title = models.CharField(max_length=255, help_text="HTML-заголовок, очищенный и типографированный etpgrf")
+    slug = models.SlugField(max_length=200, unique=True, verbose_name="URL-слаг")
+    s_teaser = models.TextField(max_length=1024, blank=True, help_text="HTML-тизер, очищенный и типографированный etpgrf")
+    s_content = models.TextField(help_text="HTML-контент статьи, очищенный и типографированный etpgrf")
+    f_cover_img = models.ImageField(upload_to="blog/covers/%Y/", blank=True, null=True, verbose_name="Обложка")
     
-    is_published = models.BooleanField(default=False)
-    published_at = models.DateTimeField(null=True, blank=True, db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
+    is_published = models.BooleanField(default=False, verbose_name="Опубликовано")
+    d_published_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name="Дата публикации")
+    d_created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    d_updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 ```
 
 ## Шаги реализации
@@ -521,32 +550,32 @@ CLI больше не нужен.
 
 ## Файлы для создания (итого)
 
-| Файл                                                    | Назначение             |
-|---------------------------------------------------------|------------------------|
-| `hypn0/manage.py`                                       | Django CLI             |
-| `hypn0/hypn0/__init__.py`                               | Settings pkg           |
-| `hypn0/hypn0/settings.py`                               | Конфиг                 |
-| `hypn0/hypn0/urls.py`                                   | URL routing            |
-| `hypn0/hypn0/wsgi.py`                                   | WSGI entry             |
-| `hypn0/hypn0/templates/base.html`                       | Базовый шаблон         |
-| `hypn0/halftone/__init__.py`                            | App pkg                |
-| `hypn0/halftone/urls.py`                                | URL app                |
-| `hypn0/halftone/views.py`                               | Views                  |
-| `hypn0/halftone/forms.py`                               | Forms                  |
-| `hypn0/halftone/models.py`                              | FeaturedSVG            |
-| `hypn0/halftone/services/halftone.py`                   | Ядро                   |
-| `hypn0/halftone/templates/halftone/index.html`          | Главная                |
-| `hypn0/halftone/management/commands/cleanup_temp.py`    | Очистка temp (14 дней) |
-| `hypn0/halftone/management/commands/cleanup_reports.py` | Очистка по жалобам     |
-| `public/static/css/site.css`                            | Стили                  |
-| `public/static/js/site.js`                              | JS                     |
-| `.env.sample`                                           | Env template           |
-| `Dockerfile`                                            | Сборка                 |
-| `docker-compose.local.yml`                              | Dev                    |
-| `docker-compose.prod.yml`                               | Prod                   |
-| `config/nginx/hypn0-app--external-nginx.conf`           | Nginx                  |
-| `.gitea/workflows/docker-publish.yaml`                  | CI/CD                  |
-| `database/.gitignore`                                   | Игнор БД               |
+| Файл                                                      | Назначение             |
+|-----------------------------------------------------------|------------------------|
+| `hypn0/manage.py`                                         | Django CLI             |
+| `hypn0/hypn0/__init__.py`                                 | Settings pkg           |
+| `hypn0/hypn0/settings.py`                                 | Конфиг                 |
+| `hypn0/hypn0/urls.py`                                     | URL routing            |
+| `hypn0/hypn0/wsgi.py`                                     | WSGI entry             |
+| `hypn0/hypn0/templates/base.html`                         | Базовый шаблон         |
+| `hypn0/hypn0_site/__init__.py`                            | App pkg                |
+| `hypn0/hypn0_site/urls.py`                                | URL app                |
+| `hypn0/hypn0_site/views.py`                               | Views                  |
+| `hypn0/hypn0_site/forms.py`                               | Forms                  |
+| `hypn0/hypn0_site/models.py`                              | TbHypn0Item, TbVote... |
+| `hypn0/hypn0_site/services/halftone.py`                   | Ядро                   |
+| `hypn0/hypn0_site/templates/halftone/index.html`          | Главная                |
+| `hypn0/hypn0_site/management/commands/cleanup_storage.py` | Очистка SmartRetention |
+| `hypn0/hypn0_site/management/commands/cleanup_reports.py` | Очистка по жалобам     |
+| `public/static/css/site.css`                              | Стили                  |
+| `public/static/js/site.js`                                | JS                     |
+| `.env.sample`                                             | Env template           |
+| `Dockerfile`                                              | Сборка                 |
+| `docker-compose.local.yml`                                | Dev                    |
+| `docker-compose.prod.yml`                                 | Prod                   |
+| `config/nginx/hypn0-app--external-nginx.conf`             | Nginx                  |
+| `.gitea/workflows/docker-publish.yaml`                    | CI/CD                  |
+| `database/.gitignore`                                     | Игнор БД               |
 
 ## Файлы для модификации
 
