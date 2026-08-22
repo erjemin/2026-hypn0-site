@@ -34,9 +34,12 @@ class TbHypn0Item(models.Model):
     """
     class Level(models.IntegerChoices):
         CANDIDATE = LVL_CANDIDATE, 'Candidate: Шум сознания'             # Свежая генерация. Запрет на удаление до Х дней.
-        LEVEL_1 = LVL_PRE_MODERATED, 'Voted: Плеск бессознательного'     # Есть "лайки", не проверено, можно удалять при низком score
+        LEVEL_1 = LVL_PRE_MODERATED, 'Voted: Плеск бессознательного'     # Прогрето, есть "лайки", не проверено модератором, можно удалять при низком score
         LEVEL_2 = LVL_MODERATED, 'Moderated: Одобрено Мозговым Слизнем'  # Есть "лайки", проверено, можно удалять при низком score
         IMMORTAL = LVL_LOCK_FOR_DELETION, 'Locked: Глубокий транс'       # Нельзя удалять, даже при низком score
+        # Отрицательные / проблемные уровни (аномалии)
+        SHAMED = -20, 'Шейминг (аномальный наплыв жалоб)'
+        SUSPICIOUS = -10, 'Подозрение на накрутку (спайк лайков)'
 
     id = models.AutoField(
         primary_key=True,
@@ -210,16 +213,6 @@ class TbHypn0Item(models.Model):
     def increment_promo_clicks(self):
         """Безопасный инкремент кликов по промо"""
         TbHypn0Item.objects.filter(id=self.id).update(i_promo_clicks=F('i_promo_clicks') + 1)
-
-    def rescore(self):
-        r"""Пересчет рейтинга популярности картины
-        Для оптимизации диска на сервере используется динамическая очистка на основе рейтинга популярности
-        («гравитации»), а не слепой таймер:
-        $$\text{Score} = \frac{\text{Likes} + \text{Bonus}_{\text{moderator}}}{(\text{Age in hours} + 2)^\gamma}$$
-        """
-        age_in_hours = (timezone.now() - self.d_created_at).total_seconds() / 3600 + 1
-        new_score = (self.i_likes_count + self.i_level) / ((age_in_hours + 2) ** GAMMA)
-        TbHypn0Item.objects.filter(id=self.id).update(f_score=new_score)
 
     def save(self, *args, **kwargs):
         """
