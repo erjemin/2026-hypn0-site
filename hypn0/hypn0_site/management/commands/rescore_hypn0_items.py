@@ -80,6 +80,29 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        # =========================================================================================
+        # КОНФИГУРАЦИОННЫЕ КОНСТАНТЫ И "МАГИЧЕСКИЕ ЧИСЛА" СКОРИНГА
+        # =========================================================================================
+        # 1. Параметры времени и окна анализа
+        WINDOW_HOURS = 24.0            # Размер скользящего окна (в часах) для оценки текущей активности
+        ACTIVE_DAYS_HORIZON = 30.0     # Горизонт (в днях), картины моложе которого считаются "активными" для базы нормы
+
+        # 2. Пороги выборки и детекции аномалий
+        MIN_VOTES_FOR_ANOMALY = 5      # Минимальное число свежих оценок за окно, до которого детекторы аномалий спят
+        MIN_LIKES_FOR_SPIKE = 20       # Минимальное число лайков за окно, необходимое для признания относительного спайка
+        COLD_START_SPIKE_LIKES = 50    # Абсолютное число лайков за окно для детекции спайка в режиме "холодного старта"
+
+        # 3. Бонусы к рейтингу за модераторский статус (веса числителя формулы)
+        LEVEL_1_BONUS = 1.5            # Бонус картине со статусом LEVEL_1 (прогрета / замечена модератором)
+        LEVEL_2_BONUS = 4.0            # Бонус картине со статусом LEVEL_2 (одобрено Мозговым Слизнем / шедевр)
+
+        # 4. Коэффициент сглаживания инерции (EMA — Exponential Moving Average)
+        EMA_ALPHA = 0.7                # Доля нового значения в итоговом рейтинге (0.7 = 70% новый расчет + 30% старый f_score)
+
+        # 5. Смещение возраста в формуле гравитации (Hacker News Gravity Offset)
+        GRAVITY_AGE_OFFSET_HOURS = 2.0 # Добавка к возрасту картины в часах, исключающая деление на 0 в первые минуты жизни
+
+        # Параметры из аргументов CLI (переопределяемые)
         gamma = options["gamma"]
         half_life_days = options["half_life_days"]
         spike_multiplier = options["spike_multiplier"]
@@ -91,22 +114,34 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(f"[{now.strftime('%Y-%m-%d %H:%M:%S')}] Старт скоринга Hypn0..."))
 
         # -----------------------------------------------------------------------------------------
-        # ШАГ 1: Определение "средней температуры по больнице" за последние 24 часа
+        # ШАГ 1: Определение "средней температуры по больнице" за последние WINDOW_HOURS
         # -----------------------------------------------------------------------------------------
-        recent_window = now - timedelta(hours=24)
+        # ЗАЩИТА "ХОЛОДНОГО СТАРТА" (Cold Start / Нулевая база):
+        # Если проект только запущен или база пуста, средние значения равны нулю,
+        # а статистическая выборка отсутствует. В этом режиме детекторы спайков
+        # используют безопасные абсолютные пороги, чтобы не давать ложных тревог.
+        # -----------------------------------------------------------------------------------------
+        recent_window = now - timedelta(hours=WINDOW_HOURS)
         recent_votes_qs = TbVote.objects.filter(d_created_at__gte=recent_window)
         total_recent_votes = recent_votes_qs.count()
 
         active_items_count = TbHypn0Item.objects.filter(
-            d_created_at__gte=now - timedelta(days=30)
-        ).count() or 1
+            d_created_at__gte=now - timedelta(days=ACTIVE_DAYS_HORIZON)
+        ).count()
 
-        # Среднее число голосов на одну активную картину за сутки
-        avg_votes_per_item_24h = total_recent_votes / active_items_count
-        self.stdout.write(
-            f"Базовые метрики за 24ч: голосов всего={total_recent_votes}, "
-            f"активных картин={active_items_count}, среднее={avg_votes_per_item_24h:.2f} голосов/картину"
-        )
+        if active_items_count == 0 or total_recent_votes == 0:
+            avg_votes_per_item_24h = 0.0
+            is_cold_start = True
+            self.stdout.write(
+                self.style.NOTICE("Режим [Холодный старт]: платформа только запустилась, голосов мало/нет.")
+            )
+        else:
+            avg_votes_per_item_24h = total_recent_votes / active_items_count
+            is_cold_start = False
+            self.stdout.write(
+                f"Базовые метрики за {int(WINDOW_HOURS)}ч: голосов всего={total_recent_votes}, "
+                f"активных картин={active_items_count}, среднее={avg_votes_per_item_24h:.2f} голосов/картину"
+            )
 
         # -----------------------------------------------------------------------------------------
         # ШАГ 2: Выборка картин для пересчета
@@ -145,7 +180,8 @@ class Command(BaseCommand):
             new_level = item.i_level
             recent_total_24h = recent_likes_24h + recent_claims_24h
 
-            if recent_total_24h >= 5:
+            # Проверка аномалий активируется только при наличии минимальной выборки (>= MIN_VOTES_FOR_ANOMALY)
+            if recent_total_24h >= MIN_VOTES_FOR_ANOMALY:
                 # Проверка на шейминг (резкий наплыв жалоб)
                 claim_ratio = recent_claims_24h / recent_total_24h
                 if claim_ratio >= shame_claim_ratio:
@@ -154,11 +190,19 @@ class Command(BaseCommand):
                         self.style.WARNING(f"Аномалия [SHAMED]: Картина {item.s_hash_id} доля жалоб={claim_ratio:.1%}")
                     )
 
-                # Проверка на спайк лайков (накрутка)
-                elif avg_votes_per_item_24h > 0 and recent_likes_24h > (avg_votes_per_item_24h * spike_multiplier) and recent_likes_24h >= 20:
+                # Проверка на спайк лайков (накрутка):
+                # На холодном старте (когда avg_votes_per_item_24h близко к 0) опираемся только на высокий абсолютный порог COLD_START_SPIKE_LIKES,
+                # чтобы 3-4 первых лайка от живых пользователей не помечались как подозрительные.
+                elif not is_cold_start and avg_votes_per_item_24h > 0:
+                    if recent_likes_24h > (avg_votes_per_item_24h * spike_multiplier) and recent_likes_24h >= MIN_LIKES_FOR_SPIKE:
+                        new_level = TbHypn0Item.Level.SUSPICIOUS
+                        self.stdout.write(
+                            self.style.WARNING(f"Аномалия [SUSPICIOUS]: Картина {item.s_hash_id} лайков за окно={recent_likes_24h}")
+                        )
+                elif is_cold_start and recent_likes_24h >= COLD_START_SPIKE_LIKES:
                     new_level = TbHypn0Item.Level.SUSPICIOUS
                     self.stdout.write(
-                        self.style.WARNING(f"Аномалия [SUSPICIOUS]: Картина {item.s_hash_id} лайков за 24ч={recent_likes_24h}")
+                        self.style.WARNING(f"Аномалия [SUSPICIOUS (Cold Start)]: Картина {item.s_hash_id} лайков за окно={recent_likes_24h}")
                     )
 
             # Проверка перехода CANDIDATE -> LEVEL_1 (Прогрета, набрала массу)
@@ -174,19 +218,18 @@ class Command(BaseCommand):
             # Бонус от модераторского уровня
             level_bonus = 0.0
             if item.i_level == TbHypn0Item.Level.LEVEL_1:
-                level_bonus = 1.5
+                level_bonus = LEVEL_1_BONUS
             elif item.i_level == TbHypn0Item.Level.LEVEL_2:
-                level_bonus = 4.0
+                level_bonus = LEVEL_2_BONUS
 
             if weighted_likes <= 0:
                 raw_score = weighted_likes  # Отрицательный или нулевой скор
             else:
-                raw_score = (math.log(1.0 + weighted_likes) + level_bonus) / ((item_age_hours + 2.0) ** gamma)
+                raw_score = (math.log(1.0 + weighted_likes) + level_bonus) / ((item_age_hours + GRAVITY_AGE_OFFSET_HOURS) ** gamma)
 
             # 4. Инерционное сглаживание со старым значением (EMA) для исключения скачков
             if item.f_score != 0.0:
-                alpha = 0.7  # 70% новый расчет, 30% старый инерционный рейтинг
-                final_score = alpha * raw_score + (1.0 - alpha) * item.f_score
+                final_score = EMA_ALPHA * raw_score + (1.0 - EMA_ALPHA) * item.f_score
             else:
                 final_score = raw_score
 
