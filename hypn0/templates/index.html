@@ -23,6 +23,7 @@
          hasChanges: true,   /* Флаг наличия правок в форме для активности кнопки */
          hasImage: false,    /* Флаг загрузки пользовательского файла */
          timer: null,        /* Ссылка на таймер удержания анимации размышления */
+         copied: false,      /* Флаг успешного копирования в буфер */
 
          /* Метод запуска состояния размышления (8 секунд) */
          startThinking() {
@@ -32,6 +33,29 @@
              this.isLoading = false;
              this.hasChanges = false;
            }, 8000);
+         },
+
+         copySvg() {
+           const svg = document.querySelector('#preview svg');
+           if (!svg) return;
+           navigator.clipboard.writeText(svg.outerHTML).then(() => {
+             this.copied = true;
+             setTimeout(() => this.copied = false, 2000);
+           });
+         },
+
+         downloadSvg() {
+           const svg = document.querySelector('#preview svg');
+           if (!svg) return;
+           const blob = new Blob([svg.outerHTML], {type: 'image/svg+xml;charset=utf-8'});
+           const url = URL.createObjectURL(blob);
+           const a = document.createElement('a');
+           a.href = url;
+           a.download = 'hypn0-art.svg';
+           document.body.appendChild(a);
+           a.click();
+           document.body.removeChild(a);
+           URL.revokeObjectURL(url);
          }
        }">
 
@@ -45,7 +69,9 @@
             @change="hasChanges = true"
             @input="hasChanges = true"
             @htmx:before-request="startThinking()"
+            @htmx:after-request="isLoading = false; hasChanges = false"
             class="relative bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-zinc-800 overflow-hidden">
+        {% csrf_token %}
 
         <!-- Фоновая спираль размышления при генерации (прижата снизу на всю левую панель) -->
         <div x-show="isLoading"
@@ -65,6 +91,7 @@
           <label class="block text-sm font-bold mb-2 uppercase tracking-wider text-stone-500 dark:text-zinc-400">Источник</label>
           <div class="relative group">
             <input type="file" name="image" accept="image/*"
+                   @change="hasImage = $el.files.length > 0; hasChanges = true"
                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
             <div
               class="border-2 border-dashed border-stone-300 dark:border-zinc-700 group-hover:border-emerald-500 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors">
@@ -410,13 +437,17 @@
 
       <div class="grid grid-cols-2 gap-4">
         <button
-          class="bg-stone-800 text-white dark:bg-zinc-800 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-stone-700 transition-colors">
+          type="button"
+          @click="copySvg()"
+          class="bg-stone-800 text-white dark:bg-zinc-800 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-stone-700 transition-colors cursor-pointer active:scale-95">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-          КОПИРОВАТЬ SVG
+          <span x-text="copied ? 'СКОПИРОВАНО В БУФЕР!' : 'КОПИРОВАТЬ SVG'"></span>
         </button>
         <button
-          class="bg-emerald-600 text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20">
+          type="button"
+          @click="downloadSvg()"
+          class="bg-emerald-600 text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20 cursor-pointer active:scale-95">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           СКАЧАТЬ
         </button>

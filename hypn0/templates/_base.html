@@ -110,9 +110,21 @@ val=>{if(val)document.documentElement.classList.add('dark');else document.docume
   {% endblock EXTRA_LD_JSON %}</script>
   <script src="{% static 'js/alpine.min.js' %}" defer></script>
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  <script>
+    document.addEventListener('htmx:configRequest', function(evt) {
+      var token = '{{ csrf_token }}';
+      if (!token) {
+        var match = document.cookie.match(/csrftoken=([^;]+)/);
+        if (match) token = match[1];
+      }
+      if (token) {
+        evt.detail.headers['X-CSRFToken'] = token;
+      }
+    });
+  </script>
   {% block EXTRA_HEAD %}{% endblock EXTRA_HEAD %}
 </head>
-<body class="bg-stone-50 text-emerald-700 dark:bg-zinc-950 dark:text-emerald-100 font-mono">{% block ADD_CSS1 %}{% endblock %}{% block ADD_CSS2 %}{% endblock %}{% block ADD_CSS3 %}{% endblock %}{% block BODY %}
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="bg-stone-50 text-emerald-700 dark:bg-zinc-950 dark:text-emerald-100 font-mono">{% block ADD_CSS1 %}{% endblock %}{% block ADD_CSS2 %}{% endblock %}{% block ADD_CSS3 %}{% endblock %}{% block BODY %}
   {% include "block/header.html" %}
   <main id="main-content" class="mx-auto min-h-screen max-w-7xl px-4 py-8">
     {% block CONTENT %}{% endblock CONTENT %}

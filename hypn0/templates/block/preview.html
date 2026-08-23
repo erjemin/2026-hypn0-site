@@ -1,0 +1,26 @@
+{% if error %}
+<div class="text-rose-500 flex flex-col items-center gap-4 text-center px-6">
+  <svg class="w-16 h-16 text-rose-500 opacity-80 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+  </svg>
+  <p class="font-mono text-sm font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+    {{ error }}
+  </p>
+</div>
+{% else %}
+<div class="w-full h-full flex items-center justify-center p-4 select-none overflow-hidden" id="svg-canvas-container">
+  {{ svg_content|safe }}
+</div>
+
+<!-- Плавающие кнопки действий -->
+<div class="absolute bottom-6 right-6 flex items-center gap-3 translate-y-20 group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
+  <button id="like-to-gallery" type="button" title="Нравится!"
+          class="pointer-events-auto flex items-center gap-2 bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer">
+    <span>Кандидат в галерею транса</span>
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>
+  </button>
+</div>
+{% endif %}
