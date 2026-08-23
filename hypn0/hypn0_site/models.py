@@ -33,10 +33,10 @@ class TbHypn0Item(models.Model):
     • rescore(): пересчёт рейтинга f_score
     """
     class Level(models.IntegerChoices):
-        CANDIDATE = LVL_CANDIDATE, 'Candidate: Шум сознания'             # Свежая генерация. Запрет на удаление до Х дней.
-        LEVEL_1 = LVL_PRE_MODERATED, 'Voted: Плеск бессознательного'     # Прогрето, есть "лайки", не проверено модератором, можно удалять при низком score
-        LEVEL_2 = LVL_MODERATED, 'Moderated: Одобрено Мозговым Слизнем'  # Есть "лайки", проверено, можно удалять при низком score
-        IMMORTAL = LVL_LOCK_FOR_DELETION, 'Locked: Глубокий транс'       # Нельзя удалять, даже при низком score
+        CANDIDATE = 0, 'Candidate: Шум сознания'             # Свежая генерация. Запрет на удаление до Х дней.
+        LEVEL_1 = 10, 'Voted: Плеск бессознательного'     # Прогрето, есть "лайки", не проверено модератором, можно удалять при низком score
+        LEVEL_2 = 30, 'Moderated: Одобрено Мозговым Слизнем'  # Есть "лайки", проверено, можно удалять при низком score
+        IMMORTAL = 1000, 'Locked: Глубокий транс'       # Нельзя удалять, даже при низком score
         # Отрицательные / проблемные уровни (аномалии)
         SHAMED = -20, 'Шейминг (аномальный наплыв жалоб)'
         SUSPICIOUS = -10, 'Подозрение на накрутку (спайк лайков)'
@@ -49,6 +49,7 @@ class TbHypn0Item(models.Model):
     s_hash_id = models.CharField(
         max_length=16,
         unique=True,
+        editable=False,
         verbose_name="ID-Хэш",
     )
     s_title = models.CharField(
@@ -77,7 +78,7 @@ class TbHypn0Item(models.Model):
 
     # Популярность
     i_likes_count = models.PositiveIntegerField(
-        default=0,
+        default=1,
         db_index=True,
         verbose_name="Число лайков",
         help_text="Число лайков гипнотической SVG-картины. Поле используется для отображения в интерфейсе. Для расчета"
@@ -85,7 +86,7 @@ class TbHypn0Item(models.Model):
                   " <tt>Голоса/Лайка</tt> с учетом весов лайков и клаймов.",
     )
     i_views_count = models.PositiveIntegerField(
-        default=0,
+        default=1,
         verbose_name="Число просмотров",
     )
     i_claims_count = models.PositiveIntegerField(
@@ -155,7 +156,7 @@ class TbHypn0Item(models.Model):
         """Безопасный инкремент просмотров"""
         TbHypn0Item.objects.filter(id=self.id).update(i_views_count=F('i_views_count') + 1)
 
-    def vote(self, visitor_uuid_or_fp: str, direction: int = VOTE_LIKE) -> bool:
+    def vote(self, visitor_uuid_or_fp: str, direction: int | None = None) -> bool:
         """
         Универсальный метод учета голоса (лайк, жалоба или авторство).
 
@@ -169,6 +170,9 @@ class TbHypn0Item(models.Model):
         """
         if not visitor_uuid_or_fp:
             return False
+
+        if direction is None:
+            direction = TbVote.Direction.LIKE
 
         # Если передан сырой UUID устройства, вычисляем SHA256 отпечаток
         if len(visitor_uuid_or_fp) == 64:
@@ -214,36 +218,57 @@ class TbHypn0Item(models.Model):
         """Безопасный инкремент кликов по промо"""
         TbHypn0Item.objects.filter(id=self.id).update(i_promo_clicks=F('i_promo_clicks') + 1)
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, visitor_uuid_or_fp: str | None = None, **kwargs):
         """
-        Переопределенный метод save для:
-        1. Автоматического формирования s_hash_id (криптографический код)
+        Переопределенный метод save для TbHypn0Item.
 
-        ЛОГИКА s_hash_id:
-        - Для новых генераций: создаем код после получения ID
-        - Для старых генераций БЕЗ кода: кодируем существующий ID (миграция)
-        - Для старых генераций С кодом: не трогаем
+        ПРАВИЛА И СЦЕНАРИИ СОХРАНЕНИЯ:
+        ------------------------------
+        1. Создание новой картины (is_new=True):
+           - Создание возможно ТОЛЬКО с фронтенда при наличии согласия на отслеживание (visitor_uuid_or_fp).
+           - Если пользователь не "подчинился Гипножабе" (visitor_uuid_or_fp отсутствует), создание БЛОКИРУЕТСЯ
+             выбрасыванием PermissionError (защита от сохранения анонимных работ без автора).
+           - В рамках одной атомарной транзакции:
+             а) Сохраняется запись картины и генерируется self.pk.
+             б) Генерируется криптографический s_hash_id.
+             в) Создается обязательная авторская запись TbVote(Direction.AUTHOR).
+             г) Стартовый счетчик i_likes_count по умолчанию равен 1.
+
+        2. Редактирование существующей картины (is_new=False, например из Django Admin):
+           - Картина уже существует в БД (self.pk есть).
+           - Разрешено обычное обновление любых полей (название, уровень модерации, рейтинг и т.д.).
+           - Никакие авторские записи повторно не создаются.
         """
-        # 1. Проверяем нужно ли генерировать s_hash_id:
-        # - ИЛИ это новый объект (self.pk == None)
-        # - ИЛИ это старый объект без s_hash_id (миграция)
-        if not self.pk or not self.s_hash_id:
-            # Если это новая генерация, сначала сохраняем её, чтобы получить ID
-            if not self.pk:
-                # Сохраняем БЕЗ s_hash_id чтобы Django создал запись и присвоил pk
-                super().save(*args, **kwargs)
-                # После save() Django автоматически заполнит self.pk
+        is_new = self.pk is None
 
-            # Кодируем pk в компактный, необратимый код
-            # Пример: pk=42 → "QBErd8"
-            self.s_hash_id = Hashids(salt=HASHIDS_SALT, min_length=HASHIDS_MIN_LENGTH).encode(self.pk)
+        # 0. Блокировка создания новой картины без подчинения Гипножабе
+        if is_new and not visitor_uuid_or_fp:
+            raise PermissionError("Создание картины запрещено: пользователь не подчинился Гипножабе (отсутствует visitor UUID)")
 
-            # Сохраняем только поле s_hash_id (не перезаписываем остальное)
-            super().save(update_fields=['s_hash_id'])
-        else:
-            # Объект существует И уже имеет s_hash_id: сохраняем как обычно
-            # Не трогаем s_hash_id, он был сформирован при создании
+        # 1. Вычисляем хэш автора для новой картины
+        author_fp = None
+        if is_new and visitor_uuid_or_fp:
+            if len(visitor_uuid_or_fp) == 64:
+                author_fp = visitor_uuid_or_fp
+            else:
+                author_fp = hashlib.sha256(f"{visitor_uuid_or_fp}:{SECRET_KEY}".encode()).hexdigest()
+
+        with transaction.atomic():
+            # 2. Сохраняем объект в базу (для новых записей СУБД присваивает self.pk)
             super().save(*args, **kwargs)
+
+            # 3. Формируем s_hash_id, если его еще нет
+            if not self.s_hash_id:
+                self.s_hash_id = Hashids(salt=HASHIDS_SALT, min_length=HASHIDS_MIN_LENGTH).encode(self.pk)
+                super().save(update_fields=['s_hash_id'])
+
+            # 4. Регистрируем автора в TbVote (гарантированно после получения self.pk)
+            if is_new and author_fp:
+                TbVote.objects.create(
+                    k_item=self,
+                    i_direction=TbVote.Direction.AUTHOR,
+                    s_fingerprint=author_fp,
+                )
 
 
 class TbVote(models.Model):
@@ -259,9 +284,9 @@ class TbVote(models.Model):
     """
 
     class Direction(models.IntegerChoices):
-        LIKE = VOTE_LIKE, 'Like (+1)'
-        CLAIM = VOTE_CLAIM, 'Claim (-2)'
-        AUTHOR = VOTE_AUTHOR, 'Author Like (+2)'
+        LIKE = 1, 'Like (+1)'
+        CLAIM = -2, 'Claim (-2)'
+        AUTHOR = 2, 'Author Like (+2)'
 
     id = models.BigAutoField(
         primary_key=True,
