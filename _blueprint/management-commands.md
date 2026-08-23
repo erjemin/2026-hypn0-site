@@ -4,18 +4,18 @@
 
 ---
 
-## 1. `rescore_hypn0_items` — Пакетный пересчет рейтинга и детекция аномалий
+## 1. `rescore` — Пакетный пересчет рейтинга и детекция аномалий
 
-- **Путь:** `hypn0/hypn0_site/management/commands/rescore_hypn0_items.py`
+- **Путь:** `../hypn0/hypn0_site/management/commands/rescore.py`
 - **Назначение:** Пакетный фоновый пересчет рейтинга популярности (`f_score`) для всех активных картин и выявление аномалий (накрутка лайков / скоординированный шейминг).
 
 ### Базовый запуск:
 ```bash
 # Рабочий запуск
-poetry run python hypn0/manage.py rescore_hypn0_items
+poetry run python hypn0/manage.py rescore
 
 # Тестовый прогон (без записи изменений в базу)
-poetry run python hypn0/manage.py rescore_hypn0_items --dry-run
+poetry run python hypn0/manage.py rescore --dry-run
 ```
 
 ---
@@ -72,7 +72,7 @@ poetry run python hypn0/manage.py rescore_hypn0_items --dry-run
 
 ### Когда требуется запуск:
 1. При смене или ротации `HASHIDS_SALT` в `.env` / `settings.py`.
-2. При переносе/миграции базы данных между разными окружениями (Dev $\rightarrow$ Prod).
+2. При переносе/миграции базы данных между разными окружениями (Dev -> Prod).
 3. При обнаружении записей с пустыми или устаревшими `s_hash_id`.
 
 ### Базовый запуск:

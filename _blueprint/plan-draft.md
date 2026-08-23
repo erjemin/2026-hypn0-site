@@ -558,35 +558,35 @@ CLI больше не нужен.
 
 ## Файлы для создания (итого)
 
-| Файл                                                          | Назначение                      |
-|---------------------------------------------------------------|---------------------------------|
-| `hypn0/manage.py`                                             | Django CLI                      |
-| `hypn0/hypn0/__init__.py`                                     | Settings pkg                    |
-| `hypn0/hypn0/settings.py`                                     | Конфиг                          |
-| `hypn0/hypn0/urls.py`                                         | URL routing                     |
-| `hypn0/hypn0/wsgi.py`                                         | WSGI entry                      |
-| `hypn0/hypn0/templates/base.html`                             | Базовый шаблон                  |
-| `hypn0/hypn0_site/__init__.py`                                | App pkg                         |
-| `hypn0/hypn0_site/urls.py`                                    | URL app                         |
-| `hypn0/hypn0_site/views.py`                                   | Views                           |
-| `hypn0/hypn0_site/forms.py`                                   | Forms                           |
-| `hypn0/hypn0_site/models.py`                                  | TbHypn0Item, TbVote...          |
-| `hypn0/hypn0_site/services/halftone.py`                       | Ядро                            |
-| `hypn0/hypn0_site/templates/halftone/index.html`              | Главная                         |
-| `hypn0/hypn0_site/management/commands/rescore_hypn0_items.py` | Скоринг и детекция аномалий     |
-| `hypn0/hypn0_site/management/commands/rehash.py`              | Синхронизация s_hash_id с солью |
-| `hypn0/hypn0_site/management/commands/cleanup_storage.py`     | Очистка SmartRetention          |
-| `hypn0/hypn0_site/management/commands/cleanup_reports.py`     | Очистка по жалобам              |
-| `_blueprint/management-commands.md`                           | Документация CLI-команд         |
-| `public/static/css/site.css`                                  | Стили                           |
-| `public/static/js/site.js`                                    | JS                              |
-| `.env.sample`                                                 | Env template                    |
-| `Dockerfile`                                                  | Сборка                          |
-| `docker-compose.local.yml`                                    | Dev                             |
-| `docker-compose.prod.yml`                                     | Prod                            |
-| `config/nginx/hypn0-app--external-nginx.conf`                 | Nginx                           |
-| `.gitea/workflows/docker-publish.yaml`                        | CI/CD                           |
-| `database/.gitignore`                                         | Игнор БД                        |
+| Файл                                                      | Назначение                      |
+|-----------------------------------------------------------|---------------------------------|
+| `hypn0/manage.py`                                         | Django CLI                      |
+| `hypn0/hypn0/__init__.py`                                 | Settings pkg                    |
+| `hypn0/hypn0/settings.py`                                 | Конфиг                          |
+| `hypn0/hypn0/urls.py`                                     | URL routing                     |
+| `hypn0/hypn0/wsgi.py`                                     | WSGI entry                      |
+| `hypn0/hypn0/templates/base.html`                         | Базовый шаблон                  |
+| `hypn0/hypn0_site/__init__.py`                            | App pkg                         |
+| `hypn0/hypn0_site/urls.py`                                | URL app                         |
+| `hypn0/hypn0_site/views.py`                               | Views                           |
+| `hypn0/hypn0_site/forms.py`                               | Forms                           |
+| `hypn0/hypn0_site/models.py`                              | TbHypn0Item, TbVote...          |
+| `hypn0/hypn0_site/services/halftone.py`                   | Ядро                            |
+| `hypn0/hypn0_site/templates/halftone/index.html`          | Главная                         |
+| `hypn0/hypn0_site/management/commands/rescore.py`         | Скоринг и детекция аномалий     |
+| `hypn0/hypn0_site/management/commands/rehash.py`          | Синхронизация s_hash_id с солью |
+| `hypn0/hypn0_site/management/commands/cleanup_storage.py` | Очистка SmartRetention          |
+| `hypn0/hypn0_site/management/commands/cleanup_reports.py` | Очистка по жалобам              |
+| `_blueprint/management-commands.md`                       | Документация CLI-команд         |
+| `public/static/css/site.css`                              | Стили                           |
+| `public/static/js/site.js`                                | JS                              |
+| `.env.sample`                                             | Env template                    |
+| `Dockerfile`                                              | Сборка                          |
+| `docker-compose.local.yml`                                | Dev                             |
+| `docker-compose.prod.yml`                                 | Prod                            |
+| `config/nginx/hypn0-app--external-nginx.conf`             | Nginx                           |
+| `.gitea/workflows/docker-publish.yaml`                    | CI/CD                           |
+| `database/.gitignore`                                     | Игнор БД                        |
 
 ## Файлы для модификации
 
