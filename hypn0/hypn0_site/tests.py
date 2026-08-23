@@ -120,6 +120,9 @@ class HalftoneViewTests(TestCase):
         self.assertContains(response, 'id="preview"')
         self.assertContains(response, 'name="csrfmiddlewaretoken"')
         self.assertContains(response, 'X-CSRFToken')
+        self.assertContains(response, "handleFileChange")
+        self.assertContains(response, "imagePreviewUrl")
+        self.assertContains(response, "Гипножаба облизывается на:")
         # Проверяем, что csrf_token не пустой в hx-headers
         content = response.content.decode("utf-8")
         self.assertNotIn('hx-headers=\'{"X-CSRFToken": ""}\'', content)

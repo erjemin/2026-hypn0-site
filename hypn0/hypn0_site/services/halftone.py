@@ -86,7 +86,7 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
 def generate_halftone_svg(
     image: Union[Image.Image, BinaryIO, bytes, str],
     *,
-    cols: int = 80,
+    cols: int = 35,
     max_radius: int = 8,
     shape: str = "circle",
     color: str = "#a855ff",
