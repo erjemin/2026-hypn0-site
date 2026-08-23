@@ -32,9 +32,9 @@ class HalftoneGenerateForm(forms.Form):
         required=False,
     )
     cols = forms.IntegerField(
-        min_value=20,
-        max_value=200,
-        initial=80,
+        min_value=10,
+        max_value=80,
+        initial=35,
         required=False,
     )
     max_radius = forms.IntegerField(

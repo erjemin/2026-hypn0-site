@@ -66,6 +66,19 @@ class HalftoneServiceTests(TestCase):
         svg = generate_halftone_svg(buf.getvalue(), cols=20)
         self.assertIn("<svg", svg)
 
+    def test_generate_aspect_ratios(self):
+        # Проверяем, что для вертикального изображения (100x300) сетка не раздувается
+        tall_img = Image.new("RGB", (100, 300), color="black")
+        svg_tall = generate_halftone_svg(tall_img, cols=30, max_radius=5)
+        # При cols=30 наибольшая сторона (высота) должна иметь 30 точек, а ширина 10
+        # step = 5 * 2 + 2 = 12 -> width = 10 * 12 = 120, height = 30 * 12 = 360
+        self.assertIn('viewBox="0 0 120 360"', svg_tall)
+
+        # Для горизонтального изображения (300x100)
+        wide_img = Image.new("RGB", (300, 100), color="black")
+        svg_wide = generate_halftone_svg(wide_img, cols=30, max_radius=5)
+        self.assertIn('viewBox="0 0 360 120"', svg_wide)
+
 
 class HalftoneFormTests(TestCase):
     """Тестирование формы валидации HalftoneGenerateForm."""

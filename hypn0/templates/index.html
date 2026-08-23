@@ -11,7 +11,7 @@
          colors: ['#a855ff'],
 
          /* Параметры сетки и трансформаций */
-         cols: 80,       /* Плотность галлюцинации (число колонок сетки, 20-200) */
+         cols: 35,       /* Плотность галлюцинации (число ячеек сетки по длинной стороне, 10-80) */
          radius: 8,      /* Размер гипно-точки (максимальный радиус элементов, 3-20) */
          blink: 6,       /* Интенсивность мерцания CSS-анимации (0-10) */
          rotation: 0,    /* Укачивание (угол поворота элементов, от -15° до +15°) */
@@ -292,12 +292,12 @@
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Плотность галлюцинации</label>
                 <span class="text-xs transition-colors duration-300"
-                      :class="cols >= 140 ? 'text-red-600' : (cols > 80 ? 'text-yellow-500' : 'text-emerald-600')"
+                      :class="cols >= 60 ? 'text-red-600' : (cols > 50 ? 'text-yellow-500' : 'text-emerald-600')"
                       x-text="cols"></span>
               </div>
-              <input type="range" name="cols" min="20" max="200" x-model="cols"
+              <input type="range" name="cols" min="10" max="80" x-model="cols"
                      @input="$el.dispatchEvent(new CustomEvent('input-change'))"
-                     :class="cols >= 140 ? 'accent-red-600' : (cols > 80 ? 'accent-yellow-500' : 'accent-emerald-500')"
+                     :class="cols >= 60 ? 'accent-red-600' : (cols > 50 ? 'accent-yellow-500' : 'accent-emerald-500')"
                      class="w-full transition-all duration-300">
             </div>
             {# РАЗМЕР ЭЛЕМЕНТА #}<div>
