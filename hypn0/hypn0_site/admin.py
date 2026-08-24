@@ -1,6 +1,112 @@
+# Кастомная конфигурация Django Admin для Hypn0.
+# Регистрируем модели с удобным интерфейсом.
+
+from django import forms
 from django.contrib import admin
+from django.forms import Textarea
 from django.utils.html import format_html
-from .models import TbHypn0Item, TbVote, TbBlogPost
+from .models import (
+    TbHypn0Item,
+    TbVote,
+    TbBlogPost
+)
+
+# ============================================================================
+# МИКСИНЫ ДЛЯ АДМИНКИ
+# ============================================================================
+class RequestInFormMixin(admin.ModelAdmin):
+    """
+    Миксин для передачи request объекта в форму.
+
+    Используется когда форма нуждается в доступе к request для проверки POST параметров
+    или другой информации о текущем HTTP-запросе.
+
+    Переопределяет get_form() и передает request в __init__ формы через kwargs.
+    """
+
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Переопределяем get_form чтобы передать request в форму.
+        Создаем оборачивающий класс который передаст request в __init__.
+        """
+        FormClass = super().get_form(request, obj, **kwargs)
+
+        # Сохраняем request в замыкании для доступа в классе
+        request_ref = request
+
+        class FormWithRequest(FormClass):
+            """Оборачивающий класс, который передает request при инстанцировании"""
+            def __init__(form_instance, *args, **init_kwargs):
+                # Добавляем request в kwargs перед вызовом __init__ родителя
+                init_kwargs['request'] = request_ref
+                super().__init__(*args, **init_kwargs)
+
+        return FormWithRequest
+
+
+class CodeMirrorFormMixin(forms.ModelForm):
+    """
+    Миксин для форм с поддержкой CodeMirror редактора.
+
+    Предоставляет:
+    - Готовый Media класс с CSS и JS для CodeMirror
+    - Helper метод setup_codemirror_field() для конфигурации полей
+    - Базовые атрибуты для активации CodeMirror
+
+    Использование:
+        class MyForm(CodeMirrorFormMixin):
+            class Meta:
+                model = MyModel
+                fields = (...)
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.setup_codemirror_field('field_name', 'json', 'codemirror-width-l')
+    """
+
+    # ===== MEDIA КЛАСС ДЛЯ CODEMIRROR =====
+    class Media:
+        """Подключаем CSS и JS для CodeMirror редактора"""
+        css = {
+            'all': ('codemirror/codemirror-styles.css',)  # Стили для CodeMirror
+        }
+        js = (
+            'codemirror/editor.js',              # Основной CodeMirror
+            'codemirror/codemirror-patch.js',    # Патч для управления высотой/шириной
+        )
+
+    # ===== БАЗОВЫЕ АТРИБУТЫ CODEMIRROR =====
+    CODEMIRROR_ATTRS_BASE = {
+        'data-codemirror-editor': '1',
+        'data-width': '100%',  # Ширина для патча (100% займет полную ширину)
+    }
+
+    def setup_codemirror_field(self, field_name: str, language: str = 'text', css_class: str = 'codemirror-width-l'):
+        """
+        Конфигурирует поле для использования CodeMirror редактором.
+
+        Применяет Textarea виджет с нужными атрибутами и CSS классами для CodeMirror.
+
+        Args:
+            field_name: Имя поля в форме (например, 's_label')
+            language: Язык для подсветки синтаксиса (text, json, html, url и т.д.)
+            css_class: CSS класс для управления размерами (codemirror-width-s, codemirror-width-l и т.д.)
+
+        Пример:
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.setup_codemirror_field('s_label', 'text', 'codemirror-width-xl codemirror-no-lines')
+                self.setup_codemirror_field('j_metadata', 'json', 'codemirror-width-l')
+        """
+        # Собираем атрибуты для поля
+        attrs = {
+            **self.CODEMIRROR_ATTRS_BASE,
+            'data-language': language,
+            'class': css_class,
+        }
+
+        # Применяем Textarea виджет с атрибутами
+        self.fields[field_name].widget = Textarea(attrs=attrs)
 
 
 @admin.register(TbHypn0Item)
