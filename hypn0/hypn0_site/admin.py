@@ -223,7 +223,8 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
             )
         return "Нет файла"
 
-
+# ----
+# АДМИНКА ЛАЙКОВ/ДИСЛАЙКОВ
 @admin.register(TbVote)
 class TbVoteAdmin(admin.ModelAdmin):
     """
@@ -246,11 +247,100 @@ class TbVoteAdmin(admin.ModelAdmin):
         return f"{obj.s_fingerprint[:12]}..."
 
 
+# ----
+# АДМИНКА БЛОГА
+# Кастомная форма
+class BlogPostAdminForm(CodeMirrorFormMixin):
+    """
+    Кастомная форма для админки потов в блог (TbBlogPost).
+    Добавляет виджеты CodeMirror для текстовых полей.
+    """
+    # Виртуальные поля для настройки типографа
+    etp_enable = forms.BooleanField(
+        label="Включить типограф",
+        initial=False,
+        required=False,
+        help_text="Включить автоматическую типографику для HTML полей (заголовок, тизер, контент)&nbsp;&nbsp;&nbsp;"
+    )
+    etp_language = forms.ChoiceField(
+        label="Язык типографики",
+        choices=[('ru', 'Русский'), ('en', 'English'), ('ru,en', 'Ru + En')],
+        initial='ru',
+        required=False
+    )
+    etp_quotes = forms.BooleanField(
+        label="Кавычки",
+        initial=True,
+        required=False,
+        help_text="Заменять кавычки<br/>(«ёлочки» для русского, “лапки” для английского)&nbsp;&nbsp;&nbsp;"
+    )
+    etp_hyphenation = forms.BooleanField(
+        label="Расставлять переносы",
+        initial=True,
+        required=False,
+        help_text="Расставлять мягкие переносы (&amp;shy;)&nbsp;&nbsp;&nbsp;<br/>"
+                  "в словах длиннее <b>14</b> символов&nbsp;&nbsp;&nbsp;"
+    )
+    etp_sanitize = forms.BooleanField(
+        label="Очистка HTML",
+        initial=False,
+        required=False,
+        help_text="Удалять весь HTML из исходного текста&nbsp;&nbsp;&nbsp;"
+    )
+    etp_hanging_punctuation = forms.BooleanField(
+        label="Висячая пунктуация",
+        initial=False,
+        required=False,
+        help_text="Выносить пунктуацию в начало строк<br/>&nbsp;&nbsp;&nbsp;"
+                  "(только для заголовков... для тизера и контента отключается автоматически)&nbsp;&nbsp;&nbsp;"
+    )
+    etp_mode = forms.ChoiceField(
+        label="Режим вывода",
+        choices=[('mixed', 'Смешанный (Mixed)'), ('unicode', 'Юникод (Unicode)'), ('mnemonic', 'Мнемоники')],
+        initial='mixed',
+        required=False,
+        help_text="Формат спецсимволов (например, кавычек, тире, многоточий) в&nbsp;HTML: смешанный, юникод"
+                  "&nbsp;или мнемоники&nbsp;&nbsp;&nbsp;"
+    )
+
+    class Meta:
+        model = TbBlogPost
+        fields = (
+            # Виртуальные поля для настройки типографа
+            'etp_enable', 'etp_language', 'etp_quotes', 'etp_hyphenation', 'etp_sanitize',
+            'etp_hanging_punctuation', 'etp_mode',
+            # Остальные поля модели TbArticle
+            's_title', 'slug', 's_teaser', 's_content', 'f_cover_img',
+            'is_published', 'd_published_at',
+        )
+
+    def __init__(self, *args, **kwargs):
+        """
+        При инициализации формы подгружаем CodeMirror редактор.
+        Получаем request из kwargs, переданных из get_form_kwargs в AdminClass.
+        """
+        # Извлекаем request из kwargs если он есть
+        self.request = kwargs.pop('request', None)
+
+        super().__init__(*args, **kwargs)
+
+        # Конфигурируем поля для CodeMirror
+        self.setup_codemirror_field('s_title', language='text',
+                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('slug', language='text',
+                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('s_teaser', language='html',
+                                    css_class='codemirror-width-l codemirror-min-height-5')
+        self.setup_codemirror_field('s_content', language='html',
+                                    css_class='codemirror-width-xl codemirror-min-height-10')
+
 @admin.register(TbBlogPost)
-class TbBlogPostAdmin(admin.ModelAdmin):
+class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
     """
     Управление статьями блога, документацией и инфо-страницами (HTML + etpgrf).
     """
+    form = BlogPostAdminForm
+
     list_display = ("id", "s_title_display", "slug", "is_published", "d_published_at", "d_created_at")
     list_display_links = ("id", "s_title_display")
     list_filter = ("is_published", "d_published_at", "d_created_at")
