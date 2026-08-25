@@ -5,6 +5,7 @@ from django import forms
 from django.contrib import admin
 from django.forms import Textarea
 from django.utils.html import format_html
+from django.http import HttpRequest
 from .models import (
     TbHypn0Item,
     TbVote,
@@ -24,7 +25,7 @@ class RequestInFormMixin(admin.ModelAdmin):
     Переопределяет get_form() и передает request в __init__ формы через kwargs.
     """
 
-    def get_form(self, request, obj=None, **kwargs):
+    def get_form(self, request: HttpRequest, obj=None, **kwargs):
         """
         Переопределяем get_form чтобы передать request в форму.
         Создаем оборачивающий класс который передаст request в __init__.
@@ -330,7 +331,7 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
         self.setup_codemirror_field('slug', language='text',
                                     css_class='codemirror-width-l codemirror-no-lines')
         self.setup_codemirror_field('s_teaser', language='html',
-                                    css_class='codemirror-width-l codemirror-min-height-5')
+                                    css_class='codemirror-width-xl codemirror-min-height-5')
         self.setup_codemirror_field('s_content', language='html',
                                     css_class='codemirror-width-xl codemirror-min-height-10')
 
@@ -348,46 +349,25 @@ class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
     prepopulated_fields = {"slug": ("s_title",)}
     readonly_fields = ("id", "d_created_at", "d_updated_at")
     fieldsets = (
-        (
-            "Публикация",
-            {
-                "fields": (
-                    "is_published",
-                    "d_published_at",
-                )
-            },
-        ),
-        (
-            "Заголовок и URL",
-            {
-                "fields": (
-                    "s_title",
-                    "slug",
-                    "f_cover_img",
-                )
-            },
-        ),
-        (
-            "Контент статьи (HTML + etpgrf)",
-            {
-                "fields": (
-                    "s_teaser",
-                    "s_content",
-                ),
-                "description": "HTML-текст, типографированный etpgrf. Поддерживается чистая верстка.",
-            },
-        ),
-        (
-            "Системные даты",
-            {
-                "fields": (
-                    "id",
-                    "d_created_at",
-                    "d_updated_at",
-                ),
-                "classes": ("collapse",),
-            },
-        ),
+        ("Атрибуты публикации", {
+            "fields": ("is_published", "slug", "d_published_at", )
+        }),
+        ("Основные поля", {
+            "fields": ("s_title", "f_cover_img", "s_teaser", "s_content", ),
+            "description": "В полях допускается HTML, поддерживается чистая верстка, настройки типографа etpgrf в"
+                           " следующем блоке.",
+        }),
+        ('Типограф', {
+            'fields': (('etp_enable',), ('etp_language', 'etp_mode'),
+                       ('etp_quotes', 'etp_hyphenation', 'etp_sanitize', 'etp_hanging_punctuation')),
+            # 'classes': ('collapse',),
+            'description': 'Типограф применяется при сохранении и срабатывает на HTML-поля (ЗАГОЛОВОК, ТИЗЕР СТАТЬИ'
+                           ' и СТАТЬЯ). Если выключить — HTML будет сохранен без изменений.',
+        }),
+        ("Системные даты", {
+            "fields": ("id", "d_created_at", "d_updated_at", ),
+            "classes": ("collapse",),
+        }),
     )
 
     @admin.display(description="Заголовок")
