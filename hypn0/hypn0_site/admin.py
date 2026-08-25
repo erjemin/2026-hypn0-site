@@ -1,16 +1,40 @@
 # Кастомная конфигурация Django Admin для Hypn0.
 # Регистрируем модели с удобным интерфейсом.
 
+import etpgrf
+import random
+import re
+import pytils
 from django import forms
 from django.contrib import admin
 from django.forms import Textarea
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.http import HttpRequest
+from bs4 import BeautifulSoup
+from html import unescape
 from .models import (
     TbHypn0Item,
     TbVote,
     TbBlogPost
 )
+
+# ============================================================================
+# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+# ============================================================================
+def clean_html_to_plain_text(html_content: str) -> str:
+    """
+    Очищает HTML-контент от тегов, скриптов, стилей и декодирует HTML-сущности.
+    Возвращает чистый читаемый текст.
+    """
+    if not html_content:
+        return ""
+    soup = BeautifulSoup(html_content, "html.parser")
+    # Скрипты, стили и форматирование вырезаем целиком
+    for tag in soup(["script", "style", "noscript", "code", "kbd", "pre"]):
+        tag.decompose()
+    return unescape(soup.get_text()).strip()
+
 
 # ============================================================================
 # МИКСИНЫ ДЛЯ АДМИНКИ
@@ -211,7 +235,9 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
 
     @admin.display(description="Название (HTML)")
     def title_preview(self, obj):
-        return format_html(obj.s_title)
+        if obj and obj.s_title:
+            return mark_safe(unescape(obj.s_title))
+        return "—"
 
     @admin.display(description="Превью SVG")
     def svg_preview(self, obj):
@@ -342,7 +368,7 @@ class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
     """
     form = BlogPostAdminForm
 
-    list_display = ("id", "s_title_display", "slug", "is_published", "d_published_at", "d_created_at")
+    list_display = ("id", "article_thumbnail", "s_title_display", "slug", "is_published", "d_published_at", "d_created_at")
     list_display_links = ("id", "s_title_display")
     list_filter = ("is_published", "d_published_at", "d_created_at")
     search_fields = ("s_title", "slug", "s_teaser", "s_content")
@@ -370,6 +396,123 @@ class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description="Обложка")
+    def article_thumbnail(self, obj):
+        """
+        Отображает миниатюру изображения статьи в списке (аккуратный квадрат 36x36 px).
+        Работает со стандартным ImageField (f_cover_img) без внешних библиотек.
+        """
+        if obj and obj.f_cover_img:
+            try:
+                return format_html(
+                    '<img src="{}" width="20" height="20" style="border: 1px solid silver;" title="{}" alt="" />',
+                    obj.f_cover_img.url,
+                    obj.s_title,
+                )
+            except Exception:
+                return mark_safe('<span style="color: #999">(ошибка)</span>')
+
+        return mark_safe(
+            '<img width="20" height="20" style="border: 1px solid silver; background: #90909060;" title="Нет картинки" alt="" />'
+        )
+
+    def save_model(self, request, obj, form, change):
+        """
+        Переопределяем save_model для применения:
+         1. Tипографа etpgrf для полей s_title, s_teaser и s_content
+         2. Генерации Slug c транслитерацией
+
+        Args:
+            request: HTTP-запрос (содержит info о пользователе)
+            obj: инстанция TbArticle для сохранения
+            form: валидированная форма
+            change: True если редактирование, False если создание
+        """
+        # 1. ТИПОГРАФ ETPGRF
+        # Проверяем, включен ли типограф
+        if form.cleaned_data.get('etp_enable', True):
+            # Получаем все настройки из формы
+            langs = form.cleaned_data.get('etp_language', 'ru').split(',')
+
+            # 1.1. LayoutProcessor: включаем layout с базовыми настройками
+            layout_option = etpgrf.LayoutProcessor(
+                langs=langs,
+                process_initials_and_acronyms=True,
+                process_units=True
+            )
+
+            # 1.2. Hyphenator (переносы слов)
+            hyphenation_option = False
+            if form.cleaned_data.get('etp_hyphenation', True):
+                hyphenation_option = etpgrf.Hyphenator(
+                    langs=langs,
+                    max_unhyphenated_len=14
+                )
+
+            # 1.3. Sanitizer (очистка HTML перед типографированием)
+            # Режимы: 'html' (удаляет все теги), 'etp' (только висячая пунктуация), None/False (ничего не делает)
+            if form.cleaned_data.get('etp_sanitize', True):
+                sanitizer_option = 'html'  # Удаляет все HTML-теги
+            else:
+                sanitizer_option = False  # Санитайзер отключен
+
+            # 1.4. Базовые настройки типографа (используются для всех полей)
+            base_options = {
+                'langs': langs,
+                'process_html': True,
+                'quotes': form.cleaned_data.get('etp_quotes', True),
+                'layout': layout_option,
+                'unbreakables': True,
+                'hyphenation': hyphenation_option,
+                'sanitizer': sanitizer_option,
+                'symbols': True,
+                'mode': form.cleaned_data.get('etp_mode', 'mixed'),
+            }
+
+            # 1.5. Для заголовков: висячая пунктуация может быть включена
+            options_title = {
+                **base_options,
+                'hanging_punctuation': form.cleaned_data.get('etp_hanging_punctuation', True),
+            }
+            t_title = etpgrf.Typographer(**options_title)
+            if obj.s_title:
+                obj.s_title = t_title.process(obj.s_title)
+
+            # 1.6. Для тизера и контента: висячая пунктуация всегда отключена
+            options_body = {
+                **base_options,
+                'hanging_punctuation': False,
+            }
+            t_body = etpgrf.Typographer(**options_body)
+            if obj.s_teaser:
+                obj.s_teaser = t_body.process(obj.s_teaser)
+            if obj.s_content:
+                obj.s_content = t_body.process(obj.s_content)
+
+        # 2. SLUG
+        if not obj.slug:
+            # 2.0. Если вдруг нет заголовка, то генерируем случайный slug
+            if not obj.s_title:
+                obj.slug = f"title-{random.randint(1, 4095):03x}"
+            else:
+                # 2.1. Очищаем текст от HTML и спецсимволов через вспомогательную функцию
+                plain_title = clean_html_to_plain_text(obj.s_title)
+
+                # 2.2. Транслитерируем и создаем slug (pytils подходит для русского)
+                obj.slug = pytils.translit.slugify(plain_title) if plain_title else ""
+
+                # 2.3. Нормализуем множественные дефисы, удаляем дефисы в начале/конце
+                obj.slug = re.sub(pattern=r"-+", repl="-", string=obj.slug).strip("-")
+
+                # 2.4. Если все еще нет slug (например заголовок из спец-символов) — генерируем
+                obj.slug = obj.slug or f"title-{random.randint(1, 4095):03x}"
+
+        # 3. Вызываем родительский save_model который вызовет obj.save()
+        super().save_model(request, obj, form, change)
+
     @admin.display(description="Заголовок")
     def s_title_display(self, obj):
-        return format_html(obj.s_title)
+        # Отображаем HTML-заголовок статьи как безопасный HTML
+        if obj and obj.s_title:
+            return mark_safe(unescape(obj.s_title))
+        return "—"

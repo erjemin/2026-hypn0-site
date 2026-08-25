@@ -359,6 +359,8 @@ class TbBlogPost(models.Model):
     )
     slug = models.SlugField(
         max_length=200,
+        blank=True,
+        default="",
         unique=True,
         verbose_name="URL-слаг",
     )
