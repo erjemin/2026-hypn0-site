@@ -447,6 +447,17 @@ tests = ["coverage (>=7.4.2)", "defusedxml", "markdown2", "olefile", "packaging"
 xmp = ["defusedxml"]
 
 [[package]]
+name = "pytils"
+version = "0.4.4"
+description = "Russian-specific string utils"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pytils-0.4.4-py3-none-any.whl", hash = "sha256:e54c16465a5fdb65d414e2da8045e6cc6de79889acda6143dcef2e1e86a1a840"},
+    {file = "pytils-0.4.4.tar.gz", hash = "sha256:9992a96caad57daa211584df1da4fd825f11e836d3ed93011785f1d02ab6f0ca"},
+]
+
+[[package]]
 name = "regex"
 version = "2026.7.19"
 description = "Alternative regular expression module, to replace re."
@@ -634,4 +645,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.14"
-content-hash = "3bb1fd6feb86209853cb372dc9282c9d7bd3211d10a0d3704545247bddfaab89"
+content-hash = "61448c711939177b8920ed0842c4f9735273055dd3f61aa877b196dc17922631"
