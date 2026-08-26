@@ -5,7 +5,9 @@ from django.urls import reverse
 from PIL import Image
 
 from .forms import HalftoneGenerateForm
-from .services.halftone import encode_to_base36, generate_halftone_svg
+from .models import TbHypn0Item, TbVote
+from .services.halftone import encode_to_base36, generate_halftone_svg, prepare_gallery_svg
+from .services.naming import generate_hypno_title, generate_title_openrouter
 
 
 class HalftoneServiceTests(TestCase):
@@ -205,3 +207,100 @@ class HalftoneViewTests(TestCase):
         self.assertContains(response, "<svg")
         self.assertContains(response, 'points="0,-6')
         self.assertContains(response, "like-to-gallery")
+
+
+class NamingServiceTests(TestCase):
+    """Тестирование сервиса гипнотических названий (services/naming.py)."""
+
+    def test_generate_hypno_title(self):
+        title = generate_hypno_title(seed=42)
+        self.assertIsInstance(title, str)
+        self.assertTrue(len(title) > 5)
+
+        # Проверка детерминированности по seed
+        self.assertEqual(generate_hypno_title(seed=42), title)
+
+    def test_openrouter_stub(self):
+        res = generate_title_openrouter(b"dummy_bytes")
+        self.assertIsNone(res)
+
+
+class GalleryPreparationTests(TestCase):
+    """Тестирование подготовки SVG к галерейному хранению."""
+
+    def test_prepare_gallery_svg(self):
+        raw_svg = '<svg><style>.shape{animation:noise 1s}</style><g></g></svg>'
+        prepared = prepare_gallery_svg(raw_svg)
+        self.assertIn("svg:not(:hover)", prepared)
+        self.assertIn("animation-play-state:paused!important", prepared)
+
+
+class PublishViewTests(TestCase):
+    """Тестирование эндпоинта публикации кандидата в галерею (/publish)."""
+
+    def setUp(self):
+        self.client = Client()
+        self.sample_svg = '<svg xmlns="http://www.w3.org/2000/svg"><style>.shape{color:red}</style><g><circle/></g></svg>'
+
+    def test_publish_without_cookie_returns_slug_protest(self):
+        response = self.client.post(
+            reverse("hypn0_site:publish"),
+            data={
+                "svg_content": self.sample_svg,
+                "shape": "circle",
+                "cols": "35",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Мозговые слизняки протестуют!")
+        self.assertContains(response, "Подчиниться и опубликовать")
+        self.assertEqual(TbHypn0Item.objects.count(), 0)
+
+    def test_publish_with_cookie_success(self):
+        vid = "123e4567-e89b-12d3-a456-426614174000"
+        self.client.cookies["hypn0_vid"] = vid
+
+        response = self.client.post(
+            reverse("hypn0_site:publish"),
+            data={
+                "svg_content": self.sample_svg,
+                "shape": "diamond",
+                "cols": "40",
+                "max_radius": "6",
+                "blink": "7",
+                "rotation": "5",
+                "scale": "950",
+                "angle": "10",
+                "color": "#10b981",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Уже в галерее транса")
+        self.assertContains(response, "идет прорастание психо-паутины...")
+
+        # Проверяем запись в БД
+        self.assertEqual(TbHypn0Item.objects.count(), 1)
+        item = TbHypn0Item.objects.first()
+        self.assertTrue(len(item.s_hash_id) >= 6)
+        self.assertIn(f"#{item.s_hash_id}", response.content.decode("utf-8"))
+        self.assertEqual(item.i_level, TbHypn0Item.Level.CANDIDATE)
+        self.assertEqual(item.i_likes_count, 1)
+        self.assertEqual(item.j_metadata["shape"], "diamond")
+        self.assertEqual(item.j_metadata["cols"], 40)
+        self.assertEqual(item.j_metadata["color"], "#10b981")
+
+        # Проверяем авторский голос в TbVote
+        self.assertEqual(TbVote.objects.count(), 1)
+        author_vote = TbVote.objects.first()
+        self.assertEqual(author_vote.k_item, item)
+        self.assertEqual(author_vote.i_direction, TbVote.Direction.AUTHOR)
+
+    def test_publish_empty_svg_returns_error(self):
+        self.client.cookies["hypn0_vid"] = "123e4567-e89b-12d3-a456-426614174000"
+        response = self.client.post(
+            reverse("hypn0_site:publish"),
+            data={"svg_content": ""},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Нет данных SVG для публикации")
+        self.assertEqual(TbHypn0Item.objects.count(), 0)

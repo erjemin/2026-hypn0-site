@@ -8,6 +8,7 @@ app_name = "hypn0_site"
 urlpatterns = [
     path("", views.index, name="index"),
     path("generate", views.generate, name="generate"),
+    path("publish", views.publish, name="publish"),
 ]
 
 if settings.DEBUG:

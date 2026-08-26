@@ -260,3 +260,24 @@ def generate_halftone_svg(
     )
 
     return svg_template
+
+
+def prepare_gallery_svg(svg_content: str) -> str:
+    """
+    Модифицирует SVG для долговременного хранения в галерее:
+    добавляет CSS-правила, чтобы в изолированном контексте (<img>) анимация
+    находилась на паузе по умолчанию и запускалась только при наведении (:hover),
+    предотвращая перегрузку CPU/GPU браузера при выводе сетки карточек.
+    """
+    if not svg_content:
+        return svg_content
+
+    hover_css = (
+        "svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,"
+        "svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}"
+    )
+
+    if "</style>" in svg_content:
+        return svg_content.replace("</style>", f"{hover_css}</style>", 1)
+
+    return svg_content

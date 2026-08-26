@@ -1,0 +1,59 @@
+{% if not_agreed %}
+<!-- Сообщение от протестующих мозговых слизней (Zero-PII / отсутствие куки) -->
+<div id="gallery-candidate-action" class="pointer-events-auto bg-amber-500/95 dark:bg-amber-600/95 text-stone-900 dark:text-stone-100 p-4 rounded-2xl shadow-2xl backdrop-blur-md max-w-sm border border-amber-300 dark:border-amber-400 animate-in fade-in zoom-in-95 duration-200">
+  <div class="flex items-start gap-3">
+    <div class="w-8 h-8 shrink-0 flex items-center justify-center bg-amber-600 dark:bg-amber-700 text-white rounded-full text-lg shadow-inner">
+      🐌
+    </div>
+    <div class="space-y-2">
+      <h4 class="font-bold text-xs uppercase tracking-wide text-amber-950 dark:text-amber-100">Мозговые слизняки протестуют!</h4>
+      <p class="text-xs leading-relaxed opacity-95">
+        Они наябедничали Гипножабе, что вы ещё не подчинились и сопротивляетесь её воле. Только истинно подчинившийся разумом удостаивается чести попасть в галерею транса!
+      </p>
+
+      <form hx-post="{% url 'hypn0_site:publish' %}"
+            hx-target="#gallery-candidate-action"
+            hx-swap="outerHTML"
+            class="pt-1 flex items-center gap-2">
+        {% csrf_token %}
+        <textarea name="svg_content" class="hidden">{{ svg_content }}</textarea>
+        <input type="hidden" name="shape" value="{{ shape }}">
+        <input type="hidden" name="cols" value="{{ cols }}">
+        <input type="hidden" name="max_radius" value="{{ max_radius }}">
+        <input type="hidden" name="blink" value="{{ blink }}">
+        <input type="hidden" name="rotation" value="{{ rotation }}">
+        <input type="hidden" name="scale" value="{{ scale }}">
+        <input type="hidden" name="angle" value="{{ angle }}">
+        <input type="hidden" name="color" value="{{ color }}">
+
+        <button type="submit"
+                @click="const vid = crypto.randomUUID(); localStorage.setItem('hypn0_vid', vid); document.cookie = 'hypn0_vid=' + vid + '; path=/; max-age=63072000; SameSite=Lax'; const popup = document.getElementById('allow-tracking-popup'); if (popup) popup.style.display = 'none';"
+                class="bg-stone-900 hover:bg-black text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          Подчиниться и опубликовать
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% elif success %}
+<!-- Успешная фиксация кандидата в галерее транса -->
+<div id="gallery-candidate-action" class="pointer-events-auto flex flex-col sm:flex-row items-start sm:items-center gap-2.5 bg-purple-950/90 hover:bg-purple-950 text-purple-100 text-xs font-medium px-4 py-2.5 rounded-2xl sm:rounded-full shadow-2xl backdrop-blur-md border border-purple-500/40 animate-in fade-in duration-300">
+  <div class="flex items-center gap-2">
+    <span class="relative flex h-2.5 w-2.5">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+    </span>
+    <span class="font-semibold text-emerald-300">Уже в галерее транса</span>
+  </div>
+  <span class="hidden sm:inline opacity-40">•</span>
+  <span class="opacity-90 italic">идет прорастание психо-паутины...</span>
+  <span class="font-mono text-[11px] bg-purple-900/80 text-purple-300 border border-purple-400/30 px-2 py-0.5 rounded-md">#{{ item.s_hash_id }}</span>
+</div>
+
+{% elif error %}
+<!-- Ошибка публикации -->
+<div id="gallery-candidate-action" class="pointer-events-auto flex items-center gap-3 bg-rose-600/90 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-xl backdrop-blur-md border border-rose-400/30">
+  <span>{{ error }}</span>
+</div>
+{% endif %}

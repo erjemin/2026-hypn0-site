@@ -12,15 +12,40 @@
   {{ svg_content|safe }}
 </div>
 
-<!-- Плавающие кнопки действий -->
-<div class="absolute bottom-6 right-6 flex items-center gap-3 translate-y-20 group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
-  <button id="like-to-gallery" type="button" title="Нравится!"
-          class="pointer-events-auto flex items-center gap-2 bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer">
-    <span>Кандидат в галерею транса</span>
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-    </svg>
-  </button>
+<!-- Плавающий блок кандидата в галерею -->
+<div class="absolute bottom-6 right-6 flex items-center gap-3 translate-y-20 group-hover:translate-y-0 transition-transform duration-300 pointer-events-none z-10">
+  <div id="gallery-candidate-action" class="pointer-events-auto" x-data="{ isPublishing: false }">
+    <form hx-post="{% url 'hypn0_site:publish' %}"
+          hx-target="#gallery-candidate-action"
+          hx-swap="outerHTML"
+          @submit="isPublishing = true">
+      {% csrf_token %}
+      <textarea name="svg_content" class="hidden">{{ svg_content }}</textarea>
+      <input type="hidden" name="shape" value="{% if form_data.shape %}{{ form_data.shape }}{% else %}circle{% endif %}">
+      <input type="hidden" name="cols" value="{% if form_data.cols %}{{ form_data.cols }}{% else %}35{% endif %}">
+      <input type="hidden" name="max_radius" value="{% if form_data.max_radius %}{{ form_data.max_radius }}{% else %}8{% endif %}">
+      <input type="hidden" name="blink" value="{% if form_data.blink is not None %}{{ form_data.blink }}{% else %}6{% endif %}">
+      <input type="hidden" name="rotation" value="{% if form_data.rotation is not None %}{{ form_data.rotation }}{% else %}0{% endif %}">
+      <input type="hidden" name="scale" value="{% if form_data.scale %}{{ form_data.scale }}{% else %}980{% endif %}">
+      <input type="hidden" name="angle" value="{% if form_data.angle is not None %}{{ form_data.angle }}{% else %}0{% endif %}">
+      <input type="hidden" name="color" value="{% if primary_color %}{{ primary_color }}{% else %}#a855ff{% endif %}">
+
+      <button id="like-to-gallery" type="submit" title="Отправить в галерею"
+              :disabled="isPublishing"
+              class="group flex items-center gap-2 bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100 disabled:pointer-events-none cursor-pointer">
+        <template x-if="isPublishing">
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+        </template>
+        <span x-text="isPublishing ? 'Проникновение в транс...' : 'Кандидат в галерею транса'">Кандидат в галерею транса</span>
+        <svg x-show="!isPublishing" class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+      </button>
+    </form>
+  </div>
 </div>
 {% endif %}
