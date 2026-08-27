@@ -134,12 +134,54 @@ class CodeMirrorFormMixin(forms.ModelForm):
         self.fields[field_name].widget = Textarea(attrs=attrs)
 
 
+# ----
+# АДМИНКА ГИПНОКАРТИН
+# Кастомная форма
+class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
+    """
+    Кастомная форма для админки svg-генераций (TbHypn0Item).
+    Добавляет виджеты CodeMirror для текстовых полей.
+    """
+
+    class Meta:
+        model = TbHypn0Item
+        fields = (
+            's_title', "s_promo_title", "s_promo_url", "i_level",
+            "i_file_size",
+            "i_likes_count",
+            "i_views_count",
+            "i_claims_count",
+            "i_promo_clicks",
+
+        )
+
+    def __init__(self, *args, **kwargs):
+        """
+        При инициализации формы подгружаем CodeMirror редактор.
+        Получаем request из kwargs, переданных из get_form_kwargs в AdminClass.
+        """
+        # Извлекаем request из kwargs если он есть
+        self.request = kwargs.pop('request', None)
+
+        super().__init__(*args, **kwargs)
+
+        # Конфигурируем поля для CodeMirror
+        self.setup_codemirror_field('s_title', language='text',
+                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('s_promo_title', language='text',
+                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('s_promo_url', language='text',
+                                    css_class='codemirror-width-xl codemirror-no-lines')
+        self.setup_codemirror_field('i_likes_count', language='text',
+                                    css_class='codemirror-width-xl codemirror-no-lines')
+
 @admin.register(TbHypn0Item)
 class TbHypn0ItemAdmin(admin.ModelAdmin):
     """
     Панель управления гипно-картинами (модерация, просмотр статистики, редактирование).
     Создание новых картин через админку заблокировано (создание только на фронтенде).
     """
+    form = TbHypn0ItemAdminForm
     list_display = (
         "id",
         "s_hash_id",
@@ -159,7 +201,7 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
         "id",
         "s_hash_id",
         "i_file_size",
-        "i_likes_count",
+        # "i_likes_count",
         "i_views_count",
         "i_claims_count",
         "i_promo_clicks",
@@ -168,13 +210,12 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
         "svg_preview",
     )
     fieldsets = (
-        (
-            "Основная информация",
-            {
-                "fields": (
-                    "id",
-                    "s_hash_id",
-                    "s_title",
+        ("ID & Hash-ID", {
+            "fields": (("id", "s_hash_id",), ),
+            "classes": ("collapse",),
+        }),
+        ("Основная информация", {
+            "fields": ("s_title",
                     "file_svg",
                     "svg_preview",
                     "i_file_size",
