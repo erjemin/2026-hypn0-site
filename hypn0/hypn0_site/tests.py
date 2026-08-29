@@ -1,4 +1,5 @@
 import io
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -6,7 +7,13 @@ from PIL import Image
 
 from .forms import HalftoneGenerateForm
 from .models import TbHypn0Item, TbVote
-from .services.halftone import encode_to_base36, generate_halftone_svg, prepare_gallery_svg
+from .services.halftone import (
+    analyze_svg_structure,
+    encode_to_base36,
+    generate_halftone_svg,
+    prepare_active_svg,
+    prepare_gallery_svg,
+)
 from .services.naming import generate_hypno_title, generate_title_openrouter
 
 
@@ -304,3 +311,260 @@ class PublishViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Нет данных SVG для публикации")
         self.assertEqual(TbHypn0Item.objects.count(), 0)
+
+
+class SvgAnalysisAndActiveSvgTests(TestCase):
+    """Тестирование анализа структуры SVG и очистки от паузы."""
+
+    def test_prepare_active_svg(self):
+        gallery_svg = '<svg><style>svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}</style><g></g></svg>'
+        active = prepare_active_svg(gallery_svg)
+        self.assertNotIn("animation-play-state:paused!important", active)
+
+    def test_analyze_svg_structure(self):
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">'
+            '<style>.a0{--d:0s}.a1{--d:1s}@keyframes noise{0%{opacity:1}100%{opacity:0.5}}</style>'
+            '<defs><circle id="s0" r="5"/><rect id="s1" width="10" height="10"/></defs>'
+            '<g id="hypn0-canvas">'
+            '<g class="a0"><use href="#s0" x="10" y="10"/><use href="#s0" x="20" y="20"/></g>'
+            '<g class="a1"><use href="#s1" x="30" y="30"/></g>'
+            '</g>'
+            '</svg>'
+        )
+        stats = analyze_svg_structure(svg)
+        self.assertEqual(stats["use_count"], 3)
+        self.assertEqual(stats["total_oscillators"], 3)
+        self.assertEqual(stats["defs_count"], 2)
+        self.assertEqual(stats["circle_count"], 1)
+        self.assertEqual(stats["rect_count"], 1)
+        self.assertEqual(stats["groups_count"], 3)
+        self.assertEqual(stats["keyframes_count"], 1)
+        self.assertEqual(stats["viewbox"], "0 0 800 600")
+        self.assertEqual(stats["width"], 800)
+        self.assertEqual(stats["height"], 600)
+        self.assertEqual(stats["aspect_ratio"], "4:3")
+        self.assertTrue(stats["total_bytes"] > 0)
+
+
+class GalleryDetailAndDownloadTests(TestCase):
+    """Тестирование страниц детального просмотра картины, скачивания и голосования."""
+
+    def setUp(self):
+        self.client = Client()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+        svg_code = (
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">'
+            '<style>.a0{--d:0s}svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}</style>'
+            '<defs><circle id="s0" r="8"/></defs>'
+            '<g id="hypn0-canvas"><g class="a0"><use href="#s0" x="50" y="50"/></g></g>'
+            '</svg>'
+        )
+        self.item = TbHypn0Item(
+            s_title="Астральный Транс Сознания #42",
+            file_svg=ContentFile(svg_code.encode("utf-8"), name="test_item.svg"),
+            i_file_size=len(svg_code),
+            j_metadata={
+                "shape": "circle",
+                "cols": 35,
+                "max_radius": 8,
+                "blink": 6,
+                "rotation": 0,
+                "scale": 980,
+                "angle": 0,
+                "color": "#a855ff",
+            },
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=True,
+        )
+        self.item.save(visitor_uuid_or_fp=self.vid)
+
+    def test_gallery_detail_view_success(self):
+        response = self.client.get(reverse("hypn0_site:gallery_detail", kwargs={"hash_id": self.item.s_hash_id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Астральный Транс Сознания #42")
+        self.assertContains(response, f"#{self.item.s_hash_id}")
+        self.assertContains(response, "Векторная анатомия")
+        self.assertContains(response, "Синтез психо-сетки")
+        self.assertContains(response, "Астральный паспорт")
+        self.assertContains(response, "Копировать SVG-код")
+        self.assertContains(response, "Скачать .svg")
+
+        # Проверка инкремента просмотров
+        self.item.refresh_from_db()
+        self.assertGreaterEqual(self.item.i_views_count, 2)
+
+    def test_gallery_detail_404_on_invalid_hash(self):
+        response = self.client.get(reverse("hypn0_site:gallery_detail", kwargs={"hash_id": "nonexistent999"}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_gallery_download_view_success(self):
+        response = self.client.get(reverse("hypn0_site:gallery_download", kwargs={"hash_id": self.item.s_hash_id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/svg+xml")
+        self.assertIn(f'filename="hypn0-{self.item.s_hash_id}.svg"', response["Content-Disposition"])
+        # Должен быть чистый активный SVG (без паузы анимации)
+        self.assertNotIn("animation-play-state:paused!important", response.content.decode("utf-8"))
+
+    def test_gallery_vote_with_cookie(self):
+        # Новый посетитель
+        voter_vid = "987e6543-e21b-12d3-a456-426614174999"
+        self.client.cookies["hypn0_vid"] = voter_vid
+        response = self.client.post(reverse("hypn0_site:gallery_vote", kwargs={"hash_id": self.item.s_hash_id}))
+        self.assertEqual(response.status_code, 200)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.i_likes_count, 2)
+
+    def test_gallery_vote_without_cookie_returns_notice(self):
+        client = Client()
+        response = client.post(reverse("hypn0_site:gallery_vote", kwargs={"hash_id": self.item.s_hash_id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Подчинитесь воле Гипножабы!")
+
+
+class GalleryRandomAndNavigationTests(TestCase):
+    """Тестирование случайной навигации и пула хэшей (/gallery/random)."""
+
+    def setUp(self):
+        self.client = Client()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+
+        # Создаем 3 картины в галерее
+        self.items = []
+        for i in range(3):
+            svg_code = f'<svg><g id="item_{i}"></g></svg>'
+            item = TbHypn0Item(
+                s_title=f"Гипно Картина #{i}",
+                file_svg=ContentFile(svg_code.encode("utf-8"), name=f"test_item_{i}.svg"),
+                i_file_size=len(svg_code),
+                j_metadata={"cols": 30 + i},
+                is_public=True,
+            )
+            item.save(visitor_uuid_or_fp=self.vid)
+            self.items.append(item)
+
+    def test_gallery_random_direct_redirect(self):
+        response = self.client.get(reverse("hypn0_site:gallery_random"))
+        self.assertEqual(response.status_code, 302)
+        all_hashes = [it.s_hash_id for it in self.items]
+        self.assertTrue(any(h in response.url for h in all_hashes))
+
+    def test_gallery_random_json_pool(self):
+        response = self.client.get(reverse("hypn0_site:gallery_random"), data={"format": "json", "limit": 2})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("next_hash_id", data)
+        self.assertIn("pool", data)
+        self.assertEqual(len(data["pool"]), 2)
+        all_hashes = {it.s_hash_id for it in self.items}
+        self.assertIn(data["next_hash_id"], all_hashes)
+
+    def test_gallery_random_exclude_filters_seen(self):
+        exclude_hashes = [self.items[0].s_hash_id, self.items[1].s_hash_id]
+        response = self.client.get(
+            reverse("hypn0_site:gallery_random"),
+            data={"format": "json", "exclude": ",".join(exclude_hashes)},
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["next_hash_id"], self.items[2].s_hash_id)
+
+    def test_gallery_random_exclude_all_loops_circle(self):
+        # Если исключены все 3 картины, кольцо замыкается
+        exclude_hashes = [it.s_hash_id for it in self.items]
+        response = self.client.get(
+            reverse("hypn0_site:gallery_random"),
+            data={
+                "format": "json",
+                "exclude": ",".join(exclude_hashes),
+                "current": self.items[0].s_hash_id,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsNotNone(data["next_hash_id"])
+        # Текущий элемент исключен, выбран один из оставшихся
+        self.assertIn(data["next_hash_id"], [self.items[1].s_hash_id, self.items[2].s_hash_id])
+
+    def test_gallery_random_empty_database(self):
+        TbHypn0Item.objects.all().delete()
+        # Direct visit redirects to index
+        response = self.client.get(reverse("hypn0_site:gallery_random"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("hypn0_site:index"))
+
+        # JSON returns null next_hash_id
+        json_resp = self.client.get(reverse("hypn0_site:gallery_random"), data={"format": "json"})
+        self.assertEqual(json_resp.status_code, 200)
+        self.assertIsNone(json_resp.json()["next_hash_id"])
+        self.assertEqual(json_resp.json()["pool"], [])
+
+
+class UnconsciousMatrixTests(TestCase):
+    """Тестирование Матрицы бессознательного (build_unconscious_matrix) и навигации."""
+
+    def setUp(self):
+        self.client = Client()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+
+        # Создаем 5 картин
+        self.items = []
+        for i in range(5):
+            svg_code = f'<svg><circle id="dot_{i}"/></svg>'
+            item = TbHypn0Item(
+                s_title=f"Тестовый транс #{i}",
+                file_svg=ContentFile(svg_code.encode("utf-8"), name=f"test_matrix_{i}.svg"),
+                i_file_size=len(svg_code),
+                j_metadata={"cols": 20 + i},
+                is_public=True,
+            )
+            item.save(visitor_uuid_or_fp=self.vid)
+            self.items.append(item)
+
+    def test_build_unconscious_matrix_basic(self):
+        from hypn0_site.views import build_unconscious_matrix
+
+        current = self.items[0].s_hash_id
+        matrix_items, prev_h, next_h, prev_url, next_url, seed = build_unconscious_matrix(current, None)
+
+        self.assertEqual(len(matrix_items), 5)
+        # Проверяем, что current отмечен как is_current
+        current_node = [n for n in matrix_items if n["s_hash_id"] == current][0]
+        self.assertTrue(current_node["is_current"])
+
+        # Другие узлы не current
+        other_nodes = [n for n in matrix_items if n["s_hash_id"] != current]
+        self.assertTrue(all(not n["is_current"] for n in other_nodes))
+
+        # Ссылки содержат seed
+        self.assertIn(f"seed={seed}", prev_url)
+        self.assertIn(f"seed={seed}", next_url)
+
+    def test_matrix_stability_with_fixed_seed(self):
+        from hypn0_site.views import build_unconscious_matrix
+
+        root_hash = self.items[2].s_hash_id
+        fixed_seed = f"42109_{root_hash}"
+
+        # Первый запрос
+        m1, prev1, next1, _, _, seed1 = build_unconscious_matrix(self.items[0].s_hash_id, fixed_seed)
+        # Второй запрос с тем же seed на другую картину
+        m2, prev2, next2, _, _, seed2 = build_unconscious_matrix(self.items[1].s_hash_id, fixed_seed)
+
+        self.assertEqual(seed1, fixed_seed)
+        self.assertEqual(seed2, fixed_seed)
+
+        # Состав и порядок хэшей в матрице должны быть идентичны
+        hashes1 = [n["s_hash_id"] for n in m1]
+        hashes2 = [n["s_hash_id"] for n in m2]
+        self.assertEqual(hashes1, hashes2)
+
+    def test_gallery_detail_renders_matrix(self):
+        item = self.items[0]
+        response = self.client.get(reverse("hypn0_site:gallery_detail", kwargs={"hash_id": item.s_hash_id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Матрица бессознательного")
+        self.assertContains(response, "5 узлов")
+        self.assertContains(response, f"#{item.s_hash_id}")
+        self.assertContains(response, "btn-nav-prev")
+        self.assertContains(response, "btn-nav-next")

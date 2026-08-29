@@ -1,6 +1,7 @@
 import io
 import math
 import random
+import re
 from collections import defaultdict
 from typing import BinaryIO, Union
 
@@ -281,3 +282,101 @@ def prepare_gallery_svg(svg_content: str) -> str:
         return svg_content.replace("</style>", f"{hover_css}</style>", 1)
 
     return svg_content
+
+
+def prepare_active_svg(svg_content: str) -> str:
+    """
+    Возвращает полностью активный SVG без паузы анимации вне ховера
+    для страницы детального просмотра и скачивания пользователем.
+    """
+    if not svg_content:
+        return svg_content
+
+    hover_css = (
+        "svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,"
+        "svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}"
+    )
+    return svg_content.replace(hover_css, "")
+
+
+def analyze_svg_structure(svg_content: str) -> dict:
+    """
+    Анализирует разметку SVG и возвращает наукообразную детальную статистику
+    по геометрическим примитивам, классам, анимациям и энтропии данных.
+    """
+    if not svg_content:
+        return {
+            "total_bytes": 0,
+            "total_kb": 0.0,
+            "total_oscillators": 0,
+            "use_count": 0,
+            "circle_count": 0,
+            "rect_count": 0,
+            "polygon_count": 0,
+            "path_count": 0,
+            "defs_count": 0,
+            "groups_count": 0,
+            "keyframes_count": 0,
+            "classes_count": 0,
+            "viewbox": "0 0 1000 1000",
+            "width": 1000,
+            "height": 1000,
+            "aspect_ratio": "1:1",
+            "density": 0.0,
+            "bytes_per_quantum": 0.0,
+        }
+
+    total_bytes = len(svg_content.encode("utf-8"))
+
+    # Подсчет векторных сущностей
+    use_count = len(re.findall(r"<use\b", svg_content))
+    circle_count = len(re.findall(r"<circle\b", svg_content))
+    rect_count = len(re.findall(r"<rect\b", svg_content))
+    polygon_count = len(re.findall(r"<polygon\b", svg_content))
+    path_count = len(re.findall(r"<path\b", svg_content))
+    defs_count = circle_count + rect_count + polygon_count + path_count
+
+    # Группы и классы
+    groups_count = len(re.findall(r"<g\b", svg_content))
+    keyframes_count = len(re.findall(r"@keyframes\b", svg_content))
+    classes = set(re.findall(r"\.([a-zA-Z0-9_-]+)\s*\{", svg_content))
+    classes_count = len(classes)
+
+    # ViewBox и геометрия
+    vb_match = re.search(r'viewBox=["\']([^"\']+)["\']', svg_content)
+    viewbox = vb_match.group(1) if vb_match else "0 0 1000 1000"
+    vb_parts = viewbox.split()
+    try:
+        width = int(float(vb_parts[2])) if len(vb_parts) >= 3 else 1000
+        height = int(float(vb_parts[3])) if len(vb_parts) >= 4 else 1000
+    except (ValueError, IndexError):
+        width, height = 1000, 1000
+
+    gcd_val = math.gcd(width, height)
+    aspect_ratio = f"{width // gcd_val}:{height // gcd_val}" if gcd_val > 0 else "1:1"
+
+    # Наукообразные показатели
+    total_oscillators = use_count if use_count > 0 else defs_count
+    bytes_per_quantum = round(total_bytes / max(total_oscillators, 1), 1)
+    density = round(total_oscillators / max((width * height) / 100000.0, 1.0), 2)
+
+    return {
+        "total_bytes": total_bytes,
+        "total_kb": round(total_bytes / 1024, 2),
+        "total_oscillators": total_oscillators,
+        "use_count": use_count,
+        "circle_count": circle_count,
+        "rect_count": rect_count,
+        "polygon_count": polygon_count,
+        "path_count": path_count,
+        "defs_count": defs_count,
+        "groups_count": groups_count,
+        "keyframes_count": keyframes_count,
+        "classes_count": classes_count,
+        "viewbox": viewbox,
+        "width": width,
+        "height": height,
+        "aspect_ratio": aspect_ratio,
+        "density": density,
+        "bytes_per_quantum": bytes_per_quantum,
+    }

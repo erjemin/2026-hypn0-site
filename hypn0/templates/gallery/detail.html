@@ -1,0 +1,359 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block PAGE_TITLE %}{{ item.s_title }} — hypn0: Галерея Транса{% endblock %}
+{% block META_TITLE %}{{ item.s_title }} — Векторный транс #{{ item.s_hash_id }}{% endblock %}
+{% block META_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} векторных осцилляторов, блокирующих неокортекс.{% endblock %}
+{% block OG_TITLE %}{{ item.s_title }} — hypn0{% endblock %}
+{% block OG_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). Векторный транс Гипножабы.{% endblock %}
+{% block OG_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
+{% block TWITTER_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
+
+{% block CONTENT %}
+<div class="max-w-5xl mx-auto space-y-8" x-data="{ copiedSvg: false, copiedUrl: false }">
+
+  <!-- Навигационная панель / Хлебные крошки и Переходы -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <a href="{% url 'hypn0_site:index' %}" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 hover:underline border-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      <span>К генератору транса</span>
+    </a>
+
+    <!-- Кольцевая навигация: Предыдущая / Следующая (нативные ссылки) -->
+    <div class="flex items-center gap-2">
+      <a href="{{ prev_url }}"
+         id="btn-nav-prev"
+         title="Предыдущая волна транса [← или A]"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all hover:scale-105 active:scale-95 shadow-sm border border-stone-200 dark:border-zinc-700/60 cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span class="hidden sm:inline">Предыдущая</span>
+        <span class="text-[10px] opacity-40 font-mono hidden md:inline">[←]</span>
+      </a>
+
+      <a href="{{ next_url }}"
+         id="btn-nav-next"
+         title="Следующая волна транса [→ или D]"
+         class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white transition-all hover:scale-105 active:scale-95 shadow-md border-0 cursor-pointer">
+        <span class="inline">Следующая</span>
+        <span class="text-[10px] opacity-60 font-mono hidden md:inline">[→]</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20">
+        {{ item.get_i_level_display }}
+      </span>
+      <span class="inline-flex items-center font-mono text-[11px] px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+        #{{ item.s_hash_id }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Главный блок с картиной и действиями -->
+  <div class="bg-white/80 dark:bg-zinc-900/80 rounded-3xl border border-stone-200 dark:border-zinc-800 p-4 sm:p-8 shadow-xl backdrop-blur-md space-y-6">
+
+    <!-- Заголовок картины -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/60 dark:border-zinc-800/80 pb-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
+          {{ item.s_title }}
+        </h1>
+        <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">
+          Зафиксировано в пространстве: <time datetime="{{ item.d_created_at|date:'Y-m-d H:i:s' }}">{{ item.d_created_at|date:'d.m.Y, H:i:s' }}</time>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        {% include "block/vote_button.html" %}
+      </div>
+    </div>
+
+    <!-- Полноэкранный просмотр SVG с живой анимацией и плавающими стрелками -->
+    <div class="relative w-full aspect-square max-h-[640px] flex items-center justify-center bg-stone-950 rounded-2xl overflow-hidden shadow-inner border border-stone-800/60 group select-none">
+      
+      <!-- Плавающая кнопка: Назад -->
+      <a href="{{ prev_url }}"
+         title="Предыдущая картина [← или A]"
+         class="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-stone-900/70 hover:bg-purple-600 text-white flex items-center justify-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-90 z-20 border border-white/10">
+        <svg class="w-5 h-5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+
+      <!-- Плавающая кнопка: Вперед -->
+      <a href="{{ next_url }}"
+         title="Следующая картина [→ или D]"
+         class="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-stone-900/70 hover:bg-purple-600 text-white flex items-center justify-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-90 z-20 border border-white/10">
+        <svg class="w-5 h-5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+
+      <div class="w-full h-full p-2 sm:p-6 flex items-center justify-center">
+        {{ active_svg|safe }}
+      </div>
+
+      <!-- Скрытый textarea для копирования SVG -->
+      <textarea id="raw-svg-source" class="sr-only" aria-hidden="true">{{ raw_svg }}</textarea>
+    </div>
+
+    <!-- Панель быстрых действий -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Кнопка Копировать SVG -->
+        <button type="button"
+                @click="navigator.clipboard.writeText(document.getElementById('raw-svg-source').value); copiedSvg = true; setTimeout(() => copiedSvg = false, 2500)"
+                class="flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-800 dark:text-stone-200 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer">
+          <svg x-show="!copiedSvg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <svg x-show="copiedSvg" class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          <span x-text="copiedSvg ? 'SVG скопирован!' : 'Копировать SVG-код'">Копировать SVG-код</span>
+        </button>
+
+        <!-- Кнопка Скачать SVG -->
+        <a href="{% url 'hypn0_site:gallery_download' item.s_hash_id %}"
+           download="hypn0-{{ item.s_hash_id }}.svg"
+           class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 shadow-md border-0 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <span>Скачать .svg</span>
+        </a>
+
+        <!-- Кнопка Поделиться -->
+        <button type="button"
+                @click="if (navigator.share) { navigator.share({ title: '{{ item.s_title|escapejs }}', url: window.location.href }); } else { navigator.clipboard.writeText(window.location.href); copiedUrl = true; setTimeout(() => copiedUrl = false, 2500); }"
+                class="flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-800 dark:text-stone-200 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+          </svg>
+          <span x-text="copiedUrl ? 'Ссылка в буфере!' : 'Поделиться'">Поделиться</span>
+        </button>
+      </div>
+
+      <!-- Метрики просмотров и объема -->
+      <div class="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+        <span title="Число уникальных сеансов транса" class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          <span>{{ item.i_views_count }}</span>
+        </span>
+        <span>•</span>
+        <span>{{ svg_stats.total_kb }} КБ</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- БОЛЬШОЙ КУЛЬ НАУКООБРАЗНЫХ ПАРАМЕТРОВ И ТЕЛЕМЕТРИИ ТРАНСА -->
+  <div class="space-y-6">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+      <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+        Психо-телеметрия и структура волновой матрицы
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- БЛОК 1: Векторная анатомия -->
+      <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
+        <div class="flex items-center justify-between border-b border-stone-200 dark:border-zinc-800 pb-2.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            Векторная анатомия
+          </h3>
+          <span class="text-[10px] font-mono opacity-60">DOM / SVG</span>
+        </div>
+
+        <ul class="space-y-2.5 text-xs">
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Векторных осцилляторов:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.total_oscillators }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Морфо-примитивов (&lt;defs&gt;):</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.defs_count }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Групп кластеризации (&lt;g&gt;):</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.groups_count }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Частотных классов CSS:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.classes_count }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Гармоник модуляции:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.keyframes_count }} (@keyframes)</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Пространство viewBox:</span>
+            <span class="font-mono text-purple-600 dark:text-purple-400">{{ svg_stats.viewbox }} ({{ svg_stats.aspect_ratio }})</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Плотность осцилляторов:</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.density }} / 100k px²</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Энтропия данных:</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.bytes_per_quantum }} байт/квант</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- БЛОК 2: Параметры синтеза (Снимок генератора) -->
+      <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
+        <div class="flex items-center justify-between border-b border-stone-200 dark:border-zinc-800 pb-2.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+            Синтез психо-сетки
+          </h3>
+          <span class="text-[10px] font-mono opacity-60">j_metadata</span>
+        </div>
+
+        <ul class="space-y-2.5 text-xs">
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Форма примитивов:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.shape|default:'circle' }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Колонки дискретизации:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.cols|default:'35' }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Предельный радиус:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.max_radius|default:'8' }} px</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Период модуляции (Blink):</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.blink|default:'6' }} с</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Фазовый угол поворота:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.rotation|default:'0' }}°</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Угол поляризации:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.angle|default:'0' }}°</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Масштаб амплитуды:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.scale|default:'980' }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Хроматический спектр:</span>
+            <span class="flex items-center gap-1.5 font-mono text-stone-900 dark:text-stone-100">
+              <span class="w-3.5 h-3.5 rounded-full border border-stone-400/40 shadow-inner" style="background-color: {{ metadata.color|default:'#a855ff' }}"></span>
+              <span>{{ metadata.color|default:'#a855ff' }}</span>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- БЛОК 3: Астральный паспорт и Ноосфера -->
+      <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
+        <div class="flex items-center justify-between border-b border-stone-200 dark:border-zinc-800 pb-2.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+            Астральный паспорт
+          </h3>
+          <span class="text-[10px] font-mono opacity-60">Zero-PII</span>
+        </div>
+
+        <ul class="space-y-2.5 text-xs">
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">ID-Хэш транса:</span>
+            <span class="font-bold text-purple-600 dark:text-purple-400 font-mono">#{{ item.s_hash_id }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Психо-хэш автора:</span>
+            <span class="font-mono text-[11px] text-stone-700 dark:text-stone-300" title="{% if author_fp %}{{ author_fp }}{% endif %}">
+              {% if author_fp %}{{ author_fp|slice:":10" }}...{{ author_fp|slice:"-6:" }}{% else %}Анонимная сущность{% endif %}
+            </span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Гравитация (Score):</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ item.f_score|floatformat:4 }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Статус в матрице:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100">{{ item.get_i_level_display }}</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Блокировка неокортекса:</span>
+            <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">99.8%</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Мозговые слизняки:</span>
+            <span class="text-purple-600 dark:text-purple-400 font-bold">Full Sync v2.1</span>
+          </li>
+          <li class="flex justify-between items-center">
+            <span class="text-stone-500 dark:text-stone-400">Спектральный вес:</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.total_bytes }} B</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- БЛОК 4: Матрица бессознательного (Психо-поток хэшей) -->
+    <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 dark:border-zinc-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            Матрица бессознательного
+          </h3>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-stone-200/60 dark:bg-zinc-800 text-stone-600 dark:text-stone-300">
+            {{ matrix_items|length }} узлов
+          </span>
+        </div>
+        <span class="text-[10px] font-mono opacity-50 text-stone-500 dark:text-stone-400">seed: {{ seed }}</span>
+      </div>
+
+      <!-- Сетка ячеек-хэшей -->
+      <div class="flex flex-wrap gap-1.5 sm:gap-2 max-h-72 overflow-y-auto p-1 font-mono text-[11px] leading-tight select-none">
+        {% for node in matrix_items %}
+          {% if node.is_current %}
+            <span class="px-2.5 py-1 rounded-md bg-stone-100 dark:bg-zinc-800 font-bold text-stone-900 dark:text-stone-100 border-2 border-purple-500/80 shadow-sm cursor-default" title="Текущий транс: #{{ node.s_hash_id }}">
+              #{{ node.s_hash_id }}
+            </span>
+          {% else %}
+            <a href="{{ node.url }}"
+               class="px-2.5 py-1 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 border border-stone-200 dark:border-zinc-700/60 transition-colors">
+              #{{ node.s_hash_id }}
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Навигация с клавиатуры [←]/[A] и [→]/[D] -->
+<script>
+  window.addEventListener('keydown', function(e) {
+    if (e.target && e.target.matches && e.target.matches('input, textarea, select')) return;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ф' || e.key === 'Ф') {
+      var prevBtn = document.getElementById('btn-nav-prev');
+      if (prevBtn && prevBtn.href) {
+        window.location.href = prevBtn.href;
+      }
+    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D' || e.key === 'в' || e.key === 'В') {
+      var nextBtn = document.getElementById('btn-nav-next');
+      if (nextBtn && nextBtn.href) {
+        window.location.href = nextBtn.href;
+      }
+    }
+  });
+</script>
+{% endblock CONTENT %}

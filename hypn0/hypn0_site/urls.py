@@ -9,6 +9,11 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("generate", views.generate, name="generate"),
     path("publish", views.publish, name="publish"),
+    path("gallery/random", views.gallery_random, name="gallery_random"),
+    path("gallery/random-pool", views.gallery_random, name="gallery_random_pool"),
+    path("gallery/<str:hash_id>", views.gallery_detail, name="gallery_detail"),
+    path("gallery/<str:hash_id>/download", views.gallery_download, name="gallery_download"),
+    path("gallery/<str:hash_id>/vote", views.gallery_vote, name="gallery_vote"),
 ]
 
 if settings.DEBUG:
