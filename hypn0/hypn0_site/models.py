@@ -80,18 +80,18 @@ class TbHypn0Item(models.Model):
     i_likes_count = models.PositiveIntegerField(
         default=1,
         db_index=True,
-        verbose_name="Число лайков",
+        verbose_name="Лайков",
         help_text="Число лайков гипнотической SVG-картины. Поле используется для отображения в интерфейсе. Для расчета"
                   " рейтинга популярности намеренно НЕ ИСПОЛЬЗУЕТСЯ. Рейтинг будет рассчитан на основе таблицы"
                   " <tt>Голоса/Лайка</tt> с учетом весов лайков и клаймов.",
     )
     i_views_count = models.PositiveIntegerField(
         default=1,
-        verbose_name="Число просмотров",
+        verbose_name="Просмотров",
     )
     i_claims_count = models.PositiveIntegerField(
         default=0,
-        verbose_name="Число жалоб",
+        verbose_name="Жалоб",
         help_text="Число жалоб на гипнотическую SVG-картину. Поле используется для отображения в интерфейсе. Для расчета"
                   " рейтинга популярности намеренно НЕ ИСПОЛЬЗУЕТСЯ. Рейтинг будет рассчитан на основе таблицы"
                   " <tt>Голоса/Лайка</tt> с учетом весов лайков и клаймов.",
@@ -99,7 +99,7 @@ class TbHypn0Item(models.Model):
     f_score = models.FloatField(
         default=0.0,
         db_index=True,
-        verbose_name="Рейтинг популярности",
+        verbose_name="Рейтинг",
         help_text="Рейтинг для Smart Retention и определения, что удалять при чистке по лимитам, а что оставлять",
     )
 
@@ -107,8 +107,8 @@ class TbHypn0Item(models.Model):
     i_level = models.IntegerField(
         choices=Level.choices,
         default=Level.CANDIDATE,
-        help_text="Уровень",
-        verbose_name="В какой группе находится SVG-файл генерации",
+        verbose_name="Уровень",
+        help_text="В какой группе находится SVG-файл генерации",
     )
     is_public = models.BooleanField(
         default=True,

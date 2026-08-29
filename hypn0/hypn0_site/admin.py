@@ -147,10 +147,7 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
         model = TbHypn0Item
         fields = (
             's_title', "s_promo_title", "s_promo_url", "i_level",
-            "i_file_size",
-            "i_likes_count",
-            "i_views_count",
-            "i_claims_count",
+            "i_likes_count", "i_views_count", "i_claims_count", "f_score",
             "i_promo_clicks",
 
         )
@@ -173,8 +170,19 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
         self.setup_codemirror_field('s_promo_url', language='text',
                                     css_class='codemirror-width-xl codemirror-no-lines')
         self.setup_codemirror_field('i_likes_count', language='text',
-                                    css_class='codemirror-width-xl codemirror-no-lines')
+                                    css_class='codemirror-width-s codemirror-no-lines')
+        self.setup_codemirror_field('i_claims_count', language='text',
+                                    css_class='codemirror-width-s codemirror-no-lines')
+        self.setup_codemirror_field('i_views_count', language='text',
+                                    css_class='codemirror-width-s codemirror-no-lines')
+        self.setup_codemirror_field('f_score', language='text',
+                                    css_class='codemirror-width-s codemirror-no-lines')
+        self.setup_codemirror_field('i_promo_clicks', language='text',
+                                    css_class='codemirror-width-s codemirror-no-lines')
+        self.setup_codemirror_field('j_metadata', language='json',
+                                    css_class='codemirror-width-sl codemirror-min-height-10')
 
+# Конфигурация админки
 @admin.register(TbHypn0Item)
 class TbHypn0ItemAdmin(admin.ModelAdmin):
     """
@@ -182,92 +190,39 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
     Создание новых картин через админку заблокировано (создание только на фронтенде).
     """
     form = TbHypn0ItemAdminForm
-    list_display = (
-        "id",
-        "s_hash_id",
-        "title_preview",
-        "i_level",
-        "i_likes_count",
-        "i_claims_count",
-        "i_views_count",
-        "f_score",
-        "is_public",
-        "d_created_at",
-    )
+    list_display = ("id", "s_hash_id",  "title_preview", "i_level", "i_likes_count", "i_claims_count",
+        "i_views_count", "i_file_size", "f_score", "is_public", "d_created_at", )
     list_display_links = ("id", "s_hash_id", "title_preview")
     list_filter = ("i_level", "is_public", "d_created_at")
     search_fields = ("s_hash_id", "s_title", "s_promo_title", "s_promo_url")
-    readonly_fields = (
-        "id",
-        "s_hash_id",
-        "i_file_size",
-        # "i_likes_count",
-        "i_views_count",
-        "i_claims_count",
-        "i_promo_clicks",
-        "d_created_at",
-        "d_updated_at",
-        "svg_preview",
-    )
+    readonly_fields = ("id", "s_hash_id", "i_file_size", "d_created_at", "d_updated_at", "svg_preview",)
     fieldsets = (
         ("ID & Hash-ID", {
             "fields": (("id", "s_hash_id",), ),
-            "classes": ("collapse",),
+            "classes": ("collapse", ),
         }),
         ("Основная информация", {
-            "fields": ("s_title",
-                    "file_svg",
-                    "svg_preview",
-                    "i_file_size",
-                    "is_public",
-                )
-            },
-        ),
-        (
-            "Модерация и Smart Retention",
-            {
-                "fields": (
-                    "i_level",
-                    "f_score",
-                ),
-                "description": "Уровень модерации и рейтинг 'гравитации' для ротации и очистки хранилища.",
-            },
-        ),
-        (
-            "Метрики популярности",
-            {
-                "fields": (
-                    "i_likes_count",
-                    "i_claims_count",
-                    "i_views_count",
-                ),
-            },
-        ),
-        (
-            "Промо-блок (Спонсоры и Авторы)",
-            {
-                "fields": (
-                    "s_promo_url",
-                    "s_promo_title",
-                    "i_promo_clicks",
-                ),
-                "classes": ("collapse",),
-            },
-        ),
-        (
-            "Метаданные генерации",
-            {
-                "fields": ("j_metadata",),
-                "classes": ("collapse",),
-            },
-        ),
-        (
-            "Временные метки",
-            {
-                "fields": ("d_created_at", "d_updated_at"),
-                "classes": ("collapse",),
-            },
-        ),
+            "fields": ("s_title", ("file_svg", "svg_preview", "i_file_size", "is_public", ), )
+        }),
+        ("Модерация и Smart Retention", {
+            "fields": (("i_level", "f_score", ), ),
+            "description": "Уровень модерации и рейтинг 'гравитации' для ротации и очистки хранилища.",
+        }),
+        ("Метрики популярности", {
+            "fields": ("i_likes_count", "i_claims_count", "i_views_count", ),
+            "classes": ("collapse", ),
+        }),
+        ("Промо-блок (Спонсоры и Авторы)", {
+            "fields": ("s_promo_url", "s_promo_title", "i_promo_clicks", ),
+            "classes": ("collapse",),
+        }),
+        ("Метаданные генерации", {
+            "fields": ("j_metadata",),
+        }),
+        ("Штампы времени", {
+            "fields": ("d_created_at", "d_updated_at"),
+            "classes": ("collapse",),
+        }),
     )
 
     def has_add_permission(self, request):
@@ -284,15 +239,16 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
     def svg_preview(self, obj):
         if obj.file_svg:
             return format_html(
-                '<div style="max-width: 250px; max-height: 250px; background: #1e293b; padding: 8px; border-radius: 8px;">'
-                '<img src="{}" style="max-width: 100%; max-height: 230px;" />'
+                '<div style="max-width: 280px; max-height: 280px; background: #80808080; padding: 8px; border-radius: 8px;">'
+                '<img src="{}" width="100%" />'
                 '</div>',
                 obj.file_svg.url,
             )
         return "Нет файла"
 
+
 # ----
-# АДМИНКА ЛАЙКОВ/ДИСЛАЙКОВ
+# АДМИНКА ЛАЙКОВ/ДИСЛАЙКОВ (все только на просмотр)
 @admin.register(TbVote)
 class TbVoteAdmin(admin.ModelAdmin):
     """
@@ -402,6 +358,7 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
         self.setup_codemirror_field('s_content', language='html',
                                     css_class='codemirror-width-xl codemirror-min-height-10')
 
+# Конфигурация админки
 @admin.register(TbBlogPost)
 class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
     """
