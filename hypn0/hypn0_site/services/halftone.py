@@ -358,7 +358,7 @@ def analyze_svg_structure(svg_content: str) -> dict:
     # Наукообразные показатели
     total_oscillators = use_count if use_count > 0 else defs_count
     bytes_per_quantum = round(total_bytes / max(total_oscillators, 1), 1)
-    density = round(total_oscillators / max((width * height) / 100000.0, 1.0), 2)
+    density = round(total_oscillators / max((width * height) / 1048576.0, 1.0), 2)
 
     return {
         "total_bytes": total_bytes,

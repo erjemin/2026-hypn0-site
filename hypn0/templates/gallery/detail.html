@@ -66,7 +66,7 @@
           {{ item.s_title }}
         </h1>
         <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">
-          Зафиксировано в пространстве: <time datetime="{{ item.d_created_at|date:'Y-m-d H:i:s' }}">{{ item.d_created_at|date:'d.m.Y, H:i:s' }}</time>
+          Зафиксировано в пространстве: <time datetime="{{ item.d_created_at|date:'Y-m-d H:i:s' }}">{{ item.d_created_at|date:'c' }}</time>
         </p>
       </div>
 
@@ -178,7 +178,7 @@
 
         <ul class="space-y-2.5 text-xs">
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Векторных осцилляторов:</span>
+            <span class="text-stone-500 dark:text-stone-400">Осцилляций:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.total_oscillators }}</span>
           </li>
           <li class="flex justify-between items-center">
@@ -203,11 +203,11 @@
           </li>
           <li class="flex justify-between items-center">
             <span class="text-stone-500 dark:text-stone-400">Плотность осцилляторов:</span>
-            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.density }} / 100k px²</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.density }}&nbsp;μpx²</span>
           </li>
           <li class="flex justify-between items-center">
             <span class="text-stone-500 dark:text-stone-400">Энтропия данных:</span>
-            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.bytes_per_quantum }} байт/квант</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.bytes_per_quantum }} byte/quant</span>
           </li>
         </ul>
       </div>
@@ -223,7 +223,7 @@
 
         <ul class="space-y-2.5 text-xs">
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Форма примитивов:</span>
+            <span class="text-stone-500 dark:text-stone-400">Глюко-элемент:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.shape|default:'circle' }}</span>
           </li>
           <li class="flex justify-between items-center">
@@ -272,7 +272,7 @@
         <ul class="space-y-2.5 text-xs">
           <li class="flex justify-between items-center">
             <span class="text-stone-500 dark:text-stone-400">ID-Хэш транса:</span>
-            <span class="font-bold text-purple-600 dark:text-purple-400 font-mono">#{{ item.s_hash_id }}</span>
+            <span class="font-bold text-purple-600 dark:text-purple-400 font-mono">¤{{ item.s_hash_id }}</span>
           </li>
           <li class="flex justify-between items-center">
             <span class="text-stone-500 dark:text-stone-400">Психо-хэш автора:</span>
@@ -281,24 +281,24 @@
             </span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Гравитация (Score):</span>
-            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ item.f_score|floatformat:4 }}</span>
+            <span class="text-stone-500 dark:text-stone-400">Гравитация:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{% if item.f_score < 0.01  %}N/A{% else %}{{ item.f_score|floatformat:4 }}{%  endif %}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Статус в матрице:</span>
+            <span class="text-stone-500 dark:text-stone-400">Статус:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100">{{ item.get_i_level_display }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Блокировка неокортекса:</span>
-            <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">99.8%</span>
+            <span class="text-stone-500 dark:text-stone-400">Клинч неокортекса:</span>
+            <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">1/{% widthratio item.i_views_count item.i_likes_count 1 %}&nbsp;ɢLÜCK</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Мозговые слизняки:</span>
-            <span class="text-purple-600 dark:text-purple-400 font-bold">Full Sync v2.1</span>
+            <span class="text-stone-500 dark:text-stone-400">Трансцендентность:</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100 scale-x-[-1]">Ȅ&nbsp;<sup>{% widthratio svg_stats.i_likes_count item.total_bytes 1 %}0</sup>/<sub>{% widthratio svg_stats.total_bytes item.i_likes_count 1 %}</sub></span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Спектральный вес:</span>
-            <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.total_bytes }} B</span>
+            <span class="text-stone-500 dark:text-stone-400">Мозговые слизни:</span>
+            <span class="text-purple-600 dark:text-purple-400 font-bold">v0.1.0</span>
           </li>
         </ul>
       </div>
