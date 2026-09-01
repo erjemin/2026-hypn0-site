@@ -121,6 +121,19 @@ val=>{if(val)document.documentElement.classList.add('dark');else document.docume
         evt.detail.headers['X-CSRFToken'] = token;
       }
     });
+
+    function attachShadowRoots(root) {
+      (root || document).querySelectorAll('template[shadowrootmode]').forEach(function(tmpl) {
+        if (!tmpl.parentElement.shadowRoot) {
+          var mode = tmpl.getAttribute('shadowrootmode') || 'open';
+          var shadow = tmpl.parentElement.attachShadow({ mode: mode });
+          shadow.appendChild(tmpl.content.cloneNode(true));
+          tmpl.remove();
+        }
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function() { attachShadowRoots(document); });
+    document.addEventListener('htmx:afterSwap', function(evt) { attachShadowRoots(evt.detail.target); });
   </script>
   {% block EXTRA_HEAD %}{% endblock EXTRA_HEAD %}
 </head>

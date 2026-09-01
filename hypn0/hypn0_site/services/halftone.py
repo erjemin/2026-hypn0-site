@@ -229,7 +229,11 @@ def generate_halftone_svg(
     fill_style = f"fill:{clean_color};stroke:{clean_color};opacity:{opacity:.2f};"
 
     if is_animated:
-        anim_rule = f"animation:noise {duration:.2f}s ease-in-out infinite alternate;animation-delay:var(--d);"
+        anim_rule = (
+            f"animation:noise {duration:.2f}s ease-in-out infinite alternate;"
+            f"animation-delay:var(--d);"
+            f"animation-play-state:var(--hypn0-play,running);"
+        )
         keyframes_rule = (
             f"@keyframes noise{{"
             f"0%{{opacity:{max(0.2, opacity * 0.7):.2f};transform:scale(1) rotate(0deg)}}"
@@ -266,17 +270,19 @@ def generate_halftone_svg(
 def prepare_gallery_svg(svg_content: str) -> str:
     """
     Модифицирует SVG для долговременного хранения в галерее:
-    добавляет CSS-правила, чтобы в изолированном контексте (<img>) анимация
-    находилась на паузе по умолчанию и запускалась только при наведении (:hover),
-    предотвращая перегрузку CPU/GPU браузера при выводе сетки карточек.
+    добавляет CSS Custom Property (--hypn0-play: paused), которое наследуется
+    внутрь элементов и теневых деревьев <use>. В изолированном контексте (Shadow DOM или <img>)
+    анимация заморожена по умолчанию (0% нагрузки на CPU), а при наведении (:hover или :host(:hover))
+    запускается.
     """
     if not svg_content:
         return svg_content
 
-    # Надежная глобальная пауза в контексте :root и пробуждение по ховеру
+    # Наследуемая переменная паузы и оверрайд стилей фигур
     hover_css = (
-        "@media(hover:hover){:root{animation-play-state:paused!important}:root:hover *{animation-play-state:running!important}}"
-        "svg:not(:hover) *{animation-play-state:paused!important}"
+        "svg{--hypn0-play:paused}"
+        ":host(:hover) svg,svg:hover{--hypn0-play:running!important}"
+        ".shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}"
     )
 
     if "</style>" in svg_content:
@@ -293,10 +299,24 @@ def prepare_active_svg(svg_content: str) -> str:
     if not svg_content:
         return svg_content
 
-    # Удаляем любые внедренные правила пауз и медиа-запросов ховера
-    cleaned = re.sub(r"@media\s*\(\s*hover\s*:\s*hover\s*\)\s*\{[^}]*:[^}]*\}", "", svg_content)
+    # Удаляем внедренные правила паузы через CSS-переменные и старые форматы
+    gallery_css_variants = [
+        "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
+        "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
+    ]
+    cleaned = svg_content
+    for gcss in gallery_css_variants:
+        cleaned = cleaned.replace(gcss, "")
+
+    cleaned = re.sub(r"svg\s*\{[^}]*--hypn0-play:\s*paused[^}]*\}", "", cleaned)
+    cleaned = re.sub(r"(:host\(:hover\)\s*svg\s*,\s*)?svg:hover\s*\{[^}]*--hypn0-play:[^}]*\}", "", cleaned)
+    cleaned = re.sub(
+        r"\.shape,circle,rect,polygon,path\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
+        "",
+        cleaned,
+    )
+    cleaned = re.sub(r"@media\s*\(\s*hover\s*:\s*hover\s*\)\s*\{[^}]*:[^}]*\}", "", cleaned)
     cleaned = re.sub(r"svg:not\(:hover\)[^{]*\{[^}]*\}", "", cleaned)
-    # Старый формат для обратной совместимости
     old_hover_css = (
         "svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,"
         "svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}"

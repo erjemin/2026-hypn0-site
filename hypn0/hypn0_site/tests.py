@@ -238,9 +238,9 @@ class GalleryPreparationTests(TestCase):
     def test_prepare_gallery_svg(self):
         raw_svg = '<svg><style>.shape{animation:noise 1s}</style><g></g></svg>'
         prepared = prepare_gallery_svg(raw_svg)
-        self.assertIn("@media(hover:hover)", prepared)
-        self.assertIn(":root{animation-play-state:paused!important}", prepared)
-        self.assertIn("svg:not(:hover)", prepared)
+        self.assertIn("svg{--hypn0-play:paused}", prepared)
+        self.assertIn(":host(:hover) svg,svg:hover{--hypn0-play:running!important}", prepared)
+        self.assertIn("animation-play-state:var(--hypn0-play,paused)!important", prepared)
 
 
 class PublishViewTests(TestCase):
@@ -321,6 +321,23 @@ class SvgAnalysisAndActiveSvgTests(TestCase):
         gallery_svg = '<svg><style>svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}</style><g></g></svg>'
         active = prepare_active_svg(gallery_svg)
         self.assertNotIn("animation-play-state:paused!important", active)
+
+    def test_prepare_active_svg_preserves_color_and_animation(self):
+        gallery_svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg">'
+            '<style>'
+            'svg{background:transparent}'
+            '.shape,circle,rect,polygon,path{fill:#e6b400;stroke:#e6b400;opacity:0.90;transform-origin:center;animation:noise 1.36s ease-in-out infinite alternate;animation-delay:var(--d);animation-play-state:var(--hypn0-play,running);transition:all .5s ease-out}'
+            '@keyframes noise{0%{opacity:0.63}100%{opacity:0.45}}'
+            'svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}'
+            '</style><g></g></svg>'
+        )
+        active = prepare_active_svg(gallery_svg)
+        self.assertIn("fill:#e6b400", active)
+        self.assertIn("stroke:#e6b400", active)
+        self.assertIn("animation:noise 1.36s", active)
+        self.assertNotIn("svg{--hypn0-play:paused}", active)
+        self.assertNotIn("animation-play-state:var(--hypn0-play,paused)!important", active)
 
     def test_analyze_svg_structure(self):
         svg = (
@@ -560,7 +577,7 @@ class UnconsciousMatrixTests(TestCase):
         hashes2 = [n["s_hash_id"] for n in m2]
         self.assertEqual(hashes1, hashes2)
 
-    def test_gallery_detail_renders_matrix(self):
+    def test_gallery_detail_renders_matrix_and_card_bg_style(self):
         item = self.items[0]
         response = self.client.get(reverse("hypn0_site:gallery_detail", kwargs={"hash_id": item.s_hash_id}))
         self.assertEqual(response.status_code, 200)
@@ -569,6 +586,9 @@ class UnconsciousMatrixTests(TestCase):
         self.assertContains(response, f"#{item.s_hash_id}")
         self.assertContains(response, "btn-nav-prev")
         self.assertContains(response, "btn-nav-next")
+        self.assertContains(response, "--card-bg-light")
+        self.assertContains(response, "--card-bg-dark")
+        self.assertContains(response, "bg-[var(--card-bg-light)]")
 
 
 class GalleryFreshFloorTests(TestCase):
@@ -729,3 +749,18 @@ class CardBgStyleTests(TestCase):
         item_invalid = TbHypn0Item(j_metadata={"color": "invalid-hex"})
         self.assertIn("--card-bg-light:", item_invalid.card_bg_style)
         self.assertIn("--card-bg-dark:", item_invalid.card_bg_style)
+
+    def test_card_svg_property_and_shadow_dom_rendering(self):
+        item = TbHypn0Item(
+            s_title="Тестовый SVG",
+            file_svg=ContentFile(b'<svg id="test-svg"><circle/></svg>', name="test_card.svg"),
+            j_metadata={"color": "#10b981"},
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp="123e4567-e89b-12d3-a456-426614174000")
+        self.assertIn('id="test-svg"', item.card_svg)
+
+        response = self.client.get(reverse("hypn0_site:index"))
+        self.assertContains(response, 'template shadowrootmode="open"')
+        self.assertContains(response, "hypn0-card-svg")
+        self.assertContains(response, "--hypn0-play: running !important")

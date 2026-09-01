@@ -7,10 +7,29 @@
   <a href="{% url 'hypn0_site:gallery_detail' item.s_hash_id %}" 
      class="absolute inset-0 z-10 flex items-center justify-center p-3 sm:p-4 border-0 border-none no-underline hover:border-0 hover:border-none focus:outline-none"
      title="{{ item.s_title }}">
-    <img src="{{ item.file_svg.url }}" 
-         alt="{{ item.s_title }}" 
-         loading="lazy" 
-         class="w-full h-full object-contain pointer-events-none drop-shadow-sm transition-transform duration-300 group-hover:scale-105 border-0">
+    <div class="hypn0-card-svg w-full h-full flex items-center justify-center drop-shadow-sm transition-transform duration-300 group-hover:scale-105 border-0">
+      <template shadowrootmode="open">
+        <style>
+          :host {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+          }
+          svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+          :host(:hover) svg, svg:hover {
+            --hypn0-play: running !important;
+          }
+        </style>
+        {{ item.card_svg|safe }}
+      </template>
+    </div>
   </a>
 
   <!-- Верхний бейдж: Хэш -->

@@ -200,6 +200,19 @@ class TbHypn0Item(models.Model):
             dark_bg = f"rgb({max(9, int(9 + r * 0.07))}, {max(9, int(9 + g * 0.07))}, {max(13, int(13 + b * 0.08))})"
             return f"--card-bg-light: {light_bg}; --card-bg-dark: {dark_bg};"
 
+    @property
+    def card_svg(self) -> str:
+        """
+        Возвращает SVG-код картины для изолированного рендеринга в карточке галереи.
+        """
+        if not self.file_svg:
+            return ""
+        try:
+            with self.file_svg.open("r") as f:
+                return f.read()
+        except Exception:
+            return ""
+
     def increment_views(self):
         """Безопасный инкремент просмотров"""
         TbHypn0Item.objects.filter(id=self.id).update(i_views_count=F('i_views_count') + 1)
