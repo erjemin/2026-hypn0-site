@@ -20,7 +20,7 @@ from .services.halftone import (
 from .services.naming import generate_hypno_title
 
 
-def get_floor_fresh(limit: int | None = 6, offset: int = 0):
+def get_floor_fresh(limit: int | None = 8, offset: int = 0):
     """
     1-й ЭТАЖ: «Плеск бессознательного» (Инкубатор открытий).
     Выборка: свежие кандидаты и первичный поток (Level.CANDIDATE, Level.LEVEL_1).
@@ -73,7 +73,7 @@ def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
 
 @ensure_csrf_cookie
 def index(request: HttpRequest | None) -> HttpResponse:
-    fresh_items = get_floor_fresh(limit=6)
+    fresh_items = get_floor_fresh(limit=8)
     return render(request, "index.html", {
         "fresh_items": fresh_items,
     })

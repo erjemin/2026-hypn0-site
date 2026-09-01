@@ -152,6 +152,54 @@ class TbHypn0Item(models.Model):
     def __str__(self) -> str:
         return f"{self.s_title} ({self.s_hash_id})"
 
+    @property
+    def card_bg_style(self) -> str:
+        """
+        Вычисляет утонченную палитру подложки карточки на основе цвета гипноточки.
+        
+        Использует CSS-переменные для бесшовной адаптации под текущую тему зрителя (светлая/темная):
+        - Экстремально светлые точки (luminance >= 215, напр. чисто белый): всегда темный фон.
+        - Экстремально темные точки (luminance <= 40, напр. чисто черный): всегда светлый фон.
+        - Цветные/промежуточные оттенки (40 < luminance < 215): изящный тинт цвета точки,
+          который гармонично подстраивается под светлую и темную тему зрителя.
+        """
+        color_hex = "#a855ff"
+        if isinstance(self.j_metadata, dict):
+            color_hex = self.j_metadata.get("color", "#a855ff") or "#a855ff"
+
+        # Нормализация HEX
+        hex_clean = color_hex.lstrip("#")
+        if len(hex_clean) == 3:
+            hex_clean = "".join([c * 2 for c in hex_clean])
+        elif len(hex_clean) != 6:
+            hex_clean = "a855ff"
+
+        try:
+            r = int(hex_clean[0:2], 16)
+            g = int(hex_clean[2:4], 16)
+            b = int(hex_clean[4:6], 16)
+        except ValueError:
+            r, g, b = 168, 85, 255
+
+        # Перцептивная яркость (ITU-R BT.601)
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
+
+        if luminance >= 215:
+            # Экстремально светлая точка (белая/пастельно-белая) -> принудительно темный графит в обеих темах
+            dark_bg = f"rgb({max(8, int(r * 0.05))}, {max(8, int(g * 0.05))}, {max(12, int(b * 0.06))})"
+            return f"--card-bg-light: {dark_bg}; --card-bg-dark: {dark_bg};"
+        elif luminance <= 40:
+            # Экстремально темная точка (черная/глубокая смола) -> принудительно шелково-светлый в обеих темах
+            light_bg = f"rgb({min(248, int(244 + r * 0.03))}, {min(248, int(244 + g * 0.03))}, {min(250, int(246 + b * 0.03))})"
+            return f"--card-bg-light: {light_bg}; --card-bg-dark: {light_bg};"
+        else:
+            # Цветная точка (фиолетовый, изумрудный, бирюзовый, оранжевый и т.д.)
+            # Светлая тема: мягкий шелковый фон с 3.5% тинтом цвета точки
+            light_bg = f"rgb({min(250, int(245 + r * 0.035))}, {min(250, int(245 + g * 0.035))}, {min(252, int(247 + b * 0.035))})"
+            # Темная тема: глубокий графитово-ночной фон с 7% тинтом цвета точки
+            dark_bg = f"rgb({max(9, int(9 + r * 0.07))}, {max(9, int(9 + g * 0.07))}, {max(13, int(13 + b * 0.08))})"
+            return f"--card-bg-light: {light_bg}; --card-bg-dark: {dark_bg};"
+
     def increment_views(self):
         """Безопасный инкремент просмотров"""
         TbHypn0Item.objects.filter(id=self.id).update(i_views_count=F('i_views_count') + 1)

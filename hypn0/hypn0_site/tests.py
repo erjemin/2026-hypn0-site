@@ -238,8 +238,9 @@ class GalleryPreparationTests(TestCase):
     def test_prepare_gallery_svg(self):
         raw_svg = '<svg><style>.shape{animation:noise 1s}</style><g></g></svg>'
         prepared = prepare_gallery_svg(raw_svg)
+        self.assertIn("@media(hover:hover)", prepared)
+        self.assertIn(":root{animation-play-state:paused!important}", prepared)
         self.assertIn("svg:not(:hover)", prepared)
-        self.assertIn("animation-play-state:paused!important", prepared)
 
 
 class PublishViewTests(TestCase):
@@ -697,3 +698,34 @@ class GalleryFreshFloorTests(TestCase):
         url = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "non_existent"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+
+class CardBgStyleTests(TestCase):
+    """Тестирование вычисления адаптивных стилей подложки карточки."""
+
+    def test_extreme_white_color_forces_dark_background(self):
+        item = TbHypn0Item(j_metadata={"color": "#ffffff"})
+        style = item.card_bg_style
+        self.assertIn("--card-bg-light: rgb(12, 12, 15);", style)
+        self.assertIn("--card-bg-dark: rgb(12, 12, 15);", style)
+
+    def test_extreme_black_color_forces_light_background(self):
+        item = TbHypn0Item(j_metadata={"color": "#000000"})
+        style = item.card_bg_style
+        self.assertIn("--card-bg-light: rgb(244, 244, 246);", style)
+        self.assertIn("--card-bg-dark: rgb(244, 244, 246);", style)
+
+    def test_colorful_intermediate_color_creates_theme_adaptive_background(self):
+        item = TbHypn0Item(j_metadata={"color": "#a855ff"})
+        style = item.card_bg_style
+        self.assertIn("--card-bg-light: rgb(250, 247, 252);", style)
+        self.assertIn("--card-bg-dark: rgb(20, 14, 33);", style)
+
+    def test_fallback_on_empty_or_invalid_color(self):
+        item_none = TbHypn0Item(j_metadata=None)
+        self.assertIn("--card-bg-light:", item_none.card_bg_style)
+        self.assertIn("--card-bg-dark:", item_none.card_bg_style)
+
+        item_invalid = TbHypn0Item(j_metadata={"color": "invalid-hex"})
+        self.assertIn("--card-bg-light:", item_invalid.card_bg_style)
+        self.assertIn("--card-bg-dark:", item_invalid.card_bg_style)

@@ -1,9 +1,11 @@
 {% load static %}
-<div id="gallery-card-{{ item.s_hash_id }}" class="aspect-square bg-stone-100 dark:bg-zinc-900 rounded-2xl border border-stone-300/80 dark:border-zinc-800 overflow-hidden relative group transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-amber-500/60 dark:hover:border-amber-500/50 flex items-center justify-center select-none">
+<div id="gallery-card-{{ item.s_hash_id }}" 
+     style="{{ item.card_bg_style }}"
+     class="aspect-square rounded-2xl border border-stone-300/80 dark:border-zinc-800/80 overflow-hidden relative group transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:border-amber-500/60 dark:hover:border-amber-500/50 flex items-center justify-center select-none shadow-sm bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]">
   
   <!-- Ссылка на полный просмотр картины -->
   <a href="{% url 'hypn0_site:gallery_detail' item.s_hash_id %}" 
-     class="absolute inset-0 z-10 flex items-center justify-center p-2.5"
+     class="absolute inset-0 z-10 flex items-center justify-center p-3 sm:p-4"
      title="{{ item.s_title }}">
     <img src="{{ item.file_svg.url }}" 
          alt="{{ item.s_title }}" 

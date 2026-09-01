@@ -273,9 +273,10 @@ def prepare_gallery_svg(svg_content: str) -> str:
     if not svg_content:
         return svg_content
 
+    # Надежная глобальная пауза в контексте :root и пробуждение по ховеру
     hover_css = (
-        "svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,"
-        "svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}"
+        "@media(hover:hover){:root{animation-play-state:paused!important}:root:hover *{animation-play-state:running!important}}"
+        "svg:not(:hover) *{animation-play-state:paused!important}"
     )
 
     if "</style>" in svg_content:
@@ -292,11 +293,16 @@ def prepare_active_svg(svg_content: str) -> str:
     if not svg_content:
         return svg_content
 
-    hover_css = (
+    # Удаляем любые внедренные правила пауз и медиа-запросов ховера
+    cleaned = re.sub(r"@media\s*\(\s*hover\s*:\s*hover\s*\)\s*\{[^}]*:[^}]*\}", "", svg_content)
+    cleaned = re.sub(r"svg:not\(:hover\)[^{]*\{[^}]*\}", "", cleaned)
+    # Старый формат для обратной совместимости
+    old_hover_css = (
         "svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,"
         "svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}"
     )
-    return svg_content.replace(hover_css, "")
+    cleaned = cleaned.replace(old_hover_css, "")
+    return cleaned
 
 
 def analyze_svg_structure(svg_content: str) -> dict:
