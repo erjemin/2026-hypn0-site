@@ -9,6 +9,8 @@
      title="{{ item.s_title }}">
     <div class="hypn0-card-svg w-full h-full flex items-center justify-center drop-shadow-sm transition-transform duration-300 group-hover:scale-105 border-0">
       <template shadowrootmode="open">
+        {# Declarative Shadow DOM: изолирует ID (<defs id="s1"..>) и стили каждой картины в галерее. #}
+        {# В отличие от <img>, события мыши не блокируются, а в отличие от обычного inline SVG нет конфликтов идентификаторов. #}
         <style>
           :host {
             display: flex;
@@ -23,6 +25,8 @@
             height: 100%;
             object-fit: contain;
           }
+          {# В покое внутри SVG действует --hypn0-play: paused (0% нагрузки на CPU). #}
+          {# При наведении мыши на хост-карточку переопределяем переменную на running, и анимация оживает. #}
           :host(:hover) svg, svg:hover {
             --hypn0-play: running !important;
           }

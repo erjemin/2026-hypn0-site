@@ -229,6 +229,9 @@ def generate_halftone_svg(
     fill_style = f"fill:{clean_color};stroke:{clean_color};opacity:{opacity:.2f};"
 
     if is_animated:
+        # Управление паузой/запуском через CSS Custom Property --hypn0-play.
+        # По умолчанию running (для живого превью и детального просмотра).
+        # В галерее значение переопределяется на paused для 0% нагрузки на процессор.
         anim_rule = (
             f"animation:noise {duration:.2f}s ease-in-out infinite alternate;"
             f"animation-delay:var(--d);"
@@ -270,15 +273,20 @@ def generate_halftone_svg(
 def prepare_gallery_svg(svg_content: str) -> str:
     """
     Модифицирует SVG для долговременного хранения в галерее:
-    добавляет CSS Custom Property (--hypn0-play: paused), которое наследуется
-    внутрь элементов и теневых деревьев <use>. В изолированном контексте (Shadow DOM или <img>)
-    анимация заморожена по умолчанию (0% нагрузки на CPU), а при наведении (:hover или :host(:hover))
-    запускается.
+    внедряет CSS Custom Property (--hypn0-play: paused), которое свободно наследуется
+    внутрь элементов и теневых деревьев <use>.
+
+    Логика работы:
+    1. В покое (--hypn0-play: paused): 0% потребления CPU и GPU браузера в ленте галереи.
+    2. При наведении курсора (:host(:hover) в Shadow DOM или svg:hover при открытии файла):
+       значение переключается на running, и анимация оживает.
     """
     if not svg_content:
         return svg_content
 
     # Наследуемая переменная паузы и оверрайд стилей фигур
+    # Важно: селектор :host(:hover) работает при вставке в Shadow DOM карточки,
+    # а svg:hover работает, если файл открыт напрямую в браузере.
     hover_css = (
         "svg{--hypn0-play:paused}"
         ":host(:hover) svg,svg:hover{--hypn0-play:running!important}"
@@ -294,7 +302,10 @@ def prepare_gallery_svg(svg_content: str) -> str:
 def prepare_active_svg(svg_content: str) -> str:
     """
     Возвращает полностью активный SVG без паузы анимации вне ховера
-    для страницы детального просмотра и скачивания пользователем.
+    для страницы детального просмотра (/gallery/<hash_id>) и скачивания пользователем.
+
+    Удаляет оверрайды пауз (--hypn0-play: paused), восстанавливая оригинальные
+    авторские цвета, прозрачности и непрерывную живую анимацию на полной мощности.
     """
     if not svg_content:
         return svg_content
