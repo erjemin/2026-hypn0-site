@@ -1,0 +1,33 @@
+{% load static %}
+<div id="gallery-card-{{ item.s_hash_id }}" class="aspect-square bg-stone-100 dark:bg-zinc-900 rounded-2xl border border-stone-300/80 dark:border-zinc-800 overflow-hidden relative group transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-amber-500/60 dark:hover:border-amber-500/50 flex items-center justify-center select-none">
+  
+  <!-- Ссылка на полный просмотр картины -->
+  <a href="{% url 'hypn0_site:gallery_detail' item.s_hash_id %}" 
+     class="absolute inset-0 z-10 flex items-center justify-center p-2.5"
+     title="{{ item.s_title }}">
+    <img src="{{ item.file_svg.url }}" 
+         alt="{{ item.s_title }}" 
+         loading="lazy" 
+         class="w-full h-full object-contain pointer-events-none drop-shadow-sm transition-transform duration-300 group-hover:scale-105">
+  </a>
+
+  <!-- Верхний бейдж: Хэш -->
+  <div class="absolute top-2 left-2 z-20 pointer-events-none">
+    <span class="text-[10px] font-mono font-bold tracking-tight px-1.5 py-0.5 rounded bg-stone-900/70 text-stone-200 backdrop-blur-md border border-white/10 opacity-75 group-hover:opacity-100 transition-opacity">
+      ¤{{ item.s_hash_id }}
+    </span>
+  </div>
+
+  <!-- Нижняя панель статистики (Лайки и Просмотры) -->
+  <div class="absolute bottom-2 left-2 right-2 z-20 flex items-center justify-between pointer-events-none">
+    <!-- Бейдж лайков -->
+    <span class="inline-flex items-center gap-1 text-[11px] font-bold font-mono px-2 py-0.5 rounded-full bg-stone-900/80 text-amber-400 backdrop-blur-md border border-amber-500/20 shadow-sm opacity-90 group-hover:opacity-100 transition-opacity">
+      ♥ {{ item.i_likes_count }}
+    </span>
+
+    <!-- Бейдж просмотров (проявляется при наведении) -->
+    <span class="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-stone-900/80 text-stone-400 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+      👁 {{ item.i_views_count }}
+    </span>
+  </div>
+</div>

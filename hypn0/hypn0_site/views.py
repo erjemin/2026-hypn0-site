@@ -3,6 +3,7 @@ import random
 
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -19,9 +20,63 @@ from .services.halftone import (
 from .services.naming import generate_hypno_title
 
 
+def get_floor_fresh(limit: int | None = 6, offset: int = 0):
+    """
+    1-й ЭТАЖ: «Плеск бессознательного» (Инкубатор открытий).
+    Выборка: свежие кандидаты и первичный поток (Level.CANDIDATE, Level.LEVEL_1).
+    Сортировка: по наименьшему числу просмотров i_views_count (чтобы дать шанс всем) и свежести -d_created_at.
+    """
+    qs = TbHypn0Item.objects.filter(
+        i_level__in=[TbHypn0Item.Level.CANDIDATE, TbHypn0Item.Level.LEVEL_1],
+        is_public=True,
+    ).order_by("i_views_count", "-d_created_at")
+
+    if limit is not None:
+        return qs[offset : offset + limit]
+    return qs
+
+
+def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
+    """
+    Страница полного просмотра конкретного этажа галереи с пагинацией (по 8 карточек).
+    """
+    floors_config = {
+        "fresh": {
+            "title": "Плеск бессознательного",
+            "badge": "FRESH STREAM",
+            "badge_color": "amber",
+            "subtitle": "Свежие галлюцинации из инкубатора • Первичная оценка сообщества",
+            "getter": get_floor_fresh,
+        },
+    }
+
+    if floor_slug not in floors_config:
+        raise Http404("Этаж транса не обнаружен в матрице")
+
+    cfg = floors_config[floor_slug]
+    items_qs = cfg["getter"](limit=None)
+
+    paginator = Paginator(items_qs, 8)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "floor_slug": floor_slug,
+        "floor_title": cfg["title"],
+        "floor_badge": cfg["badge"],
+        "floor_badge_color": cfg["badge_color"],
+        "floor_subtitle": cfg["subtitle"],
+        "page_obj": page_obj,
+    }
+    return render(request, "gallery/floor.html", context)
+
+
 @ensure_csrf_cookie
 def index(request: HttpRequest | None) -> HttpResponse:
-    return render(request, "index.html", {})
+    fresh_items = get_floor_fresh(limit=6)
+    return render(request, "index.html", {
+        "fresh_items": fresh_items,
+    })
 
 
 def tmp(request: HttpRequest | None) -> HttpResponse:

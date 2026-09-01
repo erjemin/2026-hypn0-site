@@ -51,6 +51,11 @@
   <span class="font-mono text-[11px] bg-purple-900/80 text-purple-300 border border-purple-400/30 px-2 py-0.5 rounded-md">#{{ item.s_hash_id }}</span>
 </div>
 
+<!-- Живое появление картины на 1-м этаже галереи через HTMX OOB-Swap -->
+<div hx-swap-oob="afterbegin:#fresh-stream-grid">
+  {% include "block/gallery_card.html" %}
+</div>
+
 {% elif error %}
 <!-- Ошибка публикации -->
 <div id="gallery-candidate-action" class="pointer-events-auto flex items-center gap-3 bg-rose-600/90 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-xl backdrop-blur-md border border-rose-400/30">

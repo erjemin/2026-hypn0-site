@@ -568,3 +568,132 @@ class UnconsciousMatrixTests(TestCase):
         self.assertContains(response, f"#{item.s_hash_id}")
         self.assertContains(response, "btn-nav-prev")
         self.assertContains(response, "btn-nav-next")
+
+
+class GalleryFreshFloorTests(TestCase):
+    """Тестирование 1-го этажа («Плеск бессознательного»), выборки и пагинации."""
+
+    def setUp(self):
+        self.client = Client()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+
+    def test_get_floor_fresh_filtering_and_ordering(self):
+        from hypn0_site.views import get_floor_fresh
+
+        # 1. Создаем картины разных уровней и с разным числом просмотров
+        svg_bytes = b'<svg><circle/></svg>'
+
+        # Свежий кандидат с 5 просмотрами
+        item_cand = TbHypn0Item(
+            s_title="Кандидат",
+            file_svg=ContentFile(svg_bytes, name="c.svg"),
+            i_views_count=5,
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=True,
+        )
+        item_cand.save(visitor_uuid_or_fp=self.vid)
+
+        # Level 1 с 1 просмотром (должен быть первым, т.к. просмотров меньше)
+        item_lvl1 = TbHypn0Item(
+            s_title="Level 1",
+            file_svg=ContentFile(svg_bytes, name="l1.svg"),
+            i_views_count=1,
+            i_level=TbHypn0Item.Level.LEVEL_1,
+            is_public=True,
+        )
+        item_lvl1.save(visitor_uuid_or_fp=self.vid)
+
+        # Level 2 (2-й этаж, не должен попасть в 1-й)
+        item_lvl2 = TbHypn0Item(
+            s_title="Level 2 Curated",
+            file_svg=ContentFile(svg_bytes, name="l2.svg"),
+            i_views_count=0,
+            i_level=TbHypn0Item.Level.LEVEL_2,
+            is_public=True,
+        )
+        item_lvl2.save(visitor_uuid_or_fp=self.vid)
+
+        # Непубличная картина (не должна попасть)
+        item_private = TbHypn0Item(
+            s_title="Private",
+            file_svg=ContentFile(svg_bytes, name="p.svg"),
+            i_views_count=0,
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=False,
+        )
+        item_private.save(visitor_uuid_or_fp=self.vid)
+
+        results = list(get_floor_fresh(limit=10))
+        self.assertEqual(len(results), 2)
+        # Сначала с наименьшим i_views_count
+        self.assertEqual(results[0].pk, item_lvl1.pk)
+        self.assertEqual(results[1].pk, item_cand.pk)
+
+    def test_index_view_renders_fresh_stream(self):
+        # Создаем 2 картины для 1 этажа
+        svg_bytes = b'<svg><circle/></svg>'
+        item = TbHypn0Item(
+            s_title="Свежий шедевр",
+            file_svg=ContentFile(svg_bytes, name="f1.svg"),
+            i_views_count=2,
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        response = self.client.get(reverse("hypn0_site:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Плеск бессознательного")
+        self.assertContains(response, "FRESH STREAM")
+        self.assertContains(response, f"gallery-card-{item.s_hash_id}")
+        self.assertContains(response, f"¤{item.s_hash_id}")
+
+    def test_publish_includes_oob_swap_for_fresh_grid(self):
+        self.client.cookies["hypn0_vid"] = self.vid
+        sample_svg = '<svg xmlns="http://www.w3.org/2000/svg"><g><circle/></g></svg>'
+
+        response = self.client.post(
+            reverse("hypn0_site:publish"),
+            data={
+                "svg_content": sample_svg,
+                "shape": "circle",
+                "cols": "35",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'hx-swap-oob="afterbegin:#fresh-stream-grid"')
+        item = TbHypn0Item.objects.first()
+        self.assertContains(response, f"gallery-card-{item.s_hash_id}")
+
+    def test_gallery_floor_fresh_pagination(self):
+        # Создаем 10 картин
+        svg_bytes = b'<svg><circle/></svg>'
+        for i in range(10):
+            item = TbHypn0Item(
+                s_title=f"Кандидат #{i}",
+                file_svg=ContentFile(svg_bytes, name=f"cand_{i}.svg"),
+                i_views_count=i,
+                i_level=TbHypn0Item.Level.CANDIDATE,
+                is_public=True,
+            )
+            item.save(visitor_uuid_or_fp=self.vid)
+
+        # Страница 1 (должно быть 8 штук)
+        url = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "fresh"})
+        response_p1 = self.client.get(url)
+        self.assertEqual(response_p1.status_code, 200)
+        self.assertContains(response_p1, "Плеск бессознательного")
+        self.assertContains(response_p1, "FRESH STREAM")
+        self.assertEqual(len(response_p1.context["page_obj"]), 8)
+        self.assertContains(response_p1, "Фаза 1 из 2")
+
+        # Страница 2 (должно быть 2 штуки)
+        response_p2 = self.client.get(url, data={"page": 2})
+        self.assertEqual(response_p2.status_code, 200)
+        self.assertEqual(len(response_p2.context["page_obj"]), 2)
+        self.assertContains(response_p2, "Фаза 2 из 2")
+
+    def test_gallery_floor_unknown_404(self):
+        url = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "non_existent"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
