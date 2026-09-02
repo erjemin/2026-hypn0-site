@@ -5,6 +5,17 @@ from hashids import Hashids
 from hypn0.settings import *
 from django.utils import timezone
 
+
+def hypn0_svg_upload_to(instance, filename: str) -> str:
+    """
+    Генерирует путь и имя для сохраняемого SVG-файла картины:
+    svg/YYYY/MM/hypn0_{s_hash_id}.svg
+    """
+    now = timezone.now()
+    hash_id = getattr(instance, "s_hash_id", "") or "temp"
+    return f"svg/{now.strftime('%Y/%m')}/hypn0_{hash_id}.svg"
+
+
 class TbHypn0Item(models.Model):
     """
     Единая модель для генераций, публичных шеров и витрины галереи.
@@ -57,7 +68,7 @@ class TbHypn0Item(models.Model):
         help_text="Заголовок для генерации. Включена HTML-типографика. 255 символов максимум.",
     )
     file_svg = models.FileField(
-        upload_to="svg/%Y/%m/",
+        upload_to=hypn0_svg_upload_to,
         verbose_name="SVG-файл",
         help_text="Результирующий SVG-файл генерации",
     )
@@ -313,11 +324,35 @@ class TbHypn0Item(models.Model):
             super().save(*args, **kwargs)
 
             # 3. Формируем s_hash_id, если его еще нет
+            update_fields = []
             if not self.s_hash_id:
                 self.s_hash_id = Hashids(salt=HASHIDS_SALT, min_length=HASHIDS_MIN_LENGTH).encode(self.pk)
-                super().save(update_fields=['s_hash_id'])
+                update_fields.append("s_hash_id")
 
-            # 4. Регистрируем автора в TbVote (гарантированно после получения self.pk)
+            # 4. Приводим имя SVG-файла к стандартному виду с s_hash_id (svg/YYYY/MM/hypn0_{s_hash_id}.svg)
+            if self.file_svg and self.s_hash_id:
+                expected_filename = f"hypn0_{self.s_hash_id}.svg"
+                current_name = self.file_svg.name
+                if expected_filename not in current_name:
+                    # Вычисляем целевой путь в хранилище
+                    date_folder = self.d_created_at.strftime("%Y/%m") if self.d_created_at else timezone.now().strftime("%Y/%m")
+                    target_name = f"svg/{date_folder}/{expected_filename}"
+                    storage = self.file_svg.storage
+                    if current_name and storage.exists(current_name) and current_name != target_name:
+                        # Если целевой файл уже существовал, удаляем перед заменой
+                        if storage.exists(target_name):
+                            storage.delete(target_name)
+                        # Перемещаем файл в хранилище
+                        with storage.open(current_name, "rb") as source_file:
+                            storage.save(target_name, source_file)
+                        storage.delete(current_name)
+                        self.file_svg.name = target_name
+                        update_fields.append("file_svg")
+
+            if update_fields:
+                super().save(update_fields=update_fields)
+
+            # 5. Регистрируем автора в TbVote (гарантированно после получения self.pk)
             if is_new and author_fp:
                 TbVote.objects.create(
                     k_item=self,

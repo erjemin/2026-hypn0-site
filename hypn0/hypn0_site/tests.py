@@ -60,8 +60,11 @@ class HalftoneServiceTests(BaseMediaTestCase):
                 self.img.putpixel((x, y), (0, 0, 0))
 
     def test_encode_to_base36(self):
-        self.assertEqual(encode_to_base36(0), "a")
-        self.assertEqual(encode_to_base36(1), "b")
+        self.assertEqual(encode_to_base36(0), "H")
+        self.assertEqual(encode_to_base36(1), "Y")
+        self.assertEqual(encode_to_base36(2), "P")
+        self.assertEqual(encode_to_base36(3), "N")
+        self.assertEqual(encode_to_base36(4), "0")
         with self.assertRaises(ValueError):
             encode_to_base36(-1)
 
@@ -112,14 +115,14 @@ class HalftoneServiceTests(BaseMediaTestCase):
         # Проверяем, что для вертикального изображения (100x300) сетка не раздувается
         tall_img = Image.new("RGB", (100, 300), color="black")
         svg_tall = generate_halftone_svg(tall_img, cols=30, max_radius=5)
-        # При cols=30 наибольшая сторона (высота) должна иметь 30 точек, а ширина 10
-        # step = 5 * 2 + 2 = 12 -> width = 10 * 12 = 120, height = 30 * 12 = 360
-        self.assertIn('viewBox="0 0 120 360"', svg_tall)
+        # При cols=30 наибольшая сторона (высота) имеет 30 точек, ширина 10
+        # STEP = 20, margin = 4 -> width = 10 * 20 + 8 = 208, height = 30 * 20 + 8 = 608
+        self.assertIn('viewBox="0 0 208 608"', svg_tall)
 
         # Для горизонтального изображения (300x100)
         wide_img = Image.new("RGB", (300, 100), color="black")
         svg_wide = generate_halftone_svg(wide_img, cols=30, max_radius=5)
-        self.assertIn('viewBox="0 0 360 120"', svg_wide)
+        self.assertIn('viewBox="0 0 608 208"', svg_wide)
 
 
 class HalftoneFormTests(BaseMediaTestCase):
@@ -329,6 +332,9 @@ class PublishViewTests(BaseMediaTestCase):
         self.assertEqual(item.j_metadata["shape"], "diamond")
         self.assertEqual(item.j_metadata["cols"], 40)
         self.assertEqual(item.j_metadata["color"], "#10b981")
+        # Проверяем, что файл сохранен с именем, содержащим id-хэш
+        self.assertIn(f"hypn0_{item.s_hash_id}.svg", item.file_svg.name)
+        self.assertTrue(item.file_svg.storage.exists(item.file_svg.name))
 
         # Проверяем авторский голос в TbVote
         self.assertEqual(TbVote.objects.count(), 1)
