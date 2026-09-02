@@ -36,9 +36,41 @@ def get_floor_fresh(limit: int | None = 8, offset: int = 0):
     return qs
 
 
+def get_floor_curated(limit: int | None = 8, offset: int = 0):
+    """
+    2-й ЭТАЖ: «Одобрено Мозговым Слизнем» (Кураторский отбор / Тренды).
+    Выборка: прошедшие первичный отбор (Level.LEVEL_2).
+    Сортировка: по гравитационному рейтингу -f_score (актуальные тренды) и свежести -d_created_at.
+    """
+    qs = TbHypn0Item.objects.filter(
+        i_level=TbHypn0Item.Level.LEVEL_2,
+        is_public=True,
+    ).order_by("-f_score", "-d_created_at")
+
+    if limit is not None:
+        return qs[offset : offset + limit]
+    return qs
+
+
+def get_floor_top(limit: int | None = 8, offset: int = 0):
+    """
+    3-й ЭТАЖ: «Глубокий транс» (Золотой фонд / Высшая лига).
+    Выборка: бессмертные шедевры сообщества (Level.IMMORTAL).
+    Сортировка: по числу признания -i_likes_count, -f_score и свежести -d_created_at.
+    """
+    qs = TbHypn0Item.objects.filter(
+        i_level=TbHypn0Item.Level.IMMORTAL,
+        is_public=True,
+    ).order_by("-i_likes_count", "-f_score", "-d_created_at")
+
+    if limit is not None:
+        return qs[offset : offset + limit]
+    return qs
+
+
 def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
     """
-    Страница полного просмотра конкретного этажа галереи с пагинацией (по 8 карточек).
+    Страница полного просмотра конкретного этажа галереи с пагинацией (по 16 карточек).
     """
     floors_config = {
         "fresh": {
@@ -48,6 +80,20 @@ def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
             "subtitle": "Свежие галлюцинации из инкубатора • Первичная оценка сообщества",
             "getter": get_floor_fresh,
         },
+        "curated": {
+            "title": "Одобрено Мозговым Слизнем",
+            "badge": "CURATED",
+            "badge_color": "cyan",
+            "subtitle": "Проверено контролем качества • Высокий психоделический резонанс",
+            "getter": get_floor_curated,
+        },
+        "top": {
+            "title": "Глубокий транс",
+            "badge": "TOP TIER",
+            "badge_color": "emerald",
+            "subtitle": "Золотой фонд гипноза • Абсолютное подчинение воли",
+            "getter": get_floor_top,
+        },
     }
 
     if floor_slug not in floors_config:
@@ -56,7 +102,7 @@ def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
     cfg = floors_config[floor_slug]
     items_qs = cfg["getter"](limit=None)
 
-    paginator = Paginator(items_qs, 8)
+    paginator = Paginator(items_qs, 16)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
@@ -74,8 +120,12 @@ def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
 @ensure_csrf_cookie
 def index(request: HttpRequest | None) -> HttpResponse:
     fresh_items = get_floor_fresh(limit=8)
+    curated_items = get_floor_curated(limit=8)
+    top_items = get_floor_top(limit=8)
     return render(request, "index.html", {
         "fresh_items": fresh_items,
+        "curated_items": curated_items,
+        "top_items": top_items,
     })
 
 

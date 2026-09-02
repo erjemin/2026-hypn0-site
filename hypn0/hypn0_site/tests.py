@@ -719,9 +719,9 @@ class GalleryFreshFloorTests(BaseMediaTestCase):
         self.assertContains(response, f"gallery-card-{item.s_hash_id}")
 
     def test_gallery_floor_fresh_pagination(self):
-        # Создаем 10 картин
+        # Создаем 20 картин
         svg_bytes = b'<svg><circle/></svg>'
-        for i in range(10):
+        for i in range(20):
             item = TbHypn0Item(
                 s_title=f"Кандидат #{i}",
                 file_svg=ContentFile(svg_bytes, name=f"cand_{i}.svg"),
@@ -731,20 +731,71 @@ class GalleryFreshFloorTests(BaseMediaTestCase):
             )
             item.save(visitor_uuid_or_fp=self.vid)
 
-        # Страница 1 (должно быть 8 штук)
+        # Страница 1 (должно быть 16 штук)
         url = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "fresh"})
         response_p1 = self.client.get(url)
         self.assertEqual(response_p1.status_code, 200)
         self.assertContains(response_p1, "Плеск бессознательного")
         self.assertContains(response_p1, "FRESH STREAM")
-        self.assertEqual(len(response_p1.context["page_obj"]), 8)
+        self.assertEqual(len(response_p1.context["page_obj"]), 16)
         self.assertContains(response_p1, "Фаза 1 из 2")
 
-        # Страница 2 (должно быть 2 штуки)
+        # Страница 2 (должно быть 4 штуки)
         response_p2 = self.client.get(url, data={"page": 2})
         self.assertEqual(response_p2.status_code, 200)
-        self.assertEqual(len(response_p2.context["page_obj"]), 2)
+        self.assertEqual(len(response_p2.context["page_obj"]), 4)
         self.assertContains(response_p2, "Фаза 2 из 2")
+
+    def test_gallery_floors_curated_and_top(self):
+        from hypn0_site.views import get_floor_curated, get_floor_top
+
+        svg_bytes = b'<svg><circle/></svg>'
+        item_curated = TbHypn0Item(
+            s_title="Одобренная картина",
+            file_svg=ContentFile(svg_bytes, name="cur.svg"),
+            i_level=TbHypn0Item.Level.LEVEL_2,
+            f_score=42.5,
+            is_public=True,
+        )
+        item_curated.save(visitor_uuid_or_fp=self.vid)
+
+        item_top = TbHypn0Item(
+            s_title="Шедевр золотого фонда",
+            file_svg=ContentFile(svg_bytes, name="top.svg"),
+            i_level=TbHypn0Item.Level.IMMORTAL,
+            i_likes_count=150,
+            f_score=99.0,
+            is_public=True,
+        )
+        item_top.save(visitor_uuid_or_fp=self.vid)
+
+        # Проверяем выборки
+        curated_res = list(get_floor_curated())
+        self.assertEqual(len(curated_res), 1)
+        self.assertEqual(curated_res[0].pk, item_curated.pk)
+
+        top_res = list(get_floor_top())
+        self.assertEqual(len(top_res), 1)
+        self.assertEqual(top_res[0].pk, item_top.pk)
+
+        # Проверяем рендеринг страниц этажей
+        url_curated = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "curated"})
+        resp_c = self.client.get(url_curated)
+        self.assertEqual(resp_c.status_code, 200)
+        self.assertContains(resp_c, "Одобрено Мозговым Слизнем")
+        self.assertContains(resp_c, "CURATED")
+
+        url_top = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "top"})
+        resp_t = self.client.get(url_top)
+        self.assertEqual(resp_t.status_code, 200)
+        self.assertContains(resp_t, "Глубокий транс")
+        self.assertContains(resp_t, "TOP TIER")
+
+        # Проверяем отображение на главной странице
+        resp_idx = self.client.get(reverse("hypn0_site:index"))
+        self.assertEqual(resp_idx.status_code, 200)
+        self.assertContains(resp_idx, f"gallery-card-{item_curated.s_hash_id}")
+        self.assertContains(resp_idx, f"gallery-card-{item_top.s_hash_id}")
 
     def test_gallery_floor_unknown_404(self):
         url = reverse("hypn0_site:gallery_floor", kwargs={"floor_slug": "non_existent"})

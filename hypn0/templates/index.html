@@ -509,7 +509,7 @@
 
     <!-- 2-й ЭТАЖ: ОДОБРЕНО МОЗГОВЫМ СЛИЗНЕМ (Кураторский отбор) -->
     <div class="space-y-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-3">
           <div class="w-5 h-5 rounded-full bg-cyan-500"></div>
           <div>
@@ -520,28 +520,25 @@
             <p class="text-xs text-stone-400 dark:text-zinc-500">Проверено контролем качества • Высокий психоделический резонанс</p>
           </div>
         </div>
-        <span class="text-xs font-semibold text-stone-400">100–999 лайков</span>
+        <a href="{% url 'hypn0_site:gallery_floor' 'curated' %}" class="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
+          Смотреть все одобренные →
+        </a>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <template x-for="i in 8">
-          <div class="aspect-square bg-stone-200 dark:bg-zinc-900 rounded-xl border border-stone-300 dark:border-zinc-800 overflow-hidden relative group cursor-pointer hover:border-cyan-500/50 transition-all hover:scale-[1.02]">
-            <div class="absolute inset-0 flex items-center justify-center text-stone-400 group-hover:scale-110 transition-transform">
-              <svg class="w-8 h-8 opacity-20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-              </svg>
-            </div>
-            <div class="absolute bottom-2 left-2 flex items-center gap-1 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 bg-white/90 dark:bg-zinc-900/90 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-              ♥ <span x-text="100 + Math.floor(Math.random()*400)"></span>
-            </div>
+        {% for item in curated_items %}
+          {% include "block/gallery_card.html" %}
+        {% empty %}
+          <div class="col-span-full py-10 text-center text-stone-400 bg-stone-100/50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-stone-300 dark:border-zinc-800 text-xs">
+            Мозговой слизень пока не отобрал картины для второго уровня. Голосуйте за свежие работы в инкубаторе!
           </div>
-        </template>
+        {% endfor %}
       </div>
     </div>
 
     <!-- 3-й ЭТАЖ: ГЛУБОКИЙ ТРАНС (Высшая лига) -->
     <div class="space-y-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-3">
           <div class="w-5 h-5"><img src="{% static 'img/favicon.svg' %}" alt="Favicon" class="w-full h-full object-cover"></div>
           <div>
@@ -552,25 +549,19 @@
             <p class="text-xs text-stone-400 dark:text-zinc-500">Золотой фонд гипноза • Абсолютное подчинение воли</p>
           </div>
         </div>
-        <span class="text-xs font-semibold text-stone-400">1000+ лайков</span>
+        <a href="{% url 'hypn0_site:gallery_floor' 'top' %}" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+          Смотреть весь золотой фонд →
+        </a>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <template x-for="i in 8">
-          <div class="aspect-square bg-stone-200 dark:bg-zinc-900 rounded-2xl border-2 border-emerald-500/30 dark:border-emerald-500/20 overflow-hidden relative group cursor-pointer shadow-lg shadow-emerald-950/5 hover:border-emerald-500 transition-all hover:scale-[1.02]">
-            <div class="absolute inset-0 flex items-center justify-center text-emerald-600/40 group-hover:scale-110 transition-transform">
-              <svg class="w-10 h-10 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-              </svg>
-            </div>
-            <div class="absolute top-2 right-2 text-[10px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 backdrop-blur-md px-1.5 py-0.5 rounded border border-emerald-500/20">
-              ★ 99%
-            </div>
-            <div class="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow">
-              <span>♥</span> <span x-text="500 + Math.floor(Math.random()*500)"></span>
-            </div>
+        {% for item in top_items %}
+          {% include "block/gallery_card.html" %}
+        {% empty %}
+          <div class="col-span-full py-10 text-center text-stone-400 bg-stone-100/50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-stone-300 dark:border-zinc-800 text-xs">
+            Зал славы глубокого транса формируется. Только истинные бессмертные шедевры попадают сюда.
           </div>
-        </template>
+        {% endfor %}
       </div>
     </div>
 
