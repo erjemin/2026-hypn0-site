@@ -117,10 +117,10 @@ def generate_halftone_svg(
     - seed: сид для детерминированного распределения анимаций
 
     TODO ПОЧИНИТЬ-УЛУЧШИТЬ:
-    - max_radius (радиус точки): сейчас зазор между точками не меняется. Нужно чтобы:
-        - при d=0 -- зазор 10
-        - при d<10 -- зазор 10-d
-        - при d>10 -- перекрытие d-10 (отрицательный зазор)
+    ПОЧИНИЛИ ДЛЯ ПРОСТЫХ ФИГУР - max_radius (радиус точки):
+            - шаг ячейки STEP = 20, базовый радиус R0 = 10
+            - при d=0 .. 10 -- зазор между точками
+            - при d>10 -- перекрытие и наползание точек
     - angle: сейчас это просто поворот картинки. Нужно чтобы:
         - нужно чтобы это был поворт картинки (т.е. ряды-столбцы были со смещение-поворотом, как при полиграфии)
     - blink: что-то страннное. пока не понял
@@ -161,9 +161,18 @@ def generate_halftone_svg(
 
     img_resized = img.resize((grid_width, grid_height), Image.Resampling.LANCZOS)
 
-    step = max_radius * 2 + 2
-    width = grid_width * step
-    height = grid_height * step
+    # Базовый шаг ячейки сетки (номинальный радиус касания точек R0 = 10, диаметр D0 = 20)
+    STEP = 20
+
+    # Расчет запаса/паспарту (margin) по краям холста:
+    # Учитывает увеличенный радиус точек (при наползании) и масштабирование при пульсации/повороте
+    scale_val = max(0.5, min(1.5, scale / 1000.0))
+    max_effective_radius = max_radius * max(1.0, scale_val)
+    max_visual_extent = math.ceil(max_effective_radius * 1.42) + 2
+    margin = max(4, max_visual_extent - STEP // 2 + 2)
+
+    width = grid_width * STEP + 2 * margin
+    height = grid_height * STEP + 2 * margin
 
     # 2. Формирование классов анимации
     animation_classes = []
@@ -195,8 +204,8 @@ def generate_halftone_svg(
             if radius == 0:
                 continue
 
-            cx = x * step + step // 2
-            cy = y * step + step // 2
+            cx = margin + x * STEP + STEP // 2
+            cy = margin + y * STEP + STEP // 2
 
             anim_class = rng.randint(0, animation_variants - 1)
             encoded_class = encode_to_base36(anim_class)
