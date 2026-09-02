@@ -1,7 +1,9 @@
 import io
+import shutil
+import tempfile
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
@@ -17,7 +19,37 @@ from .services.halftone import (
 from .services.naming import generate_hypno_title, generate_title_openrouter
 
 
-class HalftoneServiceTests(TestCase):
+class BaseMediaTestCase(TestCase):
+    """Базовый тестовый класс с изоляцией MEDIA_ROOT и STORAGES во временной папке."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.temp_media = tempfile.mkdtemp()
+        cls.override_media = override_settings(
+            MEDIA_ROOT=cls.temp_media,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                    "OPTIONS": {
+                        "location": cls.temp_media,
+                    },
+                },
+                "staticfiles": {
+                    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+                },
+            },
+        )
+        cls.override_media.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.override_media.disable()
+        shutil.rmtree(cls.temp_media, ignore_errors=True)
+        super().tearDownClass()
+
+
+class HalftoneServiceTests(BaseMediaTestCase):
     """Тестирование сервиса генерации SVG (services/halftone.py)."""
 
     def setUp(self):
@@ -89,7 +121,7 @@ class HalftoneServiceTests(TestCase):
         self.assertIn('viewBox="0 0 360 120"', svg_wide)
 
 
-class HalftoneFormTests(TestCase):
+class HalftoneFormTests(BaseMediaTestCase):
     """Тестирование формы валидации HalftoneGenerateForm."""
 
     def test_form_validation(self):
@@ -116,7 +148,7 @@ class HalftoneFormTests(TestCase):
         self.assertEqual(form.cleaned_data["cols"], 60)
 
 
-class HalftoneViewTests(TestCase):
+class HalftoneViewTests(BaseMediaTestCase):
     """Тестирование view-обработчиков (index, generate)."""
 
     def setUp(self):
@@ -216,7 +248,7 @@ class HalftoneViewTests(TestCase):
         self.assertContains(response, "like-to-gallery")
 
 
-class NamingServiceTests(TestCase):
+class NamingServiceTests(BaseMediaTestCase):
     """Тестирование сервиса гипнотических названий (services/naming.py)."""
 
     def test_generate_hypno_title(self):
@@ -232,7 +264,7 @@ class NamingServiceTests(TestCase):
         self.assertIsNone(res)
 
 
-class GalleryPreparationTests(TestCase):
+class GalleryPreparationTests(BaseMediaTestCase):
     """Тестирование подготовки SVG к галерейному хранению."""
 
     def test_prepare_gallery_svg(self):
@@ -243,7 +275,7 @@ class GalleryPreparationTests(TestCase):
         self.assertIn("animation-play-state:var(--hypn0-play,paused)!important", prepared)
 
 
-class PublishViewTests(TestCase):
+class PublishViewTests(BaseMediaTestCase):
     """Тестирование эндпоинта публикации кандидата в галерею (/publish)."""
 
     def setUp(self):
@@ -314,7 +346,7 @@ class PublishViewTests(TestCase):
         self.assertEqual(TbHypn0Item.objects.count(), 0)
 
 
-class SvgAnalysisAndActiveSvgTests(TestCase):
+class SvgAnalysisAndActiveSvgTests(BaseMediaTestCase):
     """Тестирование анализа структуры SVG и очистки от паузы."""
 
     def test_prepare_active_svg(self):
@@ -365,7 +397,7 @@ class SvgAnalysisAndActiveSvgTests(TestCase):
         self.assertTrue(stats["total_bytes"] > 0)
 
 
-class GalleryDetailAndDownloadTests(TestCase):
+class GalleryDetailAndDownloadTests(BaseMediaTestCase):
     """Тестирование страниц детального просмотра картины, скачивания и голосования."""
 
     def setUp(self):
@@ -440,7 +472,7 @@ class GalleryDetailAndDownloadTests(TestCase):
         self.assertContains(response, "Подчинитесь воле Гипножабы!")
 
 
-class GalleryRandomAndNavigationTests(TestCase):
+class GalleryRandomAndNavigationTests(BaseMediaTestCase):
     """Тестирование случайной навигации и пула хэшей (/gallery/random)."""
 
     def setUp(self):
@@ -518,7 +550,7 @@ class GalleryRandomAndNavigationTests(TestCase):
         self.assertEqual(json_resp.json()["pool"], [])
 
 
-class UnconsciousMatrixTests(TestCase):
+class UnconsciousMatrixTests(BaseMediaTestCase):
     """Тестирование Матрицы бессознательного (build_unconscious_matrix) и навигации."""
 
     def setUp(self):
@@ -591,7 +623,7 @@ class UnconsciousMatrixTests(TestCase):
         self.assertContains(response, "bg-[var(--card-bg-light)]")
 
 
-class GalleryFreshFloorTests(TestCase):
+class GalleryFreshFloorTests(BaseMediaTestCase):
     """Тестирование 1-го этажа («Плеск бессознательного»), выборки и пагинации."""
 
     def setUp(self):
@@ -720,7 +752,7 @@ class GalleryFreshFloorTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class CardBgStyleTests(TestCase):
+class CardBgStyleTests(BaseMediaTestCase):
     """Тестирование вычисления адаптивных стилей подложки карточки."""
 
     def test_extreme_white_color_forces_dark_background(self):
