@@ -48,6 +48,9 @@ ALLOWED_HOSTS = env.list(
     default=['127.0.0.1', 'localhost', 'hypn0.ru'],
 )
 
+# Указывает Django доверять заголовку X-Forwarded-Proto от reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # CSRF для всех хостов которым доверяем отправлять входящие запросы
 CSRF_TRUSTED_ORIGINS = env.list('DJANGO_CSRF_TRUSTED_ORIGINS', default=[])
 
@@ -235,3 +238,6 @@ else:
     # robots.txt, favicon.ico и т.п.)
     WHITENOISE_ROOT = PUBLIC_DIR
 
+    # Защита куки сессий и CSRF от передачи по открытому HTTP
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
