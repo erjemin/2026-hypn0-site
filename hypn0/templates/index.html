@@ -446,30 +446,8 @@
              :class="isLoading ? 'text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider animate-pulse' : 'font-medium opacity-50'"
              x-text="isLoading ? 'Гипножаба переваривает пиксели…' : 'Ваше искусство появится здесь'"></p>
         </div>
-
-        <!-- Заглушка для кнопок действий (появятся при генерации) -->
-        <div
-          class="absolute bottom-6 right-6 flex items-center gap-3 translate-y-20 group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
-          <button id="like-to-gallery" type="button" title="Нравится!"
-                  class="pointer-events-auto flex items-center gap-2 bg-emerald-600/85 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer">
-            <span>Кандидат в галерею транса</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-
-          </button>
-          <button id="dislike-from-gallery" type="button" title="Не нравится!"
-                  class="pointer-events-auto flex items-center gap-2 bg-rose-900/90 hover:bg-rose-500 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-              <span>Гипнoжаба такое не одобрит</span>
-            </svg>
-          </button>
-        </div>
       </div>
-
+      {# КНОПКИ КОПИРОВАНИЕ И СКАЧИВАНИЕ (ПОД ПРЕВЬЮ)#}
       <div class="grid grid-cols-2 gap-4">
         <button
           type="button"
