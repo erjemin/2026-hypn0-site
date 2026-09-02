@@ -246,7 +246,6 @@ def publish(request: HttpRequest) -> HttpResponse:
         item = TbHypn0Item(
             s_title=title,
             file_svg=svg_file,
-            i_file_size=len(svg_bytes),
             j_metadata=metadata,
             i_level=TbHypn0Item.Level.CANDIDATE,
             is_public=True,

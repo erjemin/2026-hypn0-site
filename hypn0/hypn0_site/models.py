@@ -14,7 +14,6 @@ class TbHypn0Item(models.Model):
     • s_hash_id: хэш-сумма шеринга для SVG-генерации (Hashids)
     • s_title: Заголовок (до 255 символов, разрешен HTML)
     • file_svg: SVG-файл генерации
-    • i_file_size: размер файла в байтах
     • j_metadata: метаданные файла JSON (параметры алгоритма генерации)
     • i_likes_count: количество лайков
     • i_views_count: количество просмотров
@@ -61,11 +60,6 @@ class TbHypn0Item(models.Model):
         upload_to="svg/%Y/%m/",
         verbose_name="SVG-файл",
         help_text="Результирующий SVG-файл генерации",
-    )
-    i_file_size = models.PositiveIntegerField(
-        default=0,
-        verbose_name="Размер файла",
-        help_text="Размер файла в байтах",
     )
 
     # НА ВСЯКИЙ СЛУЧАЙ: Метаданные и снимок параметров для возможного клонирования настроек

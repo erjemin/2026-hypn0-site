@@ -191,18 +191,18 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
     """
     form = TbHypn0ItemAdminForm
     list_display = ("id", "s_hash_id",  "title_preview", "i_level", "i_likes_count", "i_claims_count",
-        "i_views_count", "i_file_size", "f_score", "is_public", "d_created_at", )
+        "i_views_count", "file_size_display", "f_score", "is_public", "d_created_at", )
     list_display_links = ("id", "s_hash_id", "title_preview")
     list_filter = ("i_level", "is_public", "d_created_at")
     search_fields = ("s_hash_id", "s_title", "s_promo_title", "s_promo_url")
-    readonly_fields = ("id", "s_hash_id", "i_file_size", "d_created_at", "d_updated_at", "svg_preview",)
+    readonly_fields = ("id", "s_hash_id", "file_size_display", "d_created_at", "d_updated_at", "svg_preview",)
     fieldsets = (
         ("ID & Hash-ID", {
             "fields": (("id", "s_hash_id",), ),
             "classes": ("collapse", ),
         }),
         ("Основная информация", {
-            "fields": ("s_title", ("file_svg", "svg_preview", "i_file_size", "is_public", ), )
+            "fields": ("s_title", ("file_svg", "svg_preview", "file_size_display", "is_public", ), )
         }),
         ("Модерация и Smart Retention", {
             "fields": (("i_level", "f_score", ), ),
@@ -245,6 +245,20 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
                 obj.file_svg.url,
             )
         return "Нет файла"
+
+    @admin.display(description="Размер файла")
+    def file_size_display(self, obj):
+        if obj and obj.file_svg:
+            try:
+                size_bytes = obj.file_svg.size
+                if size_bytes >= 1024 * 1024:
+                    return f"{size_bytes / (1024 * 1024):.2f} МБ"
+                elif size_bytes >= 1024:
+                    return f"{size_bytes / 1024:.1f} КБ"
+                return f"{size_bytes} Б"
+            except Exception:
+                return "—"
+        return "—"
 
 
 # ----

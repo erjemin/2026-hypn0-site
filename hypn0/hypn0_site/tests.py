@@ -413,7 +413,6 @@ class GalleryDetailAndDownloadTests(BaseMediaTestCase):
         self.item = TbHypn0Item(
             s_title="Астральный Транс Сознания #42",
             file_svg=ContentFile(svg_code.encode("utf-8"), name="test_item.svg"),
-            i_file_size=len(svg_code),
             j_metadata={
                 "shape": "circle",
                 "cols": 35,
@@ -486,7 +485,6 @@ class GalleryRandomAndNavigationTests(BaseMediaTestCase):
             item = TbHypn0Item(
                 s_title=f"Гипно Картина #{i}",
                 file_svg=ContentFile(svg_code.encode("utf-8"), name=f"test_item_{i}.svg"),
-                i_file_size=len(svg_code),
                 j_metadata={"cols": 30 + i},
                 is_public=True,
             )
@@ -564,7 +562,6 @@ class UnconsciousMatrixTests(BaseMediaTestCase):
             item = TbHypn0Item(
                 s_title=f"Тестовый транс #{i}",
                 file_svg=ContentFile(svg_code.encode("utf-8"), name=f"test_matrix_{i}.svg"),
-                i_file_size=len(svg_code),
                 j_metadata={"cols": 20 + i},
                 is_public=True,
             )
