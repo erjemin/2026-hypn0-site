@@ -339,10 +339,10 @@
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Размер гипно-точки</label>
                 <span class="text-xs transition-colors duration-300"
-                      :class="radius < 4 ? 'text-red-600' : (radius < 5 ? 'text-yellow-600' : (radius > 15 ? 'text-red-600' : (radius > 12 ? 'text-yellow-600' : 'text-emerald-600')))"
+                      :class="radius < 4 ? 'text-red-600' : (radius < 5 ? 'text-yellow-600' : (radius > 22 ? 'text-red-600' : (radius > 16 ? 'text-yellow-600' : 'text-emerald-600')))"
                       x-text="radius"></span>
               </div>
-              <input type="range" name="max_radius" min="3" max="20" x-model="radius"
+              <input type="range" name="max_radius" min="3" max="65" x-model="radius"
                      @input="$el.dispatchEvent(new CustomEvent('input-change'))"
                      :class="radius < 4 ? 'accent-red-600' : (radius < 5 ? 'accent-yellow-500' : (radius > 15 ? 'accent-red-600' : (radius > 12 ? 'accent-yellow-500' : 'accent-emerald-500')))"
                      class="w-full accent-emerald-500">
