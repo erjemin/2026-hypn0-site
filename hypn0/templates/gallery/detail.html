@@ -77,7 +77,7 @@
 
     <!-- Полноэкранный просмотр SVG с живой анимацией и плавающими стрелками -->
     <div style="{{ item.card_bg_style }}" 
-         class="relative w-full aspect-square max-h-[640px] flex items-center justify-center rounded-2xl overflow-hidden shadow-inner border border-stone-300/80 dark:border-zinc-800/80 group select-none bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]">
+         class="relative w-full aspect-square flex items-center justify-center rounded-2xl overflow-hidden shadow-inner border border-stone-300/80 dark:border-zinc-800/80 group select-none bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]">
       
       <!-- Плавающая кнопка: Назад -->
       <a href="{{ prev_url }}"
@@ -97,7 +97,17 @@
         </svg>
       </a>
 
-      <div class="w-full h-full p-2 sm:p-6 flex items-center justify-center">
+      <div class="w-full h-full p-2 sm:p-6 flex items-center justify-center hypn0-detail-canvas [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain">
+        <style>
+          .hypn0-detail-canvas svg {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+          }
+        </style>
         {{ active_svg|safe }}
       </div>
 

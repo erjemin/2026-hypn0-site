@@ -8,7 +8,17 @@
   </p>
 </div>
 {% else %}
-<div class="w-full h-full flex items-center justify-center p-4 select-none overflow-hidden" id="svg-canvas-container">
+<div class="w-full h-full flex items-center justify-center p-4 select-none overflow-hidden [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain" id="svg-canvas-container">
+  <style>
+    #svg-canvas-container svg {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+  </style>
   {{ svg_content|safe }}
 </div>
 
