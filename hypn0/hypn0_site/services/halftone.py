@@ -125,10 +125,6 @@ def generate_halftone_svg(
     - seed: сид для детерминированного распределения анимаций
 
     TODO ПОЧИНИТЬ-УЛУЧШИТЬ:
-    ПОЧИНИЛИ ДЛЯ ПРОСТЫХ ФИГУР - max_radius (радиус точки):
-            - шаг ячейки STEP = 20, базовый радиус R0 = 10
-            - при d=0 .. 10 -- зазор между точками
-            - при d>10 -- перекрытие и наползание точек
     - angle: сейчас это просто поворот картинки. Нужно чтобы:
         - нужно чтобы это был поворт картинки (т.е. ряды-столбцы были со смещение-поворотом, как при полиграфии)
     - blink: что-то страннное. пока не понял
@@ -224,6 +220,8 @@ def generate_halftone_svg(
     defs_html = "".join(defs_list)
 
     # 4. Формирование групп <g class="a..."> и CSS классов задержек
+    # Список простых чисел для создания богатой апериодической полиритмии мерцания
+    PRIME_DELAYS = [0, 0.1, 0.3, 0.5, 0.7, 1.1, 1.3, 1.7, 1.9, 2.3, 2.9, 3.1]
     duration = max(0.4, 2.5 - (blink * 0.19)) if is_animated else 1.0
     groups = []
     animation_classes = []
@@ -235,7 +233,12 @@ def generate_halftone_svg(
             continue
 
         anim_index = group_elements[0][3]
-        delay = (anim_index / animation_variants) * duration * 1.5 if is_animated else 0.0
+        if is_animated:
+            prime_base = PRIME_DELAYS[anim_index % len(PRIME_DELAYS)]
+            # Масштабируем задержку относительно длительности анимации с округлением до десятых
+            delay = round(prime_base * (duration / 2.0), 1)
+        else:
+            delay = 0.0
 
         # Генерируем правило задержки в CSS
         if is_animated:
@@ -263,7 +266,7 @@ def generate_halftone_svg(
         clean_color = f"#{clean_color}"
 
     # Добавляем альфа-канал в hex при необходимости или используем CSS opacity
-    fill_style = f"fill:{clean_color};stroke:{clean_color};opacity:{opacity:.2f};"
+    fill_style = f"fill:{clean_color};stroke:{clean_color};opacity:{opacity:.1f};"
 
     if is_animated:
         # Управление паузой/запуском через CSS Custom Property --hypn0-play.
