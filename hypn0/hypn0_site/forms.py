@@ -16,7 +16,7 @@ class HalftoneGenerateForm(forms.Form):
         ("cross", "Крестик"),
         ("line", "Линия"),
         ("snowflake", "Снежинка"),
-        ("wave", "Волна"),
+        ("binary", "Матрица (0/1)"),
         ("heart", "Сердечко"),
     ]
 

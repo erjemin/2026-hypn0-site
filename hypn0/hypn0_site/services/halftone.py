@@ -3,7 +3,7 @@ import math
 import random
 import re
 from collections import defaultdict
-from typing import BinaryIO, Union
+from typing import BinaryIO, Optional, Union
 
 from PIL import Image
 
@@ -24,7 +24,9 @@ def encode_to_base36(num: int) -> str:
     return "".join(reversed(result))
 
 
-def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
+def generate_shape_def(
+    shape: str, radius: int, shape_id: str, max_radius: int = 8, char: Optional[str] = None
+) -> str:
     """Генерирует SVG-элемент для тега <defs> в зависимости от типа фигуры."""
     r = radius
     match shape:
@@ -87,6 +89,18 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
                 points.append(f"{px},{py}")
             pts_str = " ".join(points)
             return f'<polygon id="{shape_id}" points="{pts_str}"/>'
+
+        case "binary":
+            if char is None:
+                # Вероятностная функция: вероятность "0" пропорциональна оптической плотности
+                # В тенях преобладают '0' (~85%), но с шансом ~15% выскакивают '1'
+                # В светах преобладают '1' (~85%), но с шансом ~15% выскакивают '0'
+                prob_zero = min(0.85, max(0.15, (r / max_radius) if max_radius else 0.5))
+                char = "0" if random.random() < prob_zero else "1"
+            font_size = max(4, round(r * 2.0))
+            return (
+                f'<text id="{shape_id}" font-family="ui-monospace,monospace" font-weight="900" font-size="{font_size}">{char}</text>'
+            )
 
         case "heart":
             r_top = round(r * 0.3)
@@ -194,7 +208,7 @@ def generate_halftone_svg(
 
     # 2. Обход пикселей и группировка
     elements_by_class = defaultdict(list)
-    unique_radii = set()
+    unique_shape_keys = set()
     is_animated = blink > 0
 
     for y in range(grid_height):
@@ -216,14 +230,24 @@ def generate_halftone_svg(
             anim_index = rng.randint(0, animation_variants - 1) if is_animated else 0
             encoded_class = encode_to_base36(anim_index)
 
-            elements_by_class[encoded_class].append((radius, cx, cy, anim_index))
-            unique_radii.add(radius)
+            if shape == "binary":
+                # Вероятность выпадения '0' плавно растет с оптической плотностью
+                # В тенях преобладают '0' (~85%), но с шансом ~15% выскакивают '1'
+                # В светах преобладают '1' (~85%), но с шансом ~15% выскакивают '0'
+                prob_zero = 0.15 + 0.70 * (radius / max_radius if max_radius else factor)
+                char = "0" if rng.random() < prob_zero else "1"
+                shape_id = f"s{encode_to_base36(radius)}{char}"
+                unique_shape_keys.add((radius, char, shape_id))
+            else:
+                shape_id = f"s{encode_to_base36(radius)}"
+                unique_shape_keys.add((radius, None, shape_id))
+
+            elements_by_class[encoded_class].append((shape_id, cx, cy, anim_index))
 
     # 3. Формирование <defs>
     defs_list = ["<defs>"]
-    for radius in sorted(unique_radii):
-        shape_id = f"s{encode_to_base36(radius)}"
-        defs_list.append(generate_shape_def(shape, radius, shape_id))
+    for radius, char, shape_id in sorted(unique_shape_keys, key=lambda k: (k[0], k[1] or "")):
+        defs_list.append(generate_shape_def(shape, radius, shape_id, max_radius=max_radius, char=char))
     defs_list.append("</defs>")
     defs_html = "".join(defs_list)
 
@@ -254,8 +278,8 @@ def generate_halftone_svg(
             animation_classes.append(f".a{encoded_class}{{--d:{delay_str}s}}")
 
         uses = "".join(
-            f'<use href="#s{encode_to_base36(radius)}" x="{cx}" y="{cy}"/>'
-            for radius, cx, cy, _ in group_elements
+            f'<use href="#{shape_id}" x="{cx}" y="{cy}"/>'
+            for shape_id, cx, cy, _ in group_elements
         )
         if uses:
             groups.append(f'<g class="a{encoded_class}">{uses}</g>')
@@ -299,9 +323,9 @@ def generate_halftone_svg(
     svg_css = (
         f"<style>"
         f"svg{{background:transparent}}"
-        f"circle,rect,polygon,path{{{fill_style}transform-origin:center;{anim_rule}transition:all .5s ease-out}}"
+        f"circle,rect,polygon,path,text{{{fill_style}transform-origin:center;{anim_rule}transition:all .5s ease-out}}"
         f"{keyframes_rule}"
-        f".frozen circle,.frozen rect,.frozen polygon,.frozen path{{animation:none!important;opacity:{opacity:.1f}!important;transform:none!important}}"
+        f".frozen circle,.frozen rect,.frozen polygon,.frozen path,.frozen text{{animation:none!important;opacity:{opacity:.1f}!important;transform:none!important}}"
         f"{animation_css}"
         f"</style>"
     )
@@ -340,7 +364,7 @@ def prepare_gallery_svg(svg_content: str) -> str:
     hover_css = (
         "svg{--hypn0-play:paused}"
         ":host(:hover) svg,svg:hover{--hypn0-play:running!important}"
-        "circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}"
+        "circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}"
     )
 
     if "</style>" in svg_content:
@@ -364,8 +388,10 @@ def prepare_active_svg(svg_content: str) -> str:
     gallery_css_variants = [
         "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
+        "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
+        "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}",
     ]
     cleaned = svg_content
     for gcss in gallery_css_variants:
@@ -374,7 +400,7 @@ def prepare_active_svg(svg_content: str) -> str:
     cleaned = re.sub(r"svg\s*\{[^}]*--hypn0-play:\s*paused[^}]*\}", "", cleaned)
     cleaned = re.sub(r"(:host\(:hover\)\s*svg\s*,\s*)?svg:hover\s*\{[^}]*--hypn0-play:[^}]*\}", "", cleaned)
     cleaned = re.sub(
-        r"(\.shape,)?circle,rect,polygon,path\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
+        r"(\.shape,)?circle,rect,polygon,path(,text)?\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
         "",
         cleaned,
     )
@@ -423,7 +449,8 @@ def analyze_svg_structure(svg_content: str) -> dict:
     rect_count = len(re.findall(r"<rect\b", svg_content))
     polygon_count = len(re.findall(r"<polygon\b", svg_content))
     path_count = len(re.findall(r"<path\b", svg_content))
-    defs_count = circle_count + rect_count + polygon_count + path_count
+    text_count = len(re.findall(r"<text\b", svg_content))
+    defs_count = circle_count + rect_count + polygon_count + path_count + text_count
 
     # Группы и классы
     groups_count = len(re.findall(r"<g\b", svg_content))
