@@ -85,6 +85,16 @@ class HalftoneServiceTests(BaseMediaTestCase):
             self.assertIn("</svg>", svg)
             self.assertIn("<defs>", svg)
 
+        # Проверяем структуру кольца: путь с вырезанным отверстием (evenodd)
+        ring_svg = generate_halftone_svg(self.img, cols=20, max_radius=8, shape="ring")
+        self.assertIn('fill-rule="evenodd"', ring_svg)
+        self.assertIn('<path id="s', ring_svg)
+
+        # Проверяем структуру сердечка: путь без атрибута transform
+        heart_svg = generate_halftone_svg(self.img, cols=20, max_radius=8, shape="heart")
+        self.assertIn('<path id="s', heart_svg)
+        self.assertNotIn('transform="scale', heart_svg)
+
     def test_generate_static_blink_zero(self):
         svg = generate_halftone_svg(self.img, cols=20, blink=0)
         self.assertIn("animation:none", svg)

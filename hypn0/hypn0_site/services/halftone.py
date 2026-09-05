@@ -29,9 +29,16 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
     r = radius
     match shape:
         case "ring":
-            stroke_width = max(1.0, r * 0.35)
-            inner_r = max(0.5, r - stroke_width / 2.0)
-            return f'<circle id="{shape_id}" r="{inner_r:.1f}" fill="none" stroke="currentColor" stroke-width="{stroke_width:.1f}"/>'
+            inner_r = max(1, round(r * 0.55))
+            if inner_r >= r:
+                inner_r = max(0, r - 1)
+            if inner_r == 0:
+                return f'<circle id="{shape_id}" class="shape" r="{r}"/>'
+            return (
+                f'<path id="{shape_id}" class="shape" fill-rule="evenodd" '
+                f'd="M0,{-r}A{r},{r} 0 100,{r}A{r},{r} 0 100,{-r}'
+                f'M0,{-inner_r} A{inner_r},{inner_r} 0 100,{inner_r}A{inner_r},{inner_r} 0 100,{-inner_r}Z"/>'
+            )
 
         case "square":
             size = r * 2
@@ -63,7 +70,7 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
 
         case "cross":
             arm = max(1, round(r * 0.35))
-            return f'<path id="{shape_id}" class="shape" d="M{-arm},{-r} H{arm} V{-arm} H{r} V{arm} H{arm} V{r} H{-arm} V{arm} H{-r} V{-arm} H{-arm} Z"/>'
+            return f'<path id="{shape_id}" class="shape" d="M{-arm},{-r}H{arm}V{-arm}H{r}V{arm}H{arm}V{r}H{-arm}V{arm}H{-r}V{-arm}H{-arm}Z"/>'
 
         case "line":
             th = max(1, round(r * 0.25))
@@ -74,10 +81,11 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
             return f'<path id="{shape_id}" class="shape" d="M{-r},0 Q{-r/2:.1f},{-r} 0,0 T{r},0" fill="none" stroke="currentColor" stroke-width="{th:.1f}"/>'
 
         case "heart":
-            scale_f = r / 12.0
+            r_top = round(r * 0.3)
+            r_mid = round(r * 0.4)
             return (
-                f'<path id="{shape_id}" class="shape" transform="scale({scale_f:.3f}) translate(-12, -12)" '
-                f'd="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
+                f'<path id="{shape_id}" class="shape" '
+                f'd="M0,{r}C{-r},{r_mid} {-r},{-r} 0,{-r_top}C{r},{-r} {r},{r_mid} 0,{r}Z"/>'
             )
 
         case "circle" | _:
