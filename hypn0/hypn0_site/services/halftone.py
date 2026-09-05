@@ -76,9 +76,17 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
             th = max(1, round(r * 0.25))
             return f'<rect id="{shape_id}" x="{-r}" y="{-th}" width="{2*r}" height="{2*th}" rx="1"/>'
 
-        case "wave":
-            th = max(1.0, r * 0.3)
-            return f'<path id="{shape_id}" d="M{-r},0 Q{-r/2:.1f},{-r} 0,0 T{r},0" fill="none" stroke="currentColor" stroke-width="{th:.1f}"/>'
+        case "snowflake":
+            points = []
+            inner_r = max(0.5, r * 0.25)
+            for i in range(16):
+                angle = i * math.pi / 8 - math.pi / 2
+                curr_r = r if i % 2 == 0 else inner_r
+                px = round(curr_r * math.cos(angle), 1)
+                py = round(curr_r * math.sin(angle), 1)
+                points.append(f"{px},{py}")
+            pts_str = " ".join(points)
+            return f'<polygon id="{shape_id}" points="{pts_str}"/>'
 
         case "heart":
             r_top = round(r * 0.3)
@@ -114,7 +122,7 @@ def generate_halftone_svg(
     - image: PIL Image, файловый объект (BytesIO), байты или путь к файлу
     - cols: число точек по наибольшей стороне сетки (10-200)
     - max_radius: максимальный радиус/размер точки (3-20)
-    - shape: тип фигуры ('circle', 'ring', 'square', 'diamond', 'triangle', 'hexagon', 'star', 'cross', 'line', 'wave', 'heart')
+    - shape: тип фигуры ('circle', 'ring', 'square', 'diamond', 'triangle', 'hexagon', 'star', 'cross', 'line', 'snowflake', 'heart')
     - color: основной HEX цвет (например '#a855ff')
     - opacity: коэффициент непрозрачности (0.0 - 1.0)
     - blink: интенсивность мерцания (0 - выключено/статичный, 1-10 - скорость)
