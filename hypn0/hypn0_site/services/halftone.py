@@ -33,9 +33,9 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
             if inner_r >= r:
                 inner_r = max(0, r - 1)
             if inner_r == 0:
-                return f'<circle id="{shape_id}" class="shape" r="{r}"/>'
+                return f'<circle id="{shape_id}" r="{r}"/>'
             return (
-                f'<path id="{shape_id}" class="shape" fill-rule="evenodd" '
+                f'<path id="{shape_id}" fill-rule="evenodd" '
                 f'd="M0,{-r}A{r},{r} 0 100,{r}A{r},{r} 0 100,{-r}'
                 f'M0,{-inner_r} A{inner_r},{inner_r} 0 100,{inner_r}A{inner_r},{inner_r} 0 100,{-inner_r}Z"/>'
             )
@@ -43,18 +43,18 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
         case "square":
             size = r * 2
             rx = max(0.5, r * 0.1)
-            return f'<rect id="{shape_id}" class="shape" x="{-r}" y="{-r}" width="{size}" height="{size}" rx="{rx:.1f}"/>'
+            return f'<rect id="{shape_id}" x="{-r}" y="{-r}" width="{size}" height="{size}" rx="{rx:.1f}"/>'
 
         case "diamond":
-            return f'<polygon id="{shape_id}" class="shape" points="0,{-r} {-r},0 0,{r} {r},0"/>'
+            return f'<polygon id="{shape_id}" points="0,{-r} {-r},0 0,{r} {r},0"/>'
 
         case "triangle":
-            return f'<polygon id="{shape_id}" class="shape" points="0,{-r} {-r},{r} {r},{r}"/>'
+            return f'<polygon id="{shape_id}" points="0,{-r} {-r},{r} {r},{r}"/>'
 
         case "hexagon":
             w = round(r * 0.866)
             h_half = round(r * 0.5)
-            return f'<polygon id="{shape_id}" class="shape" points="0,{-r} {w},{-h_half} {w},{h_half} 0,{r} {-w},{h_half} {-w},{-h_half}"/>'
+            return f'<polygon id="{shape_id}" points="0,{-r} {w},{-h_half} {w},{h_half} 0,{r} {-w},{h_half} {-w},{-h_half}"/>'
 
         case "star":
             points = []
@@ -66,30 +66,30 @@ def generate_shape_def(shape: str, radius: int, shape_id: str) -> str:
                 py = round(curr_r * math.sin(angle), 1)
                 points.append(f"{px},{py}")
             pts_str = " ".join(points)
-            return f'<polygon id="{shape_id}" class="shape" points="{pts_str}"/>'
+            return f'<polygon id="{shape_id}" points="{pts_str}"/>'
 
         case "cross":
             arm = max(1, round(r * 0.35))
-            return f'<path id="{shape_id}" class="shape" d="M{-arm},{-r}H{arm}V{-arm}H{r}V{arm}H{arm}V{r}H{-arm}V{arm}H{-r}V{-arm}H{-arm}Z"/>'
+            return f'<path id="{shape_id}" d="M{-arm},{-r}H{arm}V{-arm}H{r}V{arm}H{arm}V{r}H{-arm}V{arm}H{-r}V{-arm}H{-arm}Z"/>'
 
         case "line":
             th = max(1, round(r * 0.25))
-            return f'<rect id="{shape_id}" class="shape" x="{-r}" y="{-th}" width="{2*r}" height="{2*th}" rx="1"/>'
+            return f'<rect id="{shape_id}" x="{-r}" y="{-th}" width="{2*r}" height="{2*th}" rx="1"/>'
 
         case "wave":
             th = max(1.0, r * 0.3)
-            return f'<path id="{shape_id}" class="shape" d="M{-r},0 Q{-r/2:.1f},{-r} 0,0 T{r},0" fill="none" stroke="currentColor" stroke-width="{th:.1f}"/>'
+            return f'<path id="{shape_id}" d="M{-r},0 Q{-r/2:.1f},{-r} 0,0 T{r},0" fill="none" stroke="currentColor" stroke-width="{th:.1f}"/>'
 
         case "heart":
             r_top = round(r * 0.3)
             r_mid = round(r * 0.4)
             return (
-                f'<path id="{shape_id}" class="shape" '
+                f'<path id="{shape_id}" '
                 f'd="M0,{r}C{-r},{r_mid} {-r},{-r} 0,{-r_top}C{r},{-r} {r},{r_mid} 0,{r}Z"/>'
             )
 
         case "circle" | _:
-            return f'<circle id="{shape_id}" class="shape" r="{r}"/>'
+            return f'<circle id="{shape_id}" r="{r}"/>'
 
 
 def generate_halftone_svg(
