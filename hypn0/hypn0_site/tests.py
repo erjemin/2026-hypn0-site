@@ -126,7 +126,34 @@ class HalftoneServiceTests(BaseMediaTestCase):
         self.assertIn("rotate(12deg)", svg)
         self.assertIn("scale(0.92)", svg)
         self.assertIn("#ff5500", svg)
-        self.assertIn(".aH{--d:0s}", svg)
+        self.assertIn(".aH{--d:0s", svg)
+        self.assertIn("transform-origin:", svg)
+
+    def test_generate_optimized_styles_and_transforms(self):
+        # 1. При дефолтных параметрах (rotation=0, scale=1000) transform в @keyframes noise отсутствует
+        svg_default = generate_halftone_svg(self.img, cols=20, rotation=0, scale=1000)
+        self.assertNotIn("rotate(", svg_default)
+        self.assertNotIn("scale(", svg_default)
+        self.assertIn("@keyframes noise{0%{opacity:0.6}50%{opacity:0.9}100%{opacity:0.5}}", svg_default)
+
+        # 2. Только rotation задан -> scale отсутствует
+        svg_rot = generate_halftone_svg(self.img, cols=20, rotation=15, scale=1000)
+        self.assertIn("rotate(15deg)", svg_rot)
+        self.assertNotIn("scale(", svg_rot)
+
+        # 3. Только scale задан -> rotate отсутствует
+        svg_scale = generate_halftone_svg(self.img, cols=20, rotation=0, scale=850)
+        self.assertIn("scale(0.85)", svg_scale)
+        self.assertNotIn("rotate(", svg_scale)
+
+        # 4. Прозрачность 1.0 -> opacity отсутствует в fill_style
+        svg_opaque = generate_halftone_svg(self.img, cols=20, opacity=1.0)
+        self.assertIn("fill:#a855ff;stroke:#a855ff;}", svg_opaque)
+        self.assertNotIn("opacity:1.0;", svg_opaque)
+
+        # 5. Прозрачность 0.8 -> opacity присутствует
+        svg_trans = generate_halftone_svg(self.img, cols=20, opacity=0.8)
+        self.assertIn("opacity:0.8;", svg_trans)
 
     def test_generate_from_bytes(self):
         buf = io.BytesIO()

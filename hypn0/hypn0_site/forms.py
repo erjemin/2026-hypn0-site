@@ -45,7 +45,7 @@ class HalftoneGenerateForm(forms.Form):
         required=False,
     )
     blink = forms.IntegerField(
-        min_value=0,
+        min_value=1,
         max_value=10,
         initial=6,
         required=False,

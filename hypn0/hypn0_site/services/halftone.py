@@ -269,13 +269,23 @@ def generate_halftone_svg(
             prime_base = PRIME_DELAYS[anim_index % len(PRIME_DELAYS)]
             # Масштабируем задержку относительно длительности анимации с округлением до десятых
             delay = round(prime_base * (duration / 2.0), 1)
+
+            # Вычисляем уникальный центр трансформации для каждой группы анимации.
+            # Центры группируются вокруг центра холста (50% 50%) с органическим разбросом,
+            # благодаря чему группы дышат и покачиваются вокруг слегка смещенных фокусов.
+            angle_jitter = (anim_index * (2 * math.pi / max(1, animation_variants))) + (seed % 7)
+            spread_factor = 0.02 + 0.13 * abs((scale - 1000) / 200.0)  # от 2% до 15%
+            orig_x = round(50.0 + math.cos(angle_jitter) * spread_factor * 100)
+            orig_y = round(50.0 + math.sin(angle_jitter) * spread_factor * 100)
+            origin_rule = f";transform-origin:{orig_x}% {orig_y}%"
         else:
             delay = 0.0
+            origin_rule = ""
 
-        # Генерируем правило задержки в CSS
+        # Генерируем правило задержки и центра в CSS
         if is_animated:
             delay_str = f"{int(delay)}" if delay == int(delay) else f"{delay:.1f}".rstrip("0").rstrip(".")
-            animation_classes.append(f".a{encoded_class}{{--d:{delay_str}s}}")
+            animation_classes.append(f".a{encoded_class}{{--d:{delay_str}s{origin_rule}}}")
 
         uses = "".join(
             f'<use href="#{shape_id}" x="{cx}" y="{cy}"/>'
@@ -290,15 +300,29 @@ def generate_halftone_svg(
     # 6. Стилизация и Keyframes
     scale_val = max(0.5, min(1.5, scale / 1000.0))
     scale_str = f"{scale_val:.3f}".rstrip("0").rstrip(".")
-    rot_str = f"{rotation}deg"
+    has_scale = scale_val != 1.0
+    has_rotation = rotation != 0
 
-    # Корректный цвет с прозрачностью
+    transform_0 = []
+    transform_100 = []
+    if has_scale:
+        transform_0.append("scale(1)")
+        transform_100.append(f"scale({scale_str})")
+    if has_rotation:
+        transform_0.append("rotate(0deg)")
+        transform_100.append(f"rotate({rotation}deg)")
+
+    tf_0_rule = f";transform:{' '.join(transform_0)}" if transform_0 else ""
+    tf_100_rule = f";transform:{' '.join(transform_100)}" if transform_100 else ""
+
+    # Корректный цвет и прозрачность
     clean_color = color.strip() if color else "#a855ff"
     if not clean_color.startswith("#"):
         clean_color = f"#{clean_color}"
 
-    # Добавляем альфа-канал в hex при необходимости или используем CSS opacity
-    fill_style = f"fill:{clean_color};stroke:{clean_color};opacity:{opacity:.1f};"
+    has_custom_opacity = round(opacity, 2) < 1.0
+    opacity_rule = f"opacity:{opacity:.1f};" if has_custom_opacity else ""
+    fill_style = f"fill:{clean_color};stroke:{clean_color};{opacity_rule}"
 
     if is_animated:
         # Управление паузой/запуском через CSS Custom Property --hypn0-play.
@@ -309,23 +333,29 @@ def generate_halftone_svg(
             f"animation-delay:var(--d,0s);"
             f"animation-play-state:var(--hypn0-play,running);"
         )
+        op_0 = f"{max(0.2, opacity * 0.7):.1f}".rstrip("0").rstrip(".")
+        op_50 = f"{opacity:.1f}".rstrip("0").rstrip(".")
+        op_100 = f"{max(0.1, opacity * 0.5):.1f}".rstrip("0").rstrip(".")
+
         keyframes_rule = (
             f"@keyframes noise{{"
-            f"0%{{opacity:{max(0.2, opacity * 0.7):.1f};transform:scale(1) rotate(0deg)}}"
-            f"50%{{opacity:{opacity:.1f}}}"
-            f"100%{{opacity:{max(0.1, opacity * 0.5):.1f};transform:scale({scale_str}) rotate({rot_str})}}"
+            f"0%{{opacity:{op_0}{tf_0_rule}}}"
+            f"50%{{opacity:{op_50}}}"
+            f"100%{{opacity:{op_100}{tf_100_rule}}}"
             f"}}"
         )
     else:
         anim_rule = "animation:none;"
         keyframes_rule = ""
 
+    frozen_opacity = f";opacity:{opacity:.1f}!important" if has_custom_opacity else ""
     svg_css = (
         f"<style>"
         f"svg{{background:transparent}}"
-        f"circle,rect,polygon,path,text{{{fill_style}transform-origin:center;{anim_rule}transition:all .5s ease-out}}"
+        f"circle,rect,polygon,path,text{{{fill_style}}}"
+        f"g[class^=\"a\"]{{{anim_rule}transition:all .5s ease-out}}"
         f"{keyframes_rule}"
-        f".frozen circle,.frozen rect,.frozen polygon,.frozen path,.frozen text{{animation:none!important;opacity:{opacity:.1f}!important;transform:none!important}}"
+        f".frozen g[class^=\"a\"],.frozen circle,.frozen rect,.frozen polygon,.frozen path,.frozen text{{animation:none!important{frozen_opacity};transform:none!important}}"
         f"{animation_css}"
         f"</style>"
     )
@@ -364,7 +394,7 @@ def prepare_gallery_svg(svg_content: str) -> str:
     hover_css = (
         "svg{--hypn0-play:paused}"
         ":host(:hover) svg,svg:hover{--hypn0-play:running!important}"
-        "circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}"
+        "g[class^=\"a\"],circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}"
     )
 
     if "</style>" in svg_content:
@@ -386,12 +416,14 @@ def prepare_active_svg(svg_content: str) -> str:
 
     # Удаляем внедренные правила паузы через CSS-переменные и старые форматы
     gallery_css_variants = [
+        "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}g[class^=\"a\"],circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}",
+        "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}g[class^=\"a\"],circle,rect,polygon,path,text{animation-play-state:var(--hypn0-play,paused)!important}",
     ]
     cleaned = svg_content
     for gcss in gallery_css_variants:
@@ -400,7 +432,7 @@ def prepare_active_svg(svg_content: str) -> str:
     cleaned = re.sub(r"svg\s*\{[^}]*--hypn0-play:\s*paused[^}]*\}", "", cleaned)
     cleaned = re.sub(r"(:host\(:hover\)\s*svg\s*,\s*)?svg:hover\s*\{[^}]*--hypn0-play:[^}]*\}", "", cleaned)
     cleaned = re.sub(
-        r"(\.shape,)?circle,rect,polygon,path(,text)?\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
+        r"(g\[class\^=\"a\"\],)?(\.shape,)?circle,rect,polygon,path(,text)?\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
         "",
         cleaned,
     )

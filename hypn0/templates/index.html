@@ -351,12 +351,12 @@
               <div class="flex justify-between mb-1">
                 <label class="text-xs font-bold text-stone-400 uppercase">Мерцание</label>
                 <span class="text-xs transition-colors duration-300"
-                      :class="blink < 1 ? 'text-emerald-600' : (blink < 2 ? 'text-red-600' : (blink < 4 ? 'text-yellow-600' : 'text-emerald-600'))"
+                      :class="blink <= 7 ? 'accent-emerald-600' : (blink > 9 ? 'accent-red-600' : (blink > 7 ? 'accent-yellow-500' : 'accent-emerald-500'))"
                       x-text="blink"></span>
               </div>
-              <input type="range" name="blink" min="0" max="10" x-model="blink"
+              <input type="range" name="blink" min="1" max="10" x-model="blink"
                      @input="$el.dispatchEvent(new CustomEvent('input-change'))"
-                     :class="blink < 1 ? 'accent-emerald-600' : (blink < 2 ? 'accent-red-600' : (blink < 4 ? 'accent-yellow-500' : 'accent-emerald-500'))"
+                     :class="blink <= 7 ? 'accent-emerald-600' : (blink > 9 ? 'accent-red-600' : (blink > 7 ? 'accent-yellow-500' : 'accent-emerald-500'))"
                      class="w-full accent-emerald-500">
             </div>
             {# ПОВОРОТЫ #}<div>
