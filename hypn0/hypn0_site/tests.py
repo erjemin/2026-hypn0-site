@@ -114,6 +114,7 @@ class HalftoneServiceTests(BaseMediaTestCase):
         self.assertIn("rotate(12deg)", svg)
         self.assertIn("scale(0.92)", svg)
         self.assertIn("#ff5500", svg)
+        self.assertIn(".aH{--d:0s}", svg)
 
     def test_generate_from_bytes(self):
         buf = io.BytesIO()
@@ -370,6 +371,18 @@ class SvgAnalysisAndActiveSvgTests(BaseMediaTestCase):
         gallery_svg = '<svg><style>svg:not(:hover) .shape,svg:not(:hover) circle,svg:not(:hover) rect,svg:not(:hover) polygon,svg:not(:hover) path{animation-play-state:paused!important}</style><g></g></svg>'
         active = prepare_active_svg(gallery_svg)
         self.assertNotIn("animation-play-state:paused!important", active)
+
+    def test_prepare_active_svg_modern_format(self):
+        img = Image.new("RGB", (20, 20), color="black")
+        raw_svg = generate_halftone_svg(img, cols=15, max_radius=6, blink=5)
+        gallery_svg = prepare_gallery_svg(raw_svg)
+        self.assertIn("svg{--hypn0-play:paused}", gallery_svg)
+        self.assertIn("animation-play-state:var(--hypn0-play,paused)!important", gallery_svg)
+
+        active = prepare_active_svg(gallery_svg)
+        self.assertNotIn("svg{--hypn0-play:paused}", active)
+        self.assertNotIn("animation-play-state:var(--hypn0-play,paused)!important", active)
+        self.assertIn("animation-play-state:var(--hypn0-play,running)", active)
 
     def test_prepare_active_svg_preserves_color_and_animation(self):
         gallery_svg = (

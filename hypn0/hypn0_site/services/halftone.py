@@ -188,22 +188,10 @@ def generate_halftone_svg(
     width = grid_width * STEP + 2 * margin
     height = grid_height * STEP + 2 * margin
 
-    # 2. Формирование классов анимации
-    animation_classes = []
-    is_animated = blink > 0
-
-    # Длительность цикла анимации: при blink=10 -> 0.6s, при blink=1 -> 2.4s
-    duration = max(0.4, 2.5 - (blink * 0.19)) if is_animated else 1.0
-
-    for i in range(animation_variants):
-        delay = (i / animation_variants) * duration * 1.5
-        encoded_i = encode_to_base36(i)
-        delay_str = f"{int(delay)}" if delay == int(delay) else f"{delay:.2f}".rstrip("0").rstrip(".")
-        animation_classes.append(f".a{encoded_i}{{--d:{delay_str}s}}")
-
-    # 3. Обход пикселей и группировка
+    # 2. Обход пикселей и группировка
     elements_by_class = defaultdict(list)
     unique_radii = set()
+    is_animated = blink > 0
 
     for y in range(grid_height):
         for x in range(grid_width):
@@ -221,13 +209,13 @@ def generate_halftone_svg(
             cx = margin + x * STEP + STEP // 2
             cy = margin + y * STEP + STEP // 2
 
-            anim_class = rng.randint(0, animation_variants - 1)
-            encoded_class = encode_to_base36(anim_class)
+            anim_index = rng.randint(0, animation_variants - 1) if is_animated else 0
+            encoded_class = encode_to_base36(anim_index)
 
-            elements_by_class[encoded_class].append((radius, cx, cy))
+            elements_by_class[encoded_class].append((radius, cx, cy, anim_index))
             unique_radii.add(radius)
 
-    # 4. Формирование <defs>
+    # 3. Формирование <defs>
     defs_list = ["<defs>"]
     for radius in sorted(unique_radii):
         shape_id = f"s{encode_to_base36(radius)}"
@@ -235,16 +223,31 @@ def generate_halftone_svg(
     defs_list.append("</defs>")
     defs_html = "".join(defs_list)
 
-    # 5. Формирование групп <g class="a...">
+    # 4. Формирование групп <g class="a..."> и CSS классов задержек
+    duration = max(0.4, 2.5 - (blink * 0.19)) if is_animated else 1.0
     groups = []
-    for anim_class in sorted(elements_by_class.keys()):
-        group_elements = elements_by_class[anim_class]
+    animation_classes = []
+
+    # Сортируем группы по индексу анимации для детерминированного порядка
+    for encoded_class in sorted(elements_by_class.keys(), key=lambda c: elements_by_class[c][0][3]):
+        group_elements = elements_by_class[encoded_class]
+        if not group_elements:
+            continue
+
+        anim_index = group_elements[0][3]
+        delay = (anim_index / animation_variants) * duration * 1.5 if is_animated else 0.0
+
+        # Генерируем правило задержки в CSS
+        if is_animated:
+            delay_str = f"{int(delay)}" if delay == int(delay) else f"{delay:.1f}".rstrip("0").rstrip(".")
+            animation_classes.append(f".a{encoded_class}{{--d:{delay_str}s}}")
+
         uses = "".join(
             f'<use href="#s{encode_to_base36(radius)}" x="{cx}" y="{cy}"/>'
-            for radius, cx, cy in group_elements
+            for radius, cx, cy, _ in group_elements
         )
         if uses:
-            groups.append(f'<g class="a{anim_class}">{uses}</g>')
+            groups.append(f'<g class="a{encoded_class}">{uses}</g>')
 
     animation_css = "".join(animation_classes)
     groups_html = "".join(groups)
@@ -267,15 +270,15 @@ def generate_halftone_svg(
         # По умолчанию running (для живого превью и детального просмотра).
         # В галерее значение переопределяется на paused для 0% нагрузки на процессор.
         anim_rule = (
-            f"animation:noise {duration:.2f}s ease-in-out infinite alternate;"
-            f"animation-delay:var(--d);"
+            f"animation:noise {duration:.1f}s ease-in-out infinite alternate;"
+            f"animation-delay:var(--d,0s);"
             f"animation-play-state:var(--hypn0-play,running);"
         )
         keyframes_rule = (
             f"@keyframes noise{{"
-            f"0%{{opacity:{max(0.2, opacity * 0.7):.2f};transform:scale(1) rotate(0deg)}}"
-            f"50%{{opacity:{opacity:.2f}}}"
-            f"100%{{opacity:{max(0.1, opacity * 0.5):.2f};transform:scale({scale_str}) rotate({rot_str})}}"
+            f"0%{{opacity:{max(0.2, opacity * 0.7):.1f};transform:scale(1) rotate(0deg)}}"
+            f"50%{{opacity:{opacity:.1f}}}"
+            f"100%{{opacity:{max(0.1, opacity * 0.5):.1f};transform:scale({scale_str}) rotate({rot_str})}}"
             f"}}"
         )
     else:
@@ -285,9 +288,9 @@ def generate_halftone_svg(
     svg_css = (
         f"<style>"
         f"svg{{background:transparent}}"
-        f".shape,circle,rect,polygon,path{{{fill_style}transform-origin:center;{anim_rule}transition:all .5s ease-out}}"
+        f"circle,rect,polygon,path{{{fill_style}transform-origin:center;{anim_rule}transition:all .5s ease-out}}"
         f"{keyframes_rule}"
-        f".frozen .shape,.frozen circle,.frozen rect,.frozen polygon,.frozen path{{animation:none!important;opacity:{opacity:.2f}!important;transform:none!important}}"
+        f".frozen circle,.frozen rect,.frozen polygon,.frozen path{{animation:none!important;opacity:{opacity:.1f}!important;transform:none!important}}"
         f"{animation_css}"
         f"</style>"
     )
@@ -326,7 +329,7 @@ def prepare_gallery_svg(svg_content: str) -> str:
     hover_css = (
         "svg{--hypn0-play:paused}"
         ":host(:hover) svg,svg:hover{--hypn0-play:running!important}"
-        ".shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}"
+        "circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}"
     )
 
     if "</style>" in svg_content:
@@ -349,7 +352,9 @@ def prepare_active_svg(svg_content: str) -> str:
     # Удаляем внедренные правила паузы через CSS-переменные и старые форматы
     gallery_css_variants = [
         "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
+        "svg{--hypn0-play:paused}:host(:hover) svg,svg:hover{--hypn0-play:running!important}circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
         "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}.shape,circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
+        "svg{--hypn0-play:paused}svg:hover{--hypn0-play:running}circle,rect,polygon,path{animation-play-state:var(--hypn0-play,paused)!important}",
     ]
     cleaned = svg_content
     for gcss in gallery_css_variants:
@@ -358,7 +363,7 @@ def prepare_active_svg(svg_content: str) -> str:
     cleaned = re.sub(r"svg\s*\{[^}]*--hypn0-play:\s*paused[^}]*\}", "", cleaned)
     cleaned = re.sub(r"(:host\(:hover\)\s*svg\s*,\s*)?svg:hover\s*\{[^}]*--hypn0-play:[^}]*\}", "", cleaned)
     cleaned = re.sub(
-        r"\.shape,circle,rect,polygon,path\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
+        r"(\.shape,)?circle,rect,polygon,path\s*\{animation-play-state:\s*var\(--hypn0-play,\s*paused\)!important\}",
         "",
         cleaned,
     )
