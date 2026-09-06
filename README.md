@@ -43,8 +43,8 @@
 
 - **Frontend сборка:** [frontend-assembly/README.md](frontend-assembly/README.md) — сборка Alpine.js, Tailwind CSS, HTMX.
 - **ИИ-интеграция:** [public/llms.txt](public/llms.txt) — контекст для LLM и агентных систем.
+- **Безопасность и приватность:** [SECURITY.md](SECURITY.md) — Zero-PII, правила отслеживания и защита от накруток.
 - **Планы и архитектура:** [_blueprint/plan-draft.md](_blueprint/plan-draft.md).
-- **Django Management Commands:** [_blueprint/management-commands.md](_blueprint/management-commands.md) — пакетные фоновые задачи.
 - **Предыстория:** CLI-утилита [2026-image-hatftone-effect](https://git.cube2.ru/erjemin/2026-image-hatftone-effect).
 
 ---
