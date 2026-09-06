@@ -1,7 +1,17 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block TITLE %}Галерея транса — Полный архив психоделических картин HypnoSVG{% endblock %}
+{% block PAGE_TITLE %}{% if current_floor == 'fresh' %}Инкубатор бессознательного{% elif current_floor == 'curated' %}Одобрено Мозговым Слизнем{% elif current_floor == 'top' %}Золотой фонд транса{% else %}Галерея транса — Каталог анимированных картин{% endif %}{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+
+{% block META_TITLE %}{% if current_floor == 'fresh' %}Инкубатор бессознательного — Свежие SVG-картины{% elif current_floor == 'curated' %}Одобрено Мозговым Слизнем — Лучшие SVG-халфтоны{% elif current_floor == 'top' %}Золотой фонд транса — Бессмертные SVG-матрицы{% else %}Галерея транса — Каталог анимированных SVG-картин{% endif %}{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+
+{% block META_DESCRIPTION %}{% if current_floor == 'fresh' %}Свежие кандидаты в галерею транса HypnoSVG: новые психоделические генерации и векторные матрицы.{% elif current_floor == 'curated' %}Кураторская подборка анимированных SVG-халфтонов HypnoSVG, прошедших одобрение сообщества.{% elif current_floor == 'top' %}Золотой фонд бессмертных векторных матриц и шедевров цифрового транса HypnoSVG.{% else %}Полный каталог и архив анимированных SVG-халфтонов и психоделических картин HypnoSVG.{% endif %}{% if page_obj.number > 1 %} Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.{% endif %}{% endblock %}
+
+{% block OG_TITLE %}{% if current_floor == 'fresh' %}Инкубатор бессознательного{% elif current_floor == 'curated' %}Одобрено Мозговым Слизнем{% elif current_floor == 'top' %}Золотой фонд транса{% else %}Галерея транса{% endif %}{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+
+{% block OG_DESCRIPTION %}{% if current_floor == 'fresh' %}Свежие кандидаты в галерею транса HypnoSVG: новые психоделические генерации.{% elif current_floor == 'curated' %}Кураторская подборка анимированных SVG-халфтонов HypnoSVG, одобренных сообществом.{% elif current_floor == 'top' %}Золотой фонд бессмертных векторных матриц и шедевров транса HypnoSVG.{% else %}Полный каталог и архив анимированных SVG-халфтонов и психоделических картин HypnoSVG.{% endif %}{% endblock %}
+
+{% block CANONICAL %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% if current_floor != 'all' or page_obj.number > 1 %}?{% if current_floor != 'all' %}floor={{ current_floor }}{% endif %}{% if current_floor != 'all' and page_obj.number > 1 %}&{% endif %}{% if page_obj.number > 1 %}page={{ page_obj.number }}{% endif %}{% endif %}{% endblock %}
 
 {% block EXTRA_HEAD %}
   {% if page_obj.has_previous %}

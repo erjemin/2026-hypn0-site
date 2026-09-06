@@ -1005,6 +1005,7 @@ class GalleryArchiveTests(BaseMediaTestCase):
         self.assertEqual(resp_p1.status_code, 200)
         self.assertEqual(len(resp_p1.context["page_obj"]), 16)
         self.assertContains(resp_p1, "Фаза 1 из 2")
+        self.assertContains(resp_p1, "<title>Галерея транса — Каталог анимированных картин | HypnoSVG</title>")
         # Проверяем сохранение query-параметров в ссылках пагинатора
         self.assertContains(resp_p1, "floor=all&sort=likes&page=2")
 
@@ -1012,7 +1013,12 @@ class GalleryArchiveTests(BaseMediaTestCase):
         self.assertEqual(resp_p2.status_code, 200)
         self.assertEqual(len(resp_p2.context["page_obj"]), 2)
         self.assertContains(resp_p2, "Фаза 2 из 2")
+        self.assertContains(resp_p2, "<title>Галерея транса — Каталог анимированных картин (Фаза 2) | HypnoSVG</title>")
         self.assertContains(resp_p2, "floor=all&sort=likes&page=1")
+
+        # Проверяем Title при фильтрации по этажу
+        resp_curated = self.client.get(url, data={"floor": "curated"})
+        self.assertContains(resp_curated, "<title>Одобрено Мозговым Слизнем | HypnoSVG</title>")
 
 
 class RescoreCommandTests(BaseMediaTestCase):

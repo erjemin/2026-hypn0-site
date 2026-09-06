@@ -1,11 +1,11 @@
 {% extends "_base.html" %}
 {% load static %}
 
-{% block PAGE_TITLE %}{{ item.s_title }} — hypn0: Галерея Транса{% endblock %}
-{% block META_TITLE %}{{ item.s_title }} — Векторный транс #{{ item.s_hash_id }}{% endblock %}
-{% block META_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} векторных осцилляторов, блокирующих неокортекс.{% endblock %}
-{% block OG_TITLE %}{{ item.s_title }} — hypn0{% endblock %}
-{% block OG_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). Векторный транс Гипножабы.{% endblock %}
+{% block PAGE_TITLE %}{{ item.s_title }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block META_TITLE %}{{ item.s_title }} — Векторный транс #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block META_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} векторных осцилляторов. Генератор анимированных SVG-халфтонов HypnoSVG.{% endblock %}
+{% block OG_TITLE %}{{ item.s_title }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block OG_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). Векторный транс в галерее HypnoSVG.{% endblock %}
 {% block OG_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
 {% block TWITTER_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
 
