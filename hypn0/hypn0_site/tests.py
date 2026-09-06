@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
@@ -1012,3 +1013,48 @@ class GalleryArchiveTests(BaseMediaTestCase):
         self.assertEqual(len(resp_p2.context["page_obj"]), 2)
         self.assertContains(resp_p2, "Фаза 2 из 2")
         self.assertContains(resp_p2, "floor=all&sort=likes&page=1")
+
+
+class RescoreCommandTests(BaseMediaTestCase):
+    """Тестирование management-команды rescore."""
+
+    def setUp(self):
+        self.vid = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+        svg_bytes = b'<svg><circle/></svg>'
+        self.item_immortal = TbHypn0Item(
+            s_title="Бессмертная картина",
+            file_svg=ContentFile(svg_bytes, name="immortal.svg"),
+            i_level=TbHypn0Item.Level.IMMORTAL,
+            f_score=0.0,
+            is_public=True,
+        )
+        self.item_immortal.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_candidate = TbHypn0Item(
+            s_title="Свежая картина",
+            file_svg=ContentFile(svg_bytes, name="cand.svg"),
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            f_score=0.0,
+            is_public=True,
+        )
+        self.item_candidate.save(visitor_uuid_or_fp=self.vid)
+
+    def test_rescore_includes_immortal_and_applies_bonus(self):
+        # Добавляем голос
+        TbVote.objects.create(
+            k_item=self.item_immortal,
+            s_fingerprint="fp1",
+            i_direction=TbVote.Direction.LIKE,
+        )
+        out = io.StringIO()
+        call_command("rescore", stdout=out)
+        self.item_immortal.refresh_from_db()
+        self.item_candidate.refresh_from_db()
+
+        # Проверяем, что f_score рассчитан (> 0) и для бессмертной, и для кандидата
+        self.assertGreater(self.item_immortal.f_score, 0.0)
+        self.assertGreater(self.item_candidate.f_score, 0.0)
+        # У бессмертной картины бонус выше (5.0 против 1.0)
+        self.assertGreater(self.item_immortal.f_score, self.item_candidate.f_score)
+        # Статус бессмертной картины защищен и не должен измениться
+        self.assertEqual(self.item_immortal.i_level, TbHypn0Item.Level.IMMORTAL)

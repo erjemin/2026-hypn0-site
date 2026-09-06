@@ -43,8 +43,10 @@ poetry run python hypn0/manage.py rescore --dry-run
 
 4. **Гравитационная модель скоринга (с логарифмом):**
    $$\text{Score} = \frac{\ln(1 + \max(0, \text{WeightedLikes})) + \text{Bonus}_{\text{level}}}{(\text{Age in hours} + 2.0)^\gamma}$$
-   - `LEVEL_1_BONUS` = $+1.5$
-   - `LEVEL_2_BONUS` = $+4.0$ (Одобрено Мозговым Слизнем)
+   - `CANDIDATE_BONUS` = $+1.0$ (Свежая генерация)
+   - `LEVEL_1_BONUS` = $+1.5$ (Плеск бессознательного / прогрета)
+   - `LEVEL_2_BONUS` = $+3.0$ (Одобрено Мозговым Слизнем)
+   - `IMMORTAL_BONUS` = $+5.0$ (Глубокий транс / Золотой фонд)
 
 5. **Инерционное сглаживание (EMA — Exponential Moving Average):**
    - Чтобы исключить резкие скачки рейтинга от разовых всплесков, итоговый `f_score` сглаживается с предыдущим значением:

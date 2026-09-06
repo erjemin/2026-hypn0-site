@@ -65,7 +65,7 @@ class Command(BaseCommand):
             "--shame-claim-ratio",
             type=float,
             default=0.35,
-            help="Доля жалоб среди свежих голосов для детекции шейминга (по умолчанию: 0.35 или 35%)",
+            help="Доля жалоб среди свежих голосов для детекции шейминга (по умолчанию: 0.35 или 35%%)",
         )
         parser.add_argument(
             "--warmup-votes-threshold",
@@ -92,9 +92,11 @@ class Command(BaseCommand):
         MIN_LIKES_FOR_SPIKE = 20       # Минимальное число лайков за окно, необходимое для признания относительного спайка
         COLD_START_SPIKE_LIKES = 50    # Абсолютное число лайков за окно для детекции спайка в режиме "холодного старта"
 
-        # 3. Бонусы к рейтингу за модераторский статус (веса числителя формулы)
+        # 3. Бонусы к рейтингу за статус (веса числителя формулы)
+        CANDIDATE_BONUS = 1.0          # Базовый бонус картине со статусом CANDIDATE (свежая генерация)
         LEVEL_1_BONUS = 1.5            # Бонус картине со статусом LEVEL_1 (прогрета / замечена модератором)
-        LEVEL_2_BONUS = 4.0            # Бонус картине со статусом LEVEL_2 (одобрено Мозговым Слизнем / шедевр)
+        LEVEL_2_BONUS = 3.0            # Бонус картине со статусом LEVEL_2 (одобрено Мозговым Слизнем / шедевр)
+        IMMORTAL_BONUS = 5.0           # Бонус картине со статусом IMMORTAL (золотой фонд / глубокий транс)
 
         # 4. Коэффициент сглаживания инерции (EMA — Exponential Moving Average)
         EMA_ALPHA = 0.7                # Доля нового значения в итоговом рейтинге (0.7 = 70% новый расчет + 30% старый f_score)
@@ -145,9 +147,9 @@ class Command(BaseCommand):
 
         # -----------------------------------------------------------------------------------------
         # ШАГ 2: Выборка картин для пересчета
-        # Бессмертные картины (Level.IMMORTAL) не требуют скоринга для очистки, но могут участвовать
+        # Включает все картины платформы, включая бессмертные (Level.IMMORTAL)
         # -----------------------------------------------------------------------------------------
-        items = TbHypn0Item.objects.exclude(i_level=TbHypn0Item.Level.IMMORTAL).prefetch_related("votes")
+        items = TbHypn0Item.objects.all().prefetch_related("votes")
         total_items = items.count()
 
         if total_items == 0:
@@ -177,50 +179,57 @@ class Command(BaseCommand):
                         recent_claims_24h += 1
 
             # 2. Детекция аномалий (шейминг vs спайк накрутки)
+            # Для картин со статусом IMMORTAL уровень зафиксирован и защищен от автосмены
             new_level = item.i_level
             recent_total_24h = recent_likes_24h + recent_claims_24h
 
-            # Проверка аномалий активируется только при наличии минимальной выборки (>= MIN_VOTES_FOR_ANOMALY)
-            if recent_total_24h >= MIN_VOTES_FOR_ANOMALY:
-                # Проверка на шейминг (резкий наплыв жалоб)
-                claim_ratio = recent_claims_24h / recent_total_24h
-                if claim_ratio >= shame_claim_ratio:
-                    new_level = TbHypn0Item.Level.SHAMED
-                    self.stdout.write(
-                        self.style.WARNING(f"Аномалия [SHAMED]: Картина {item.s_hash_id} доля жалоб={claim_ratio:.1%}")
-                    )
+            if item.i_level != TbHypn0Item.Level.IMMORTAL:
+                # Проверка аномалий активируется только при наличии минимальной выборки (>= MIN_VOTES_FOR_ANOMALY)
+                if recent_total_24h >= MIN_VOTES_FOR_ANOMALY:
+                    # Проверка на шейминг (резкий наплыв жалоб)
+                    claim_ratio = recent_claims_24h / recent_total_24h
+                    if claim_ratio >= shame_claim_ratio:
+                        new_level = TbHypn0Item.Level.SHAMED
+                        self.stdout.write(
+                            self.style.WARNING(f"Аномалия [SHAMED]: Картина {item.s_hash_id} доля жалоб={claim_ratio:.1%}")
+                        )
 
-                # Проверка на спайк лайков (накрутка):
-                # На холодном старте (когда avg_votes_per_item_24h близко к 0) опираемся только на высокий абсолютный порог COLD_START_SPIKE_LIKES,
-                # чтобы 3-4 первых лайка от живых пользователей не помечались как подозрительные.
-                elif not is_cold_start and avg_votes_per_item_24h > 0:
-                    if recent_likes_24h > (avg_votes_per_item_24h * spike_multiplier) and recent_likes_24h >= MIN_LIKES_FOR_SPIKE:
+                    # Проверка на спайк лайков (накрутка):
+                    # На холодном старте (когда avg_votes_per_item_24h близко к 0) опираемся только на высокий абсолютный порог COLD_START_SPIKE_LIKES,
+                    # чтобы 3-4 первых лайка от живых пользователей не помечались как подозрительные.
+                    elif not is_cold_start and avg_votes_per_item_24h > 0:
+                        if recent_likes_24h > (avg_votes_per_item_24h * spike_multiplier) and recent_likes_24h >= MIN_LIKES_FOR_SPIKE:
+                            new_level = TbHypn0Item.Level.SUSPICIOUS
+                            self.stdout.write(
+                                self.style.WARNING(f"Аномалия [SUSPICIOUS]: Картина {item.s_hash_id} лайков за окно={recent_likes_24h}")
+                            )
+                    elif is_cold_start and recent_likes_24h >= COLD_START_SPIKE_LIKES:
                         new_level = TbHypn0Item.Level.SUSPICIOUS
                         self.stdout.write(
-                            self.style.WARNING(f"Аномалия [SUSPICIOUS]: Картина {item.s_hash_id} лайков за окно={recent_likes_24h}")
+                            self.style.WARNING(f"Аномалия [SUSPICIOUS (Cold Start)]: Картина {item.s_hash_id} лайков за окно={recent_likes_24h}")
                         )
-                elif is_cold_start and recent_likes_24h >= COLD_START_SPIKE_LIKES:
-                    new_level = TbHypn0Item.Level.SUSPICIOUS
-                    self.stdout.write(
-                        self.style.WARNING(f"Аномалия [SUSPICIOUS (Cold Start)]: Картина {item.s_hash_id} лайков за окно={recent_likes_24h}")
-                    )
 
-            # Проверка перехода CANDIDATE -> LEVEL_1 (Прогрета, набрала массу)
-            if item.i_level == TbHypn0Item.Level.CANDIDATE and weighted_likes >= warmup_threshold and new_level == item.i_level:
-                new_level = TbHypn0Item.Level.LEVEL_1
-                self.stdout.write(
-                    self.style.SUCCESS(f"Прогрев [CANDIDATE -> LEVEL_1]: Картина {item.s_hash_id} набрала вес={weighted_likes:.1f}")
-                )
+                # Проверка перехода CANDIDATE -> LEVEL_1 (Прогрета, набрала массу)
+                if item.i_level == TbHypn0Item.Level.CANDIDATE and weighted_likes >= warmup_threshold and new_level == item.i_level:
+                    new_level = TbHypn0Item.Level.LEVEL_1
+                    self.stdout.write(
+                        self.style.SUCCESS(f"Прогрев [CANDIDATE -> LEVEL_1]: Картина {item.s_hash_id} набрала вес={weighted_likes:.1f}")
+                    )
 
             # 3. Расчет нового f_score (Гравитационная модель + логарифм)
             item_age_hours = max(0.0, (now - item.d_created_at).total_seconds() / 3600.0)
 
-            # Бонус от модераторского уровня
-            level_bonus = 0.0
-            if item.i_level == TbHypn0Item.Level.LEVEL_1:
+            # Бонус от уровня картины
+            if item.i_level == TbHypn0Item.Level.CANDIDATE:
+                level_bonus = CANDIDATE_BONUS
+            elif item.i_level == TbHypn0Item.Level.LEVEL_1:
                 level_bonus = LEVEL_1_BONUS
             elif item.i_level == TbHypn0Item.Level.LEVEL_2:
                 level_bonus = LEVEL_2_BONUS
+            elif item.i_level == TbHypn0Item.Level.IMMORTAL:
+                level_bonus = IMMORTAL_BONUS
+            else:
+                level_bonus = 0.0
 
             if weighted_likes <= 0:
                 raw_score = weighted_likes  # Отрицательный или нулевой скор
