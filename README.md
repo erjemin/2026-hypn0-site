@@ -4,7 +4,7 @@
 
 [![Python 3.14](https://img.shields.io/badge/Python-3.14-blue)](https://python.org)
 [![Django 6.0](https://img.shields.io/badge/Django-6.0-green)](https://djangoproject.com)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License: PolyForm NC / CC0](https://img.shields.io/badge/License-PolyForm_NC_%2F_CC0-blue)](LICENSE.md)
 [![Static Badge](https://img.shields.io/badge/ОРИГИНАЛ-git.cube2.ru-green)](https://git.cube2.ru/erjemin/2026-hypn0-site)
 
 ---
@@ -51,4 +51,5 @@
 
 ## Лицензия
 
-MIT License. См. файл `LICENSE`.
+- **Исходный код:** [PolyForm Noncommercial 1.0.0](LICENSE.md) (свободное некоммерческое использование).
+- **Сгенерированные SVG:** [CC0 1.0 Universal](LICENSE.md) (свободное использование в любых личных и коммерческих проектах).

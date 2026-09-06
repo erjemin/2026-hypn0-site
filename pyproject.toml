@@ -3,7 +3,7 @@ name = "hypn0"
 version = "0.1.0"
 description = "hypn0 - Гипонтические SVG"
 authors = ["erjemin <erjemin@gmail.com>"]
-license = "MIT"
+license = "PolyForm-Noncommercial-1.0.0"
 readme = "README.md"
 packages = [
     { include = "hypn0", from = "hypn0" },
