@@ -46,6 +46,8 @@
 - **Безопасность и приватность:** [SECURITY.md](SECURITY.md) — Zero-PII, правила отслеживания и защита от накруток.
 - **Планы и архитектура:** [_blueprint/plan-draft.md](_blueprint/plan-draft.md).
 - **Предыстория:** CLI-утилита [2026-image-hatftone-effect](https://git.cube2.ru/erjemin/2026-image-hatftone-effect).
+- **Участие в разработке:** [CONTRIBUTING.md](CONTRIBUTING.md) — стандарты кода и правила для контрибьюторов.
+- **Кодекс поведения:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — стандарты взаимодействия в сообществе.
 
 ---
 
