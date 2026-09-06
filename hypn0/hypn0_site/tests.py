@@ -923,3 +923,138 @@ class CardBgStyleTests(BaseMediaTestCase):
         self.assertContains(response, 'template shadowrootmode="open"')
         self.assertContains(response, "hypn0-card-svg")
         self.assertContains(response, "--hypn0-play: running !important")
+
+
+class GalleryArchiveTests(BaseMediaTestCase):
+    """Тестирование общего архива галереи /gallery (фильтры, сортировка, пагинация)."""
+
+    def setUp(self):
+        super().setUp()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+        svg_bytes = b'<svg><circle/></svg>'
+
+        # Создаем картины разных уровней
+        self.item_fresh = TbHypn0Item(
+            s_title="Свежая картина",
+            file_svg=ContentFile(svg_bytes, name="fresh.svg"),
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            i_likes_count=5,
+            i_views_count=10,
+            f_score=1.5,
+            is_public=True,
+        )
+        self.item_fresh.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_curated = TbHypn0Item(
+            s_title="Кураторская картина",
+            file_svg=ContentFile(svg_bytes, name="curated.svg"),
+            i_level=TbHypn0Item.Level.LEVEL_2,
+            i_likes_count=50,
+            i_views_count=200,
+            f_score=80.0,
+            is_public=True,
+        )
+        self.item_curated.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_top = TbHypn0Item(
+            s_title="Бессмертная картина",
+            file_svg=ContentFile(svg_bytes, name="top.svg"),
+            i_level=TbHypn0Item.Level.IMMORTAL,
+            i_likes_count=500,
+            i_views_count=2000,
+            f_score=150.0,
+            is_public=True,
+        )
+        self.item_top.save(visitor_uuid_or_fp=self.vid)
+
+    def test_gallery_archive_default_renders_all_and_gravity(self):
+        url = reverse("hypn0_site:gallery_archive")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Галерея транса")
+        self.assertContains(response, "ARCHIVE")
+        self.assertContains(response, "Все волны")
+        self.assertContains(response, "Инкубатор")
+        self.assertContains(response, "Одобрено")
+        self.assertContains(response, "Золотой фонд")
+        # Все 3 картины присутствуют в выдаче
+        self.assertContains(response, f"gallery-card-{self.item_fresh.s_hash_id}")
+        self.assertContains(response, f"gallery-card-{self.item_curated.s_hash_id}")
+        self.assertContains(response, f"gallery-card-{self.item_top.s_hash_id}")
+
+        # Проверяем правильный порядок (по f_score DESC: top, curated, fresh)
+        page_items = list(response.context["page_obj"])
+        self.assertEqual(page_items[0].pk, self.item_top.pk)
+        self.assertEqual(page_items[1].pk, self.item_curated.pk)
+        self.assertEqual(page_items[2].pk, self.item_fresh.pk)
+
+    def test_gallery_archive_filter_by_floor(self):
+        url = reverse("hypn0_site:gallery_archive")
+
+        # Фильтр: Инкубатор (fresh)
+        resp_fresh = self.client.get(url, data={"floor": "fresh"})
+        self.assertEqual(resp_fresh.status_code, 200)
+        fresh_ids = [it.pk for it in resp_fresh.context["page_obj"]]
+        self.assertIn(self.item_fresh.pk, fresh_ids)
+        self.assertNotIn(self.item_curated.pk, fresh_ids)
+        self.assertNotIn(self.item_top.pk, fresh_ids)
+
+        # Фильтр: Одобрено (curated)
+        resp_curated = self.client.get(url, data={"floor": "curated"})
+        self.assertEqual(resp_curated.status_code, 200)
+        curated_ids = [it.pk for it in resp_curated.context["page_obj"]]
+        self.assertNotIn(self.item_fresh.pk, curated_ids)
+        self.assertIn(self.item_curated.pk, curated_ids)
+        self.assertNotIn(self.item_top.pk, curated_ids)
+
+        # Фильтр: Золотой фонд (top)
+        resp_top = self.client.get(url, data={"floor": "top"})
+        self.assertEqual(resp_top.status_code, 200)
+        top_ids = [it.pk for it in resp_top.context["page_obj"]]
+        self.assertNotIn(self.item_fresh.pk, top_ids)
+        self.assertNotIn(self.item_curated.pk, top_ids)
+        self.assertIn(self.item_top.pk, top_ids)
+
+    def test_gallery_archive_sorting(self):
+        url = reverse("hypn0_site:gallery_archive")
+
+        # Сортировка: по числу лайков
+        resp_likes = self.client.get(url, data={"sort": "likes"})
+        self.assertEqual(resp_likes.status_code, 200)
+        likes_items = list(resp_likes.context["page_obj"])
+        self.assertEqual(likes_items[0].pk, self.item_top.pk)
+        self.assertEqual(likes_items[-1].pk, self.item_fresh.pk)
+
+        # Сортировка: по числу просмотров (наименее просмотренные первые)
+        resp_views = self.client.get(url, data={"sort": "views"})
+        self.assertEqual(resp_views.status_code, 200)
+        views_items = list(resp_views.context["page_obj"])
+        self.assertEqual(views_items[0].pk, self.item_fresh.pk)
+        self.assertEqual(views_items[-1].pk, self.item_top.pk)
+
+    def test_gallery_archive_pagination_and_link_preservation(self):
+        svg_bytes = b'<svg><circle/></svg>'
+        # Создаем еще 15 свежих картин (всего 18 в базе)
+        for i in range(15):
+            item = TbHypn0Item(
+                s_title=f"Доп #{i}",
+                file_svg=ContentFile(svg_bytes, name=f"extra_{i}.svg"),
+                i_level=TbHypn0Item.Level.CANDIDATE,
+                f_score=float(i),
+                is_public=True,
+            )
+            item.save(visitor_uuid_or_fp=self.vid)
+
+        url = reverse("hypn0_site:gallery_archive")
+        resp_p1 = self.client.get(url, data={"floor": "all", "sort": "likes"})
+        self.assertEqual(resp_p1.status_code, 200)
+        self.assertEqual(len(resp_p1.context["page_obj"]), 16)
+        self.assertContains(resp_p1, "Фаза 1 из 2")
+        # Проверяем сохранение query-параметров в ссылках пагинатора
+        self.assertContains(resp_p1, "floor=all&sort=likes&page=2")
+
+        resp_p2 = self.client.get(url, data={"floor": "all", "sort": "likes", "page": 2})
+        self.assertEqual(resp_p2.status_code, 200)
+        self.assertEqual(len(resp_p2.context["page_obj"]), 2)
+        self.assertContains(resp_p2, "Фаза 2 из 2")
+        self.assertContains(resp_p2, "floor=all&sort=likes&page=1")

@@ -68,6 +68,79 @@ def get_floor_top(limit: int | None = 8, offset: int = 0):
     return qs
 
 
+def gallery_archive(request: HttpRequest) -> HttpResponse:
+    """
+    Общий архив галереи транса с фильтрацией по этажам и сортировкой.
+    Пагинация по 16 карточек на страницу.
+    """
+    floor = request.GET.get("floor", "all")
+    sort = request.GET.get("sort", "gravity")
+
+    # Базовый QuerySet
+    qs = TbHypn0Item.objects.filter(is_public=True)
+
+    # Фильтрация по этажам
+    if floor == "fresh":
+        qs = qs.filter(i_level__in=[TbHypn0Item.Level.CANDIDATE, TbHypn0Item.Level.LEVEL_1])
+    elif floor == "curated":
+        qs = qs.filter(i_level=TbHypn0Item.Level.LEVEL_2)
+    elif floor == "top":
+        qs = qs.filter(i_level=TbHypn0Item.Level.IMMORTAL)
+    else:
+        floor = "all"
+
+    # Применение сортировки
+    if sort == "new":
+        qs = qs.order_by("-d_created_at")
+    elif sort == "likes":
+        qs = qs.order_by("-i_likes_count", "-f_score", "-d_created_at")
+    elif sort == "views":
+        qs = qs.order_by("i_views_count", "-d_created_at")
+    elif sort == "popular":
+        qs = qs.order_by("-i_views_count", "-d_created_at")
+    else:
+        sort = "gravity"
+        qs = qs.order_by("-f_score", "-d_created_at")
+
+    # Подсчет количества работ для бейджей на табах
+    counts = {
+        "all": TbHypn0Item.objects.filter(is_public=True).count(),
+        "fresh": TbHypn0Item.objects.filter(
+            is_public=True,
+            i_level__in=[TbHypn0Item.Level.CANDIDATE, TbHypn0Item.Level.LEVEL_1]
+        ).count(),
+        "curated": TbHypn0Item.objects.filter(
+            is_public=True,
+            i_level=TbHypn0Item.Level.LEVEL_2
+        ).count(),
+        "top": TbHypn0Item.objects.filter(
+            is_public=True,
+            i_level=TbHypn0Item.Level.IMMORTAL
+        ).count(),
+    }
+
+    paginator = Paginator(qs, 16)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    sort_options = [
+        {"id": "gravity", "title": "По гравитации (f_score)", "icon": "🌀"},
+        {"id": "new", "title": "Свежие (по дате)", "icon": "✨"},
+        {"id": "likes", "title": "По числу лайков", "icon": "♥"},
+        {"id": "views", "title": "Редкие (мало показов)", "icon": "👁"},
+        {"id": "popular", "title": "Популярные по показам", "icon": "🔥"},
+    ]
+
+    context = {
+        "page_obj": page_obj,
+        "current_floor": floor,
+        "current_sort": sort,
+        "counts": counts,
+        "sort_options": sort_options,
+    }
+    return render(request, "gallery/archive.html", context)
+
+
 def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
     """
     Страница полного просмотра конкретного этажа галереи с пагинацией (по 16 карточек).

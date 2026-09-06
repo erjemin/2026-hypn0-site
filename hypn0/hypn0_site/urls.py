@@ -9,6 +9,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("generate", views.generate, name="generate"),
     path("publish", views.publish, name="publish"),
+    path("gallery", views.gallery_archive, name="gallery_archive"),
     path("gallery/random", views.gallery_random, name="gallery_random"),
     path("gallery/random-pool", views.gallery_random, name="gallery_random_pool"),
     path("gallery/floor/<slug:floor_slug>", views.gallery_floor, name="gallery_floor"),

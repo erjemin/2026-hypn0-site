@@ -9,7 +9,7 @@
         <a href="/" class="border-0"><img src="{% static 'img/logo-hypn0.svg' %}" alt="Логотип hypn0"></a>
       </div>{# /ЛОГОТИП #}
       {# ПРАВОЕ МЕНЮ #}<menu class="flex items-center gap-x-4 justify-self-start text-xl font-semibold text-slate-900 dark:text-slate-100">
-        <a href="#" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg border-0 text-slate-900 dark:text-slate-100">галерея</a>
+        <a href="{% url 'hypn0_site:gallery_archive' %}" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg border-0 text-slate-900 dark:text-slate-100">галерея</a>
         <a href="#" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg hidden md:block hyphens-none border-0 text-slate-900 dark:text-slate-100">блог</a>
         <a href="#" class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg hidden lg:block border-0 text-slate-900 dark:text-slate-100" @click.prevent="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" title="Переключить тему"><span x-text="darkMode?'●':'○'"></span></a>
       </menu>{# /ПРАВОЕ МЕНЮ #}
