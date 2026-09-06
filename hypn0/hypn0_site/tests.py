@@ -174,6 +174,16 @@ class HalftoneServiceTests(BaseMediaTestCase):
         svg_wide = generate_halftone_svg(wide_img, cols=30, max_radius=5)
         self.assertIn('viewBox="0 0 608 208"', svg_wide)
 
+    def test_generate_screen_angles(self):
+        # Проверяем поворот растровой сетки под разными углами (-45, 0, 15, 45)
+        # Холст должен сохранять прямые пропорции (viewBox), а внутри генерироваться точки
+        for angle in [-45, -15, 0, 15, 45]:
+            svg = generate_halftone_svg(self.img, cols=20, max_radius=6, angle=angle)
+            self.assertIn("<svg", svg)
+            self.assertIn("<use href=", svg)
+            # viewbox не меняется от поворота сетки
+            self.assertIn('viewBox="0 0 408 408"', svg)
+
 
 class HalftoneFormTests(BaseMediaTestCase):
     """Тестирование формы валидации HalftoneGenerateForm."""

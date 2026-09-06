@@ -146,18 +146,9 @@ def generate_halftone_svg(
     - animation_variants: число вариантов CSS-задержек
     - seed: сид для детерминированного распределения анимаций
 
-    TODO ПОЧИНИТЬ-УЛУЧШИТЬ:
-    - angle: сейчас это просто поворот картинки. Нужно чтобы:
-        - нужно чтобы это был поворт картинки (т.е. ряды-столбцы были со смещение-поворотом, как при полиграфии)
-    - blink: что-то страннное. пока не понял
-
-    -- ПРОЧЕЕ:
-    -- C "кольцами" что-то не так (они кружочки)
-    -- Проверить: scale и rotation кажется не вокруг центра.
-    -- ЕСЛИ ЦВЕТ ЧЕРЕЗ ИНТЕРФЕЙС НЕ МЕНЯЛСЯ (ДЕФОЛТНЫЙ), ТО ЛУЧШЕ (???) НАЗНАЧАТЬ СЛУЧАНЫЙ (или из набора).
-       А то слишком однообразные цвета герераций в галерее
-    -- Если задан большой размер точки, rotation или scale -- то нужно делать "паспорту", иначе точки "вылезают"
-       за пределы ViewPort
+    ПОЧИНИТЬ-УЛУЧШИТЬ:
+    -- ЕСЛИ ЦВЕТ ЧЕРЕЗ ИНТЕРФЕЙС НЕ МЕНЯЛСЯ (ДЕФОЛТНЫЙ), ТО ЛУЧШЕ (???) НАЗНАЧАТЬ СЛУЧАЙНЫЙ (или из набора).
+       А то слишком однообразные цвета генераций в галерее
     """
     rng = random.Random(seed)
 
@@ -178,12 +169,8 @@ def generate_halftone_svg(
     # Конвертируем в Grayscale
     img = pil_img.convert("L")
 
-    # Обработка наклона сетки (angle): поворачиваем изображение при необходимости
-    if angle != 0:
-        # Поворачиваем с сохранением пропорций и белым фоном (255 = прозрачно/пусто)
-        img = img.rotate(-angle, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=255)
-
-    # Вычисляем размеры сетки: значение `cols` задает число точек по наибольшей стороне (ширине или высоте)
+    # Вычисляем размеры базовой сетки по исходным пропорциям изображения
+    # Значение `cols` задает число ячеек по наибольшей стороне (ширине или высоте)
     if img.width >= img.height:
         grid_width = max(1, cols)
         grid_height = max(1, round(cols * (img.height / img.width)))
@@ -192,6 +179,7 @@ def generate_halftone_svg(
         grid_width = max(1, round(cols * (img.width / img.height)))
 
     img_resized = img.resize((grid_width, grid_height), Image.Resampling.LANCZOS)
+    img_w, img_h = img_resized.width, img_resized.height
 
     # Базовый шаг ячейки сетки (номинальный радиус касания точек R0 = 10, диаметр D0 = 20)
     STEP = 20
@@ -206,15 +194,76 @@ def generate_halftone_svg(
     width = grid_width * STEP + 2 * margin
     height = grid_height * STEP + 2 * margin
 
-    # 2. Обход пикселей и группировка
+    # Функция билинейной интерполяции для сэмплирования яркости в дробных координатах сетки
+    def sample_brightness(fx: float, fy: float) -> float:
+        """Возвращает интерполированную яркость (0-255) в нормализованных координатах img_resized."""
+        if fx < 0 or fx > img_w - 1 or fy < 0 or fy > img_h - 1:
+            # За пределами изображения считаем фон белым (255)
+            if fx < -0.5 or fx > img_w - 0.5 or fy < -0.5 or fy > img_h - 0.5:
+                return 255.0
+            fx = max(0.0, min(img_w - 1.0, fx))
+            fy = max(0.0, min(img_h - 1.0, fy))
+
+        x0 = int(math.floor(fx))
+        y0 = int(math.floor(fy))
+        x1 = min(x0 + 1, img_w - 1)
+        y1 = min(y0 + 1, img_h - 1)
+
+        wx = fx - x0
+        wy = fy - y0
+
+        p00 = img_resized.getpixel((x0, y0))
+        p10 = img_resized.getpixel((x1, y0))
+        p01 = img_resized.getpixel((x0, y1))
+        p11 = img_resized.getpixel((x1, y1))
+
+        top = p00 * (1.0 - wx) + p10 * wx
+        bottom = p01 * (1.0 - wx) + p11 * wx
+        return top * (1.0 - wy) + bottom * wy
+
+    # 2. Обход узлов наклонной сетки и группировка
     elements_by_class = defaultdict(list)
     unique_shape_keys = set()
     is_animated = blink > 0
 
-    for y in range(grid_height):
-        for x in range(grid_width):
-            brightness = img_resized.getpixel((x, y))
-            factor = (255 - brightness) / 255.0
+    # Центр изображения на холсте (в координатах SVG без марджина)
+    canvas_cx = (grid_width * STEP) / 2.0
+    canvas_cy = (grid_height * STEP) / 2.0
+
+    rad = math.radians(angle)
+    cos_a = math.cos(rad)
+    sin_a = math.sin(rad)
+
+    # Векторы шага сетки вдоль осей U (строка) и V (столбец)
+    dx_u, dy_u = STEP * cos_a, STEP * sin_a
+    dx_v, dy_v = -STEP * sin_a, STEP * cos_a
+
+    # Диапазон охвата узлов сетки с запасом, чтобы перекрыть весь повернутый холст
+    max_dim = math.hypot(grid_width, grid_height)
+    u_range = int(math.ceil(max_dim / 2.0)) + 2
+    v_range = int(math.ceil(max_dim / 2.0)) + 2
+
+    # Перебираем узлы сетки вокруг центра
+    for v in range(-v_range, v_range + 1):
+        for u in range(-u_range, u_range + 1):
+            # Точные вещественные координаты узла относительно центра холста
+            rel_x = u * dx_u + v * dx_v
+            rel_y = u * dy_u + v * dy_v
+
+            # Координаты на видимом холсте (от 0 до grid_width * STEP)
+            pos_x = canvas_cx + rel_x
+            pos_y = canvas_cy + rel_y
+
+            # Проверяем, попадает ли узел в пределы видимой области холста
+            if not (0 <= pos_x <= grid_width * STEP and 0 <= pos_y <= grid_height * STEP):
+                continue
+
+            # Координаты в сетке img_resized
+            sample_fx = (pos_x / (grid_width * STEP)) * (img_w - 1)
+            sample_fy = (pos_y / (grid_height * STEP)) * (img_h - 1)
+
+            brightness = sample_brightness(sample_fx, sample_fy)
+            factor = (255.0 - brightness) / 255.0
 
             # Отсекаем слишком светлые участки (шум фона)
             if factor < 0.12:
@@ -224,16 +273,15 @@ def generate_halftone_svg(
             if radius == 0:
                 continue
 
-            cx = margin + x * STEP + STEP // 2
-            cy = margin + y * STEP + STEP // 2
+            # Итоговые координаты центра точки в SVG (с учетом паспарту-margin)
+            cx = round(margin + pos_x)
+            cy = round(margin + pos_y)
 
             anim_index = rng.randint(0, animation_variants - 1) if is_animated else 0
             encoded_class = encode_to_base36(anim_index)
 
             if shape == "binary":
                 # Вероятность выпадения '0' плавно растет с оптической плотностью
-                # В тенях преобладают '0' (~85%), но с шансом ~15% выскакивают '1'
-                # В светах преобладают '1' (~85%), но с шансом ~15% выскакивают '0'
                 prob_zero = 0.15 + 0.70 * (radius / max_radius if max_radius else factor)
                 char = "0" if rng.random() < prob_zero else "1"
                 shape_id = f"s{encode_to_base36(radius)}{char}"
