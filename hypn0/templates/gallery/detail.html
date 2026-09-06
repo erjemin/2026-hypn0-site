@@ -62,8 +62,8 @@
     <!-- Заголовок картины -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/60 dark:border-zinc-800/80 pb-4">
       <div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
-          {{ item.s_title }}
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight capitalize">
+          {{ item.s_title|safe }}
         </h1>
         <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">
           Зафиксировано в пространстве: <time datetime="{{ item.d_created_at|date:'Y-m-d H:i:s' }}">{{ item.d_created_at|date:'c' }}</time>
