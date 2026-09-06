@@ -1,0 +1,179 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block TITLE %}Галерея транса — Полный архив психоделических картин HypnoSVG{% endblock %}
+
+{% block EXTRA_HEAD %}
+  {% if page_obj.has_previous %}
+    <link rel="prev" href="{{ request.path }}?floor={{ current_floor }}&sort={{ current_sort }}&page={{ page_obj.previous_page_number }}" />
+  {% endif %}
+  {% if page_obj.has_next %}
+    <link rel="next" href="{{ request.path }}?floor={{ current_floor }}&sort={{ current_sort }}&page={{ page_obj.next_page_number }}" />
+  {% endif %}
+{% endblock EXTRA_HEAD %}
+
+{% block CONTENT %}
+<div class="max-w-6xl mx-auto space-y-8">
+
+  <!-- Хлебные крошки и навигация -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <a href="{% url 'hypn0_site:index' %}"
+       class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      <span>К генератору</span>
+    </a>
+
+    <span class="text-xs font-mono text-stone-500 dark:text-stone-400">
+      Фаза {{ page_obj.number }} из {{ page_obj.paginator.num_pages }} (Всего: {{ page_obj.paginator.count }})
+    </span>
+  </div>
+
+  <!-- Шапка архива -->
+  <div class="border-b border-stone-200 dark:border-zinc-800 pb-6 space-y-2">
+    <div class="flex flex-wrap items-center gap-3">
+      <h1 class="text-3xl font-black uppercase tracking-tight text-stone-900 dark:text-stone-100">
+        Галерея транса
+      </h1>
+      <span class="text-xs font-bold font-mono px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-400 border border-purple-300 dark:border-purple-800/50">
+        ARCHIVE
+      </span>
+    </div>
+    <p class="text-sm text-stone-500 dark:text-stone-400">
+      Полный архив психоделических генераций • Сортировка по гравитации, признанию и свежести
+    </p>
+  </div>
+
+  <!-- Панель фильтров (Табы этажей + Селект сортировки) -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-stone-100/70 dark:bg-zinc-900/70 p-3 rounded-2xl border border-stone-200 dark:border-zinc-800 backdrop-blur-sm">
+    
+    <!-- ТАБЫ ЭТАЖЕЙ -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <!-- Все волны -->
+      <a href="?floor=all&sort={{ current_sort }}"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all {% if current_floor == 'all' %}bg-purple-600 text-white shadow-sm{% else %}text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-zinc-800{% endif %}">
+        <span>Все волны</span>
+        <span class="font-mono text-[10px] opacity-75">({{ counts.all }})</span>
+      </a>
+
+      <!-- 1-й этаж: Инкубатор -->
+      <a href="?floor=fresh&sort={{ current_sort }}"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all {% if current_floor == 'fresh' %}bg-amber-500 text-white shadow-sm{% else %}text-stone-600 dark:text-stone-300 hover:bg-amber-100/60 dark:hover:bg-amber-950/40{% endif %}">
+        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+        <span>Инкубатор</span>
+        <span class="font-mono text-[10px] opacity-75">({{ counts.fresh }})</span>
+      </a>
+
+      <!-- 2-й этаж: Одобрено -->
+      <a href="?floor=curated&sort={{ current_sort }}"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all {% if current_floor == 'curated' %}bg-cyan-600 text-white shadow-sm{% else %}text-stone-600 dark:text-stone-300 hover:bg-cyan-100/60 dark:hover:bg-cyan-950/40{% endif %}">
+        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+        <span>Одобрено</span>
+        <span class="font-mono text-[10px] opacity-75">({{ counts.curated }})</span>
+      </a>
+
+      <!-- 3-й этаж: Золотой фонд -->
+      <a href="?floor=top&sort={{ current_sort }}"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all {% if current_floor == 'top' %}bg-emerald-600 text-white shadow-sm{% else %}text-stone-600 dark:text-stone-300 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40{% endif %}">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>Золотой фонд</span>
+        <span class="font-mono text-[10px] opacity-75">({{ counts.top }})</span>
+      </a>
+    </div>
+
+    <!-- СЕЛЕКТ СОРТИРОВКИ -->
+    <div class="flex items-center gap-2 self-end md:self-auto">
+      <label for="gallery-sort-select" class="text-xs font-bold text-stone-500 dark:text-stone-400 shrink-0">
+        Порядок:
+      </label>
+      <select id="gallery-sort-select"
+              onchange="window.location.href=this.value"
+              class="text-xs font-medium bg-white dark:bg-zinc-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-zinc-700 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer shadow-sm">
+        {% for opt in sort_options %}
+          <option value="?floor={{ current_floor }}&sort={{ opt.id }}" {% if current_sort == opt.id %}selected{% endif %}>
+            {{ opt.icon }} {{ opt.title }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Сетка картин (16 штук на страницу) -->
+  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+    {% for item in page_obj %}
+      {% include "block/gallery_card.html" %}
+    {% empty %}
+      <div class="col-span-full py-16 text-center text-stone-400 space-y-3 bg-stone-100/50 dark:bg-zinc-900/50 rounded-2xl border border-stone-200 dark:border-zinc-800">
+        <svg class="w-12 h-12 mx-auto opacity-30 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+        <p class="font-medium text-sm">В этой выборке пока нет картин. Сгенерируйте шедевр прямо сейчас!</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Пагинация (Предыдущая фаза / Номера страниц / Следующая фаза) -->
+  {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between pt-6 border-t border-stone-200 dark:border-zinc-800">
+      <div>
+        {% if page_obj.has_previous %}
+          <a href="?floor={{ current_floor }}&sort={{ current_sort }}&page={{ page_obj.previous_page_number }}"
+             rel="prev"
+             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all hover:scale-105 active:scale-95 shadow-sm border border-stone-200 dark:border-zinc-700/60 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <span>Предыдущая фаза</span>
+          </a>
+        {% else %}
+          <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-stone-400 dark:text-stone-600 bg-stone-100/50 dark:bg-zinc-900/50 border border-stone-200/50 dark:border-zinc-800/50 opacity-50 cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <span>Предыдущая фаза</span>
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Номера страниц -->
+      <div class="hidden sm:flex items-center gap-1.5 font-mono text-xs">
+        {% for p in page_obj.paginator.page_range %}
+          {% if p == page_obj.number %}
+            <span class="w-8 h-8 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center shadow-md">
+              {{ p }}
+            </span>
+          {% else %}
+            <a href="?floor={{ current_floor }}&sort={{ current_sort }}&page={{ p }}"
+               class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 flex items-center justify-center transition-colors">
+              {{ p }}
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div>
+        {% if page_obj.has_next %}
+          <a href="?floor={{ current_floor }}&sort={{ current_sort }}&page={{ page_obj.next_page_number }}"
+             rel="next"
+             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white transition-all hover:scale-105 active:scale-95 shadow-md border-0 cursor-pointer">
+            <span>Следующая фаза</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        {% else %}
+          <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-stone-400 dark:text-stone-600 bg-stone-100/50 dark:bg-zinc-900/50 border border-stone-200/50 dark:border-zinc-800/50 opacity-50 cursor-not-allowed">
+            <span>Следующая фаза</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock CONTENT %}
