@@ -517,7 +517,7 @@
             <p class="text-xs text-stone-400 dark:text-zinc-500">Свежие галлюцинации из инкубатора • Первичная оценка сообщества</p>
           </div>
         </div>
-        <a href="{% url 'hypn0_site:gallery_floor' 'fresh' %}" class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline">
+        <a href="{% url 'hypn0_site:gallery_archive' %}?floor=fresh" class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline">
           Смотреть весь поток →
         </a>
       </div>
@@ -546,7 +546,7 @@
             <p class="text-xs text-stone-400 dark:text-zinc-500">Проверено контролем качества • Высокий психоделический резонанс</p>
           </div>
         </div>
-        <a href="{% url 'hypn0_site:gallery_floor' 'curated' %}" class="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
+        <a href="{% url 'hypn0_site:gallery_archive' %}?floor=curated" class="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
           Смотреть все одобренные →
         </a>
       </div>
@@ -575,7 +575,7 @@
             <p class="text-xs text-stone-400 dark:text-zinc-500">Золотой фонд гипноза • Абсолютное подчинение воли</p>
           </div>
         </div>
-        <a href="{% url 'hypn0_site:gallery_floor' 'top' %}" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+        <a href="{% url 'hypn0_site:gallery_archive' %}?floor=top" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
           Смотреть весь золотой фонд →
         </a>
       </div>

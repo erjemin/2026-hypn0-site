@@ -141,55 +141,6 @@ def gallery_archive(request: HttpRequest) -> HttpResponse:
     return render(request, "gallery/archive.html", context)
 
 
-def gallery_floor(request: HttpRequest, floor_slug: str) -> HttpResponse:
-    """
-    Страница полного просмотра конкретного этажа галереи с пагинацией (по 16 карточек).
-    """
-    floors_config = {
-        "fresh": {
-            "title": "Плеск бессознательного",
-            "badge": "FRESH STREAM",
-            "badge_color": "amber",
-            "subtitle": "Свежие галлюцинации из инкубатора • Первичная оценка сообщества",
-            "getter": get_floor_fresh,
-        },
-        "curated": {
-            "title": "Одобрено Мозговым Слизнем",
-            "badge": "CURATED",
-            "badge_color": "cyan",
-            "subtitle": "Проверено контролем качества • Высокий психоделический резонанс",
-            "getter": get_floor_curated,
-        },
-        "top": {
-            "title": "Глубокий транс",
-            "badge": "TOP TIER",
-            "badge_color": "emerald",
-            "subtitle": "Золотой фонд гипноза • Абсолютное подчинение воли",
-            "getter": get_floor_top,
-        },
-    }
-
-    if floor_slug not in floors_config:
-        raise Http404("Этаж транса не обнаружен в матрице")
-
-    cfg = floors_config[floor_slug]
-    items_qs = cfg["getter"](limit=None)
-
-    paginator = Paginator(items_qs, 16)
-    page_number = request.GET.get("page", 1)
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        "floor_slug": floor_slug,
-        "floor_title": cfg["title"],
-        "floor_badge": cfg["badge"],
-        "floor_badge_color": cfg["badge_color"],
-        "floor_subtitle": cfg["subtitle"],
-        "page_obj": page_obj,
-    }
-    return render(request, "gallery/floor.html", context)
-
-
 @ensure_csrf_cookie
 def index(request: HttpRequest | None) -> HttpResponse:
     fresh_items = get_floor_fresh(limit=8)
