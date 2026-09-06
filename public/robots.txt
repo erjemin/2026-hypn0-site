@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /generate
+Disallow: /publish
+Disallow: /gallery/*/vote
+Disallow: /gallery/*/download
+Disallow: /gallery/random
+Disallow: /*?*
+
+Clean-param: seed&floor&sort&page /
+
+Sitemap: https://hypn0.xyz/sitemap.xml

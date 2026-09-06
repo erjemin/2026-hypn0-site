@@ -15,11 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from django.conf.urls.static import static
+
+from hypn0_site.sitemaps import sitemaps
 from . import settings
 
 urlpatterns = [
+    # Карта сайта sitemap.xml для поисковой индексации
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
     # Админ-сайт с переименованными приложениями (переопределен в frontend/apps.py)
     path(settings.ADMIN_URL, admin.site.urls),
     path('', include('hypn0_site.urls')),

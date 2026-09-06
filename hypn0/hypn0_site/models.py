@@ -1,6 +1,7 @@
 import hashlib
 from django.db import models, transaction, IntegrityError
 from django.db.models import F
+from django.urls import reverse
 from hashids import Hashids
 from hypn0.settings import *
 from django.utils import timezone
@@ -156,6 +157,10 @@ class TbHypn0Item(models.Model):
 
     def __str__(self) -> str:
         return f"{self.s_title} ({self.s_hash_id})"
+
+    def get_absolute_url(self) -> str:
+        """Возвращает канонический URL детальной страницы картины."""
+        return reverse("hypn0_site:gallery_detail", kwargs={"hash_id": self.s_hash_id})
 
     @property
     def card_bg_style(self) -> str:

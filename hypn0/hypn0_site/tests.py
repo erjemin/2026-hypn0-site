@@ -1058,3 +1058,92 @@ class RescoreCommandTests(BaseMediaTestCase):
         self.assertGreater(self.item_immortal.f_score, self.item_candidate.f_score)
         # Статус бессмертной картины защищен и не должен измениться
         self.assertEqual(self.item_immortal.i_level, TbHypn0Item.Level.IMMORTAL)
+
+
+class SitemapTests(BaseMediaTestCase):
+    """Тестирование автоматической генерации sitemap.xml."""
+
+    def setUp(self):
+        super().setUp()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+        svg_bytes = b'<svg><circle/></svg>'
+
+        # Создаем публичные картины разных уровней
+        self.item_immortal = TbHypn0Item(
+            s_title="Шедевр транса",
+            file_svg=ContentFile(svg_bytes, name="immortal.svg"),
+            i_level=TbHypn0Item.Level.IMMORTAL,
+            is_public=True,
+        )
+        self.item_immortal.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_curated = TbHypn0Item(
+            s_title="Одобренная картина",
+            file_svg=ContentFile(svg_bytes, name="curated.svg"),
+            i_level=TbHypn0Item.Level.LEVEL_2,
+            is_public=True,
+        )
+        self.item_curated.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_fresh = TbHypn0Item(
+            s_title="Свежий шум",
+            file_svg=ContentFile(svg_bytes, name="fresh.svg"),
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=True,
+        )
+        self.item_fresh.save(visitor_uuid_or_fp=self.vid)
+
+        # Создаем непубличную картину и заблокированную (шейминг)
+        self.item_private = TbHypn0Item(
+            s_title="Приватная картина",
+            file_svg=ContentFile(svg_bytes, name="private.svg"),
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=False,
+        )
+        self.item_private.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_shamed = TbHypn0Item(
+            s_title="Заблокированная картина",
+            file_svg=ContentFile(svg_bytes, name="shamed.svg"),
+            i_level=TbHypn0Item.Level.SHAMED,
+            is_public=True,
+        )
+        self.item_shamed.save(visitor_uuid_or_fp=self.vid)
+
+    def test_item_get_absolute_url(self):
+        expected_url = f"/gallery/{self.item_immortal.s_hash_id}"
+        self.assertEqual(self.item_immortal.get_absolute_url(), expected_url)
+
+    def test_sitemap_xml_renders_valid_xml_with_static_and_gallery_pages(self):
+        response = self.client.get("/sitemap.xml")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("xml", response["Content-Type"])
+
+        content = response.content.decode("utf-8")
+        self.assertIn("<urlset", content)
+
+        # Проверяем наличие главных статических страниц
+        self.assertIn("<loc>http://testserver/</loc>", content)
+        self.assertIn("<loc>http://testserver/gallery</loc>", content)
+
+        # Проверяем наличие публичных картин
+        self.assertIn(f"<loc>http://testserver/gallery/{self.item_immortal.s_hash_id}</loc>", content)
+        self.assertIn(f"<loc>http://testserver/gallery/{self.item_curated.s_hash_id}</loc>", content)
+        self.assertIn(f"<loc>http://testserver/gallery/{self.item_fresh.s_hash_id}</loc>", content)
+
+        # Проверяем отсутствие приватных и заблокированных картин
+        self.assertNotIn(f"<loc>http://testserver/gallery/{self.item_private.s_hash_id}</loc>", content)
+        self.assertNotIn(f"<loc>http://testserver/gallery/{self.item_shamed.s_hash_id}</loc>", content)
+
+    def test_sitemap_priorities_and_changefreq(self):
+        response = self.client.get("/sitemap.xml")
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+
+        # Приоритет главной страницы 1.0, архива 0.9, бессмертной 0.9, кураторской 0.8
+        self.assertIn("<priority>1.0</priority>", content)
+        self.assertIn("<priority>0.9</priority>", content)
+        self.assertIn("<priority>0.8</priority>", content)
+        self.assertIn("<priority>0.6</priority>", content)
+        self.assertIn("<changefreq>daily</changefreq>", content)
+        self.assertIn("<changefreq>weekly</changefreq>", content)
