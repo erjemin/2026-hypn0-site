@@ -1,4 +1,5 @@
 import hashlib
+from django.core.exceptions import ValidationError
 from django.db import models, transaction, IntegrityError
 from django.db.models import F
 from django.urls import reverse
@@ -437,6 +438,9 @@ class TbBlogPost(models.Model):
     • s_teaser: тизер статьи (HTML)
     • s_content: основной текст статьи (HTML)
     • f_cover_img: картинка обложки статьи
+    • k_item: связанная SVG-картина (опционально)
+    • k_parent_post: родительский пост/серия (опционально)
+    • i_order: порядок в серии / подборке
     • is_published: флаг публикации
     • d_published_at: дата и время публикации
     • d_created_at: дата создания записи
@@ -475,6 +479,30 @@ class TbBlogPost(models.Model):
         null=True,
         verbose_name="Обложка",
     )
+    k_item = models.ForeignKey(
+        TbHypn0Item,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="blog_posts",
+        verbose_name="Связанная SVG-картина",
+        help_text="Опциональная генерация, вокруг которой строится пост или туториал",
+    )
+    k_parent_post = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="child_posts",
+        verbose_name="Родительский пост / Серия",
+        help_text="Если заполнен — пост является частью серии или подборки",
+    )
+    i_order = models.PositiveSmallIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Порядок в серии",
+        help_text="Порядковый номер для сортировки внутри родительского поста (0, 1, 2...)",
+    )
 
     is_published = models.BooleanField(
         default=False,
@@ -497,7 +525,36 @@ class TbBlogPost(models.Model):
     class Meta:
         verbose_name = "Статья блога / Страница"
         verbose_name_plural = "Статьи блога / Страницы"
-        ordering = ["-d_published_at", "-d_created_at"]
+        ordering = ["-d_published_at", "i_order", "-d_created_at"]
+        indexes = [
+            models.Index(fields=["k_item", "is_published", "-d_published_at"], name="idx_blog_item_pub"),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.k_parent_post_id:
+            # 1. Защита от самопривязки
+            if self.pk and self.k_parent_post_id == self.pk:
+                raise ValidationError({"k_parent_post": "Статья не может быть родителем самой себя."})
+
+            # 2. Если у статьи уже есть дочерние посты — она сама является родителем и не может ссылаться на другую статью
+            if self.pk and self.child_posts.exists():
+                raise ValidationError({
+                    "k_parent_post": "Эта статья уже содержит дочерние посты серии и не может входить в другую серию."
+                })
+
+            # 3. Выбранная родительская статья сама не должна быть дочерней (ограничение в 1 уровень вложенности)
+            if self.k_parent_post.k_parent_post_id is not None:
+                raise ValidationError({
+                    "k_parent_post": "Выбранная родительская статья сама является частью серии. Вложенность ограничена одним уровнем."
+                })
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Если к статье привязана генерация — гарантируем ей уровень IMMORTAL (защита от Smart Retention)
+        if self.k_item_id and self.k_item.i_level < TbHypn0Item.Level.IMMORTAL:
+            self.k_item.i_level = TbHypn0Item.Level.IMMORTAL
+            self.k_item.save(update_fields=["i_level"])
 
     def __str__(self) -> str:
         return self.s_title

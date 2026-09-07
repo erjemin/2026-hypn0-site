@@ -1,6 +1,8 @@
 import io
 import shutil
 import tempfile
+from django.contrib.admin.sites import AdminSite
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -8,8 +10,9 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
+from .admin import TbBlogPostAdmin
 from .forms import HalftoneGenerateForm
-from .models import TbHypn0Item, TbVote
+from .models import TbBlogPost, TbHypn0Item, TbVote
 from .services.halftone import (
     analyze_svg_structure,
     encode_to_base36,
@@ -1153,3 +1156,121 @@ class SitemapTests(BaseMediaTestCase):
         self.assertIn("<priority>0.6</priority>", content)
         self.assertIn("<changefreq>daily</changefreq>", content)
         self.assertIn("<changefreq>weekly</changefreq>", content)
+
+
+class BlogPostModelAndAdminTests(BaseMediaTestCase):
+    """Тестирование модели TbBlogPost, связей с генерациями, цепочек постов и админки."""
+
+    def setUp(self):
+        super().setUp()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+        svg_bytes = b'<svg><circle/></svg>'
+        self.item = TbHypn0Item(
+            s_title="Тестовая картина для статьи",
+            file_svg=ContentFile(svg_bytes, name="post_item.svg"),
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=True,
+        )
+        self.item.save(visitor_uuid_or_fp=self.vid)
+
+    def test_post_linked_to_generation_sets_immortal_level(self):
+        post = TbBlogPost.objects.create(
+            s_title="Пост о генерации",
+            slug="post-o-generatsii",
+            s_teaser="Тизер",
+            s_content="Контент",
+            k_item=self.item,
+            is_published=True,
+        )
+        self.item.refresh_from_db()
+        # Проверяем, что уровень генерации повышен до IMMORTAL
+        self.assertEqual(self.item.i_level, TbHypn0Item.Level.IMMORTAL)
+        self.assertEqual(list(self.item.blog_posts.all()), [post])
+
+    def test_post_hierarchy_and_chains(self):
+        parent_post = TbBlogPost.objects.create(
+            s_title="Топ-10 генераций лета",
+            slug="top-10-generatsiy-leta",
+            s_teaser="Подборка",
+            s_content="Общий обзор",
+            is_published=True,
+        )
+        child1 = TbBlogPost.objects.create(
+            s_title="Генерация 1: Неоновый слизень",
+            slug="generatsiya-1",
+            k_parent_post=parent_post,
+            i_order=1,
+            is_published=True,
+        )
+        child2 = TbBlogPost.objects.create(
+            s_title="Генерация 2: Глубокий транс",
+            slug="generatsiya-2",
+            k_parent_post=parent_post,
+            i_order=2,
+            is_published=True,
+        )
+
+        # Проверяем связь родитель-потомки и сортировку
+        children = list(parent_post.child_posts.order_by("i_order"))
+        self.assertEqual(children, [child1, child2])
+        self.assertEqual(child1.k_parent_post, parent_post)
+
+    def test_post_self_reference_validation(self):
+        post = TbBlogPost.objects.create(
+            s_title="Автономный пост",
+            slug="avtonomniy-post",
+        )
+        post.k_parent_post = post
+        with self.assertRaises(ValidationError) as ctx:
+            post.clean()
+        self.assertIn("k_parent_post", ctx.exception.message_dict)
+
+    def test_parent_cannot_become_child_validation(self):
+        parent_post = TbBlogPost.objects.create(
+            s_title="Родительский сборник",
+            slug="roditelskiy-sbornik",
+        )
+        TbBlogPost.objects.create(
+            s_title="Глава 1",
+            slug="glava-1",
+            k_parent_post=parent_post,
+        )
+        another_parent = TbBlogPost.objects.create(
+            s_title="Другой сборник",
+            slug="drugoy-sbornik",
+        )
+        # Родительский пост с детьми пытается сослаться на другой сборник
+        parent_post.k_parent_post = another_parent
+        with self.assertRaises(ValidationError) as ctx:
+            parent_post.clean()
+        self.assertIn("k_parent_post", ctx.exception.message_dict)
+
+    def test_cannot_set_child_as_parent_validation(self):
+        grandparent = TbBlogPost.objects.create(
+            s_title="Главный сборник",
+            slug="glavniy-sbornik",
+        )
+        parent_post = TbBlogPost.objects.create(
+            s_title="Подраздел",
+            slug="podrazdel",
+            k_parent_post=grandparent,
+        )
+        child = TbBlogPost.objects.create(
+            s_title="Внук",
+            slug="vnuk",
+        )
+        # Попытка назначить родителем статью, которая сама является ребенком
+        child.k_parent_post = parent_post
+        with self.assertRaises(ValidationError) as ctx:
+            child.clean()
+        self.assertIn("k_parent_post", ctx.exception.message_dict)
+
+    def test_admin_has_svg_indicator(self):
+        post_with_svg = TbBlogPost(s_title="С SVG", k_item=self.item)
+        post_without_svg = TbBlogPost(s_title="Без SVG", k_item=None)
+
+        site = AdminSite()
+        admin_obj = TbBlogPostAdmin(TbBlogPost, site)
+
+        self.assertTrue(admin_obj.has_svg(post_with_svg))
+        self.assertFalse(admin_obj.has_svg(post_without_svg))

@@ -347,8 +347,9 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
             # Виртуальные поля для настройки типографа
             'etp_enable', 'etp_language', 'etp_quotes', 'etp_hyphenation', 'etp_sanitize',
             'etp_hanging_punctuation', 'etp_mode',
-            # Остальные поля модели TbArticle
+            # Остальные поля модели TbBlogPost
             's_title', 'slug', 's_teaser', 's_content', 'f_cover_img',
+            'k_item', 'k_parent_post', 'i_order',
             'is_published', 'd_published_at',
         )
 
@@ -372,6 +373,17 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
         self.setup_codemirror_field('s_content', language='html',
                                     css_class='codemirror-width-xl codemirror-min-height-10')
 
+class ChildPostsInline(admin.TabularInline):
+    """Вложенное управление дочерними статьями / главами серии в родительском посте."""
+    model = TbBlogPost
+    fk_name = "k_parent_post"
+    extra = 0
+    fields = ("s_title", "slug", "k_item", "i_order", "is_published")
+    autocomplete_fields = ("k_item",)
+    show_change_link = True
+    ordering = ("i_order",)
+
+
 # Конфигурация админки
 @admin.register(TbBlogPost)
 class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
@@ -379,16 +391,37 @@ class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
     Управление статьями блога, документацией и инфо-страницами (HTML + etpgrf).
     """
     form = BlogPostAdminForm
+    inlines = (ChildPostsInline,)
 
-    list_display = ("id", "article_thumbnail", "s_title_display", "slug", "is_published", "d_published_at", "d_created_at")
+    list_display = (
+        "id",
+        "article_thumbnail",
+        "s_title_display",
+        "has_svg",
+        "k_parent_post",
+        "slug",
+        "is_published",
+        "d_published_at",
+        "d_created_at",
+    )
     list_display_links = ("id", "s_title_display")
-    list_filter = ("is_published", "d_published_at", "d_created_at")
+    list_filter = (
+        "is_published",
+        ("k_item", admin.EmptyFieldListFilter),
+        ("k_parent_post", admin.EmptyFieldListFilter),
+        "d_published_at",
+        "d_created_at",
+    )
     search_fields = ("s_title", "slug", "s_teaser", "s_content")
+    autocomplete_fields = ("k_item", "k_parent_post")
     prepopulated_fields = {"slug": ("s_title",)}
     readonly_fields = ("id", "d_created_at", "d_updated_at")
     fieldsets = (
-        ("Атрибуты публикации", {
-            "fields": ("is_published", "slug", "d_published_at", )
+        ("Атрибуты публикации и связи", {
+            "fields": (
+                ("is_published", "slug", "d_published_at"),
+                ("k_item", "k_parent_post", "i_order"),
+            ),
         }),
         ("Основные поля", {
             "fields": ("s_title", "f_cover_img", "s_teaser", "s_content", ),
@@ -407,6 +440,11 @@ class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
             "classes": ("collapse",),
         }),
     )
+
+    @admin.display(boolean=True, description="SVG", ordering="k_item")
+    def has_svg(self, obj):
+        """Индикатор привязки статьи к SVG-генерации."""
+        return bool(obj.k_item_id)
 
     @admin.display(description="Обложка")
     def article_thumbnail(self, obj):
