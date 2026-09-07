@@ -368,6 +368,8 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
                                     css_class='codemirror-width-l codemirror-no-lines')
         self.setup_codemirror_field('slug', language='text',
                                     css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('i_order', language='text',
+                                    css_class='codemirror-width-l codemirror-no-lines')
         self.setup_codemirror_field('s_teaser', language='html',
                                     css_class='codemirror-width-xl codemirror-min-height-5')
         self.setup_codemirror_field('s_content', language='html',
@@ -419,8 +421,9 @@ class TbBlogPostAdmin(RequestInFormMixin, admin.ModelAdmin):
     fieldsets = (
         ("Атрибуты публикации и связи", {
             "fields": (
-                ("is_published", "slug", "d_published_at"),
-                ("k_item", "k_parent_post", "i_order"),
+                ("slug",),
+                ("d_published_at", "is_published", ),
+                ("k_item", "k_parent_post", "i_order",),
             ),
         }),
         ("Основные поля", {

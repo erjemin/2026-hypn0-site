@@ -212,6 +212,11 @@ class TbHypn0Item(models.Model):
             return f"--card-bg-light: {light_bg}; --card-bg-dark: {dark_bg};"
 
     @property
+    def published_blog_posts(self):
+        """Возвращает опубликованные статьи блога, привязанные к данной картине."""
+        return self.blog_posts.filter(is_published=True).order_by("-d_published_at")
+
+    @property
     def card_svg(self) -> str:
         """
         Возвращает SVG-код картины для изолированного рендеринга в карточке галереи.
@@ -558,3 +563,7 @@ class TbBlogPost(models.Model):
 
     def __str__(self) -> str:
         return self.s_title
+
+    def get_absolute_url(self) -> str:
+        """Возвращает канонический URL статьи блога."""
+        return f"/blog/{self.slug}" if self.slug else f"/blog/{self.pk}"

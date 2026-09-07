@@ -170,12 +170,87 @@
     </div>
   </div>
 
+  <!-- МАТЕРИАЛЫ ИЗ ХРОНИК ГИПНОЗА (БЛОГ) -->
+  {% if item.published_blog_posts %}
+  <div class="space-y-6">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
+      <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+        {% if item.id|divisibleby:6 %}Сигналы из параллельного континуума
+        {% elif item.id|divisibleby:5 %}Психо-артефакты ноосферы
+        {% elif item.id|divisibleby:4 %}Заметки астрального консилиума
+        {% elif item.id|divisibleby:3 %}Рефлекторные отклики мозговых слизней
+        {% elif item.id|divisibleby:2 %}Публикации из глубин подсознания
+        {% else %}Материалы хроник гипноза{% endif %}
+      </h2>
+    </div>
+
+    <div class="space-y-4">
+      {% for blog_post in item.published_blog_posts %}
+      <div class="bg-gradient-to-br from-purple-500/5 via-white/80 to-emerald-500/5 dark:from-purple-950/20 dark:via-zinc-900/80 dark:to-emerald-950/20 rounded-3xl border border-purple-200/80 dark:border-purple-900/40 p-5 sm:p-7 shadow-lg backdrop-blur-md transition-all hover:border-purple-400/60 dark:hover:border-purple-700/60">
+        <div class="flex flex-col md:flex-row items-start gap-5 sm:gap-6">
+          {% if blog_post.f_cover_img %}
+          <a href="{{ blog_post.get_absolute_url }}" class="w-full md:w-56 h-40 shrink-0 rounded-2xl overflow-hidden border border-stone-200/80 dark:border-zinc-700/60 group block shadow-inner">
+            <img src="{{ blog_post.f_cover_img.url }}"
+                 alt="{{ blog_post.s_title|striptags }}"
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+          </a>
+          {% endif %}
+
+          <div class="flex-1 min-w-0 space-y-3">
+            <div class="flex flex-wrap items-center gap-2">
+              {% if blog_post.k_parent_post %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                </svg>
+                Серия: {{ blog_post.k_parent_post.s_title|safe }}
+              </span>
+              {% endif %}
+              <time datetime="{{ blog_post.d_published_at|date:"c" }}" class="text-[11px] text-stone-400 dark:text-stone-500 font-mono {% if blog_post.k_parent_post %}ml-auto{% endif %}">
+                {{ blog_post.d_published_at|date:"d E Y" }}
+              </time>
+            </div>
+
+            <h3 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+              <a href="{{ blog_post.get_absolute_url }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors border-0">
+                {{ blog_post.s_title|safe }}
+              </a>
+            </h3>
+
+            {% if blog_post.s_teaser %}
+            <div class="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-3">
+              {{ blog_post.s_teaser|safe }}
+            </div>
+            {% endif %}
+
+            <div class="pt-1">
+              <a href="{{ blog_post.get_absolute_url }}"
+                 class="group inline-flex items-center gap-1.5 text-xs font-bold transition-colors">
+                {% if blog_post.id|divisibleby:5 %}и&nbsp;так далее, в&nbsp;глубинах подсознания
+                {% elif blog_post.id|divisibleby:4 %}подробнее, в&nbsp;блоге Гипножабы
+                {% elif blog_post.id|divisibleby:3 %}подробнее, в&nbsp;записках Мозгового Слизня
+                {% elif blog_post.id|divisibleby:2 %}занятный бред, продолжу чтение
+                {% else %}безвольно продолжить чтение{% endif %}
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- БОЛЬШОЙ КУЛЬ НАУКООБРАЗНЫХ ПАРАМЕТРОВ И ТЕЛЕМЕТРИИ ТРАНСА -->
   <div class="space-y-6">
     <div class="flex items-center gap-3">
       <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
       <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
-        Психо-телеметрия и структура волновой матрицы
+        Метрики и структура волновой матрицы
       </h2>
     </div>
 

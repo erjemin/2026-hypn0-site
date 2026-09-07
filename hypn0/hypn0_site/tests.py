@@ -1274,3 +1274,46 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
 
         self.assertTrue(admin_obj.has_svg(post_with_svg))
         self.assertFalse(admin_obj.has_svg(post_without_svg))
+
+    def test_gallery_detail_renders_blog_teaser(self):
+        # До создания постов блок блога не отображается
+        initial_response = self.client.get(f"/gallery/{self.item.s_hash_id}")
+        self.assertEqual(initial_response.status_code, 200)
+        self.assertNotContains(initial_response, "Материалы хроник гипноза")
+
+        # Опубликованный пост с тизером
+        published_post = TbBlogPost.objects.create(
+            s_title="Хроники гипно-транса: Урок 1",
+            slug="khroniki-hypno-transa-urok-1",
+            s_teaser="Секретные формулы векторного воздействия на сознание.",
+            s_content="Полный текст урока...",
+            k_item=self.item,
+            is_published=True,
+        )
+        # Неопубликованный черновик — не должен отображаться
+        unpublished_post = TbBlogPost.objects.create(
+            s_title="Секретный черновик",
+            slug="sekretniy-chernovik",
+            s_teaser="Черновик не должен быть виден.",
+            s_content="Скрытый контент...",
+            k_item=self.item,
+            is_published=False,
+        )
+
+        response = self.client.get(f"/gallery/{self.item.s_hash_id}")
+        self.assertEqual(response.status_code, 200)
+        # Проверяем, что отображается один из динамических заголовков секции
+        content = response.content.decode("utf-8")
+        possible_headings = (
+            "Сигналы из параллельного континуума",
+            "Психо-артефакты ноосферы",
+            "Заметки астрального консилиума",
+            "Рефлекторные отклики мозговых слизней",
+            "Публикации из глубин подсознания",
+            "Материалы хроник гипноза",
+        )
+        self.assertTrue(any(heading in content for heading in possible_headings))
+        self.assertContains(response, "Хроники гипно-транса: Урок 1")
+        self.assertContains(response, "Секретные формулы векторного воздействия")
+        self.assertContains(response, "/blog/khroniki-hypno-transa-urok-1")
+        self.assertNotContains(response, "Секретный черновик")
