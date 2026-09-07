@@ -1317,3 +1317,96 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         self.assertContains(response, "Секретные формулы векторного воздействия")
         self.assertContains(response, "/blog/khroniki-hypno-transa-urok-1")
         self.assertNotContains(response, "Секретный черновик")
+
+    def test_blog_feed_view(self):
+        # Создаем несколько опубликованных постов и один черновик
+        for i in range(1, 12):
+            TbBlogPost.objects.create(
+                s_title=f"Тестовая депеша {i}",
+                slug=f"testovaya-depesha-{i}",
+                s_teaser=f"Краткий лид депеши {i}",
+                s_content=f"<p>Полное содержание {i}</p>",
+                is_published=True,
+            )
+        TbBlogPost.objects.create(
+            s_title="Черновик ноосферы",
+            slug="chernovik-noosfery",
+            s_teaser="Скрытый черновик",
+            s_content="<p>Скрыто</p>",
+            is_published=False,
+        )
+
+        # Проверка 1-й страницы ленты блога
+        response = self.client.get("/blog")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Хроники гипноза")
+        self.assertContains(response, "Тестовая депеша 11")
+        self.assertNotContains(response, "Черновик ноосферы")
+        self.assertContains(response, "page=2")
+
+        # Проверка 2-й страницы ленты блога
+        response_p2 = self.client.get("/blog?page=2")
+        self.assertEqual(response_p2.status_code, 200)
+        self.assertContains(response_p2, "Тестовая депеша 1")
+
+    def test_blog_detail_view_and_navigation(self):
+        # Создаем серию постов
+        series_parent = TbBlogPost.objects.create(
+            s_title="Цикл: Основы векторного гипноза",
+            slug="tsikl-osnovy-gipnoza",
+            s_teaser="Вводный обзор всего цикла",
+            s_content="<p>Введение в серию...</p>",
+            is_published=True,
+        )
+        ch1 = TbBlogPost.objects.create(
+            s_title="Глава 1: Первичная модуляция",
+            slug="glava-1-modulyatsiya",
+            s_teaser="Лид первой главы",
+            s_content="<p>Контент главы 1</p>",
+            k_parent_post=series_parent,
+            i_order=1,
+            k_item=self.item,
+            is_published=True,
+        )
+        ch2 = TbBlogPost.objects.create(
+            s_title="Глава 2: Фазовый сдвиг матрицы",
+            slug="glava-2-sdvig",
+            s_teaser="Лид второй главы",
+            s_content="<p>Контент главы 2</p>",
+            k_parent_post=series_parent,
+            i_order=2,
+            is_published=True,
+        )
+
+        # 1. Проверка родительского хаб-поста
+        resp_parent = self.client.get(f"/blog/{series_parent.slug}")
+        self.assertEqual(resp_parent.status_code, 200)
+        self.assertContains(resp_parent, "Цикл: Основы векторного гипноза")
+        self.assertContains(resp_parent, "Материалы и главы этого цикла")
+        self.assertContains(resp_parent, "Глава 1: Первичная модуляция")
+        self.assertContains(resp_parent, "Глава 2: Фазовый сдвиг матрицы")
+
+        # 2. Проверка первой главы (связанный SVG, ссылка на родителя, следующая глава)
+        resp_ch1 = self.client.get(f"/blog/{ch1.slug}")
+        self.assertEqual(resp_ch1.status_code, 200)
+        self.assertContains(resp_ch1, "Глава 1: Первичная модуляция")
+        self.assertContains(resp_ch1, "Материал входит в серию:")
+        self.assertContains(resp_ch1, "Связанная SVG-матрица")
+        self.assertContains(resp_ch1, f"#{self.item.s_hash_id}")
+        self.assertContains(resp_ch1, "Следующая глава цикла")
+        self.assertContains(resp_ch1, "Глава 2: Фазовый сдвиг матрицы")
+
+        # 3. Проверка второй главы (ссылка назад на главу 1)
+        resp_ch2 = self.client.get(f"/blog/{ch2.slug}")
+        self.assertEqual(resp_ch2.status_code, 200)
+        self.assertContains(resp_ch2, "Предыдущая глава цикла")
+        self.assertContains(resp_ch2, "Глава 1: Первичная модуляция")
+
+        # 4. Проверка доступа по числовому ID
+        resp_by_id = self.client.get(f"/blog/{ch1.pk}")
+        self.assertEqual(resp_by_id.status_code, 200)
+        self.assertContains(resp_by_id, "Глава 1: Первичная модуляция")
+
+        # 5. Проверка 404 для несуществующего слага
+        resp_404 = self.client.get("/blog/non-existent-slug-xyz")
+        self.assertEqual(resp_404.status_code, 404)

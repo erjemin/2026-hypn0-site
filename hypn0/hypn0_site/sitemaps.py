@@ -4,7 +4,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-from .models import TbHypn0Item
+from .models import TbBlogPost, TbHypn0Item
 
 
 class StaticViewSitemap(Sitemap):
@@ -17,6 +17,7 @@ class StaticViewSitemap(Sitemap):
         return [
             ("hypn0_site:index", 1.0, "daily"),
             ("hypn0_site:gallery_archive", 0.9, "daily"),
+            ("hypn0_site:blog_feed", 0.8, "daily"),
         ]
 
     def location(self, item):
@@ -27,6 +28,23 @@ class StaticViewSitemap(Sitemap):
 
     def changefreq(self, item):
         return item[2]
+
+
+class BlogPostSitemap(Sitemap):
+    """
+    Карта сайта для опубликованных статей блога и хроник гипноза.
+    """
+    changefreq = "weekly"
+    priority = 0.8
+
+    def items(self):
+        return TbBlogPost.objects.filter(is_published=True).order_by("-d_published_at")
+
+    def lastmod(self, obj: TbBlogPost):
+        return obj.d_updated_at
+
+    def location(self, obj: TbBlogPost):
+        return obj.get_absolute_url()
 
 
 class GalleryItemSitemap(Sitemap):
@@ -63,4 +81,5 @@ class GalleryItemSitemap(Sitemap):
 sitemaps = {
     "static": StaticViewSitemap,
     "gallery": GalleryItemSitemap,
+    "blog": BlogPostSitemap,
 }

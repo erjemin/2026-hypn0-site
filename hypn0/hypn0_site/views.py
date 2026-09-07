@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from .forms import HalftoneGenerateForm
-from .models import TbHypn0Item, TbVote
+from .models import TbBlogPost, TbHypn0Item, TbVote
 from .services.halftone import (
     analyze_svg_structure,
     generate_halftone_svg,
@@ -573,3 +573,144 @@ def gallery_vote(request: HttpRequest, hash_id: str) -> HttpResponse:
             "voted_now": voted,
         },
     )
+
+
+def blog_feed(request: HttpRequest) -> HttpResponse:
+    """
+    Лента статей блога / хроник гипноза с пагинацией.
+    Выводит только опубликованные статьи (is_published=True).
+    """
+    page_number = request.GET.get("page", 1)
+    posts_qs = (
+        TbBlogPost.objects.filter(is_published=True)
+        .select_related("k_item", "k_parent_post")
+        .prefetch_related("child_posts")
+        .order_by("-d_published_at", "i_order", "-d_created_at")
+    )
+
+    paginator = Paginator(posts_qs, 9)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "total_posts_count": paginator.count,
+    }
+    return render(request, "blog/feed.html", context)
+
+
+def blog_detail(request: HttpRequest, slug: str) -> HttpResponse:
+    """
+    Детальная страница статьи блога / хроник гипноза.
+    Поддерживает поиск по слагу или первичному ключу.
+    Отображает связанный SVG, навигацию вперед-назад и дерево серии (если статья часть цикла/сборника).
+    """
+    post = (
+        TbBlogPost.objects.filter(is_published=True)
+        .select_related("k_item", "k_parent_post")
+        .filter(slug=slug)
+        .first()
+    )
+    if not post and slug.isdigit():
+        post = (
+            TbBlogPost.objects.filter(is_published=True)
+            .select_related("k_item", "k_parent_post")
+            .filter(pk=int(slug))
+            .first()
+        )
+
+    if not post:
+        raise Http404("Статья блога не найдена или еще не материализована в ноосфере")
+
+    # Обработка связанного SVG-шедевра
+    active_svg = ""
+    svg_stats = {}
+    if post.k_item and post.k_item.file_svg:
+        try:
+            with post.k_item.file_svg.open("r") as f:
+                svg_content = f.read()
+                if isinstance(svg_content, bytes):
+                    svg_content = svg_content.decode("utf-8")
+                active_svg = prepare_active_svg(svg_content)
+                svg_stats = analyze_svg_structure(svg_content)
+        except Exception:
+            active_svg = ""
+            svg_stats = {}
+
+    # Логика серий и навигации вперед/назад
+    series_parent = None
+    series_posts = []
+    prev_post = None
+    next_post = None
+
+    if post.k_parent_post:
+        # Статья является частью серии
+        series_parent = post.k_parent_post
+        series_posts = list(
+            series_parent.child_posts.filter(is_published=True)
+            .select_related("k_item")
+            .order_by("i_order", "-d_published_at")
+        )
+        current_idx = next((i for i, p in enumerate(series_posts) if p.pk == post.pk), None)
+        if current_idx is not None:
+            if current_idx > 0:
+                prev_post = series_posts[current_idx - 1]
+            if current_idx < len(series_posts) - 1:
+                next_post = series_posts[current_idx + 1]
+    elif post.child_posts.filter(is_published=True).exists():
+        # Статья сама является родительской серией/хабом
+        series_posts = list(
+            post.child_posts.filter(is_published=True)
+            .select_related("k_item")
+            .order_by("i_order", "-d_published_at")
+        )
+        # Для родительского поста вперед/назад идет по хронологии других родительских/одиночных постов
+        prev_post = (
+            TbBlogPost.objects.filter(
+                is_published=True,
+                d_published_at__lt=post.d_published_at,
+                k_parent_post__isnull=True,
+            )
+            .order_by("-d_published_at")
+            .first()
+        )
+        next_post = (
+            TbBlogPost.objects.filter(
+                is_published=True,
+                d_published_at__gt=post.d_published_at,
+                k_parent_post__isnull=True,
+            )
+            .order_by("d_published_at")
+            .first()
+        )
+    else:
+        # Одиночный пост без серий
+        prev_post = (
+            TbBlogPost.objects.filter(
+                is_published=True,
+                d_published_at__lt=post.d_published_at,
+                k_parent_post__isnull=True,
+            )
+            .order_by("-d_published_at")
+            .first()
+        )
+        next_post = (
+            TbBlogPost.objects.filter(
+                is_published=True,
+                d_published_at__gt=post.d_published_at,
+                k_parent_post__isnull=True,
+            )
+            .order_by("d_published_at")
+            .first()
+        )
+
+    context = {
+        "post": post,
+        "active_svg": active_svg,
+        "svg_stats": svg_stats,
+        "series_parent": series_parent,
+        "series_posts": series_posts,
+        "prev_post": prev_post,
+        "next_post": next_post,
+    }
+    return render(request, "blog/detail.html", context)
