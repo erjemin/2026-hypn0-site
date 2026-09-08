@@ -1,0 +1,233 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block PAGE_TITLE %}Хроники гипноза — Блог и манифесты волновой матрицы{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+
+{% block META_TITLE %}Хроники гипноза — Блог HypnoSVG{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %}{% endblock %}
+
+{% block META_DESCRIPTION %}Официальные депеши из глубин подсознания: руководства по векторному трансу, алгоритмы волновых матриц и психоделические статьи HypnoSVG.{% if page_obj.number > 1 %} Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.{% endif %}{% endblock %}
+
+{% block OG_TITLE %}Хроники гипноза — Блог HypnoSVG{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %}{% endblock %}
+
+{% block OG_DESCRIPTION %}Официальные депеши из глубин подсознания: руководства по векторному трансу, алгоритмы волновых матриц и психоделические статьи HypnoSVG.{% endblock %}
+
+{% block CANONICAL %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% if page_obj.number > 1 %}?page={{ page_obj.number }}{% endif %}{% endblock %}
+
+{% block EXTRA_HEAD %}
+  {% if page_obj.has_previous %}
+    <link rel="prev" href="{{ request.path }}?page={{ page_obj.previous_page_number }}" />
+  {% endif %}
+  {% if page_obj.has_next %}
+    <link rel="next" href="{{ request.path }}?page={{ page_obj.next_page_number }}" />
+  {% endif %}
+{% endblock EXTRA_HEAD %}
+
+{% block CONTENT %}
+<div class="max-w-6xl mx-auto space-y-8">
+
+  <!-- Навигация и счетчик -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-4 text-xs font-bold uppercase tracking-wider">
+      <a href="{% url 'hypn0_site:index' %}"
+         class="inline-flex items-center gap-1.5 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors border-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        <span>Генератор</span>
+      </a>
+      <span class="text-stone-300 dark:text-zinc-700">•</span>
+      <a href="{% url 'hypn0_site:gallery_archive' %}"
+         class="inline-flex items-center gap-1.5 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors border-0">
+        <span>Галерея транса</span>
+      </a>
+    </div>
+
+    <span class="text-xs font-mono text-stone-500 dark:text-stone-400">
+      Фаза {{ page_obj.number }} из {{ page_obj.paginator.num_pages }} (Материализовано депеш: {{ total_posts_count }})
+    </span>
+  </div>
+
+  <!-- Шапка блога в стиле Гипножабы -->
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-900/15 via-emerald-900/10 to-stone-900/20 dark:from-purple-950/40 dark:via-zinc-900/90 dark:to-emerald-950/30 border border-purple-200/80 dark:border-purple-900/40 p-6 sm:p-10 shadow-lg backdrop-blur-md">
+    <div class="relative z-10 space-y-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+          <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+          Хроники гипноза
+        </span>
+        <span class="text-xs font-mono text-stone-500 dark:text-stone-400">
+          NOOSPHERE ARCHIVE
+        </span>
+      </div>
+
+      <h1 class="text-3xl sm:text-5xl font-black uppercase tracking-tight text-stone-900 dark:text-stone-100">
+        Депеши из глубин подсознания
+      </h1>
+
+      <p class="text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl leading-relaxed">
+        Теория векторных пульсаций, секретные руководства по интеграции SVG-матриц и наблюдения за поведением мозговых слизней в естественной среде.
+      </p>
+    </div>
+
+    <!-- Фоновый декоративный силуэт -->
+    <div class="absolute -right-8 -bottom-10 w-48 h-48 sm:w-64 sm:h-64 opacity-10 dark:opacity-15 pointer-events-none select-none text-purple-600">
+      <svg class="w-full h-full" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Сетка статей -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for post in page_obj %}
+    <article class="flex flex-col justify-between bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-stone-200/80 dark:border-zinc-800 p-5 sm:p-6 shadow-sm hover:shadow-xl hover:border-purple-400/60 dark:hover:border-purple-700/60 transition-all duration-300 group backdrop-blur-sm">
+      
+      <div class="space-y-4">
+        <!-- Обложка поста (если есть) или связанный SVG -->
+        {% if post.f_cover_img %}
+        <a href="{{ post.get_absolute_url }}" class="block aspect-[16/9] rounded-2xl overflow-hidden border border-stone-200/60 dark:border-zinc-700/60 shadow-inner bg-stone-100 dark:bg-zinc-800">
+          <img src="{{ post.f_cover_img.url }}"
+               alt="{{ post.s_title|striptags }}"
+               loading="lazy"
+               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+        </a>
+        {% elif post.k_item and post.k_item.file_svg %}
+        <a href="{{ post.get_absolute_url }}" class="block aspect-[16/9] rounded-2xl overflow-hidden border border-purple-200/40 dark:border-purple-900/40 bg-purple-950/10 p-2 group-hover:scale-[1.02] transition-transform">
+          <div class="w-full h-full flex items-center justify-center overflow-hidden">
+            <img src="{{ post.k_item.file_svg.url }}" alt="{{ post.s_title|striptags }}" class="max-h-full max-w-full object-contain">
+          </div>
+        </a>
+        {% endif %}
+
+        <!-- Метаданные и бейджи -->
+        <div class="flex flex-wrap items-center gap-2">
+          {% if post.k_parent_post %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            {{ post.k_parent_post.s_title|striptags|truncatechars:20 }}
+          </span>
+          {% elif post.child_posts.exists %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+            Цикл / Серия
+          </span>
+          {% endif %}
+
+          {% if post.k_item %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20" title="Привязана SVG-генерация">
+            SVG
+          </span>
+          {% endif %}
+
+          <time datetime="{{ post.d_published_at|date:'c' }}" class="text-[11px] font-mono text-stone-400 dark:text-stone-500 ml-auto">
+            {{ post.d_published_at|date:'d E Y' }}
+          </time>
+        </div>
+
+        <!-- Заголовок -->
+        <h2 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight leading-snug">
+          <a href="{{ post.get_absolute_url }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors border-0">
+            {{ post.s_title|safe }}
+          </a>
+        </h2>
+
+        <!-- Тизер / Лид -->
+        {% if post.s_teaser %}
+        <div class="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-3">
+          {{ post.s_teaser|safe }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Нижняя плашка со ссылкой -->
+      <div class="pt-5 mt-4 border-t border-stone-200/60 dark:border-zinc-800 flex items-center justify-between">
+        <a href="{{ post.get_absolute_url }}"
+           class="group/link inline-flex items-center gap-1.5 text-xs font-bold border-0 text-emerald-600 dark:text-lime-400 hover:text-emerald-500 dark:hover:text-lime-300 transition-colors">
+          <span class="border-b border-dotted border-emerald-600/60 dark:border-lime-500/60 group-hover/link:border-solid">
+            {% if post.id|divisibleby:5 %}и так далее, в глубинах подсознания
+            {% elif post.id|divisibleby:4 %}подробнее, в блоге Гипножабы
+            {% elif post.id|divisibleby:3 %}подробнее, в записках Мозгового Слизня
+            {% elif post.id|divisibleby:2 %}занятный бред, продолжу чтение
+            {% else %}безвольно продолжить чтение{% endif %}
+          </span>
+          <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover/link:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </a>
+      </div>
+
+    </article>
+    {% empty %}
+    <div class="col-span-full py-16 text-center text-stone-400 space-y-3 bg-stone-100/50 dark:bg-zinc-900/50 rounded-3xl border border-stone-200 dark:border-zinc-800">
+      <svg class="w-12 h-12 mx-auto opacity-30 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+      </svg>
+      <p class="font-medium text-sm">Хроники гипноза пока пусты. Новые депеши готовятся к материализации.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Пагинация -->
+  {% if page_obj.has_other_pages %}
+  <div class="flex items-center justify-between pt-6 border-t border-stone-200 dark:border-zinc-800">
+    <div>
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}"
+           rel="prev"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all hover:scale-105 active:scale-95 shadow-sm border border-stone-200 dark:border-zinc-700/60 cursor-pointer border-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          <span>Предыдущая фаза</span>
+        </a>
+      {% else %}
+        <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-stone-400 dark:text-stone-600 bg-stone-100/50 dark:bg-zinc-900/50 border border-stone-200/50 dark:border-zinc-800/50 opacity-50 cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          <span>Предыдущая фаза</span>
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- Номера страниц -->
+    <div class="hidden sm:flex items-center gap-1.5 font-mono text-xs">
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <span class="w-8 h-8 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center shadow-md">
+            {{ p }}
+          </span>
+        {% else %}
+          <a href="?page={{ p }}"
+             class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 flex items-center justify-center transition-colors border-0">
+            {{ p }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}"
+           rel="next"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white transition-all hover:scale-105 active:scale-95 shadow-md border-0 cursor-pointer">
+          <span>Следующая фаза</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      {% else %}
+        <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-stone-400 dark:text-stone-600 bg-stone-100/50 dark:bg-zinc-900/50 border border-stone-200/50 dark:border-zinc-800/50 opacity-50 cursor-not-allowed">
+          <span>Следующая фаза</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock CONTENT %}
