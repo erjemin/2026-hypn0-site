@@ -163,10 +163,10 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
         super().__init__(*args, **kwargs)
 
         # Конфигурируем поля для CodeMirror
-        self.setup_codemirror_field('s_title', language='text',
-                                    css_class='codemirror-width-l codemirror-no-lines')
-        self.setup_codemirror_field('s_promo_title', language='text',
-                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('s_title', language='html',
+                                    css_class='codemirror-width-l')
+        self.setup_codemirror_field('s_promo_title', language='html',
+                                    css_class='codemirror-width-l')
         self.setup_codemirror_field('s_promo_url', language='text',
                                     css_class='codemirror-width-xl codemirror-no-lines')
         self.setup_codemirror_field('i_likes_count', language='text',
@@ -364,8 +364,8 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
         super().__init__(*args, **kwargs)
 
         # Конфигурируем поля для CodeMirror
-        self.setup_codemirror_field('s_title', language='text',
-                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('s_title', language='html',
+                                    css_class='codemirror-width-l')
         self.setup_codemirror_field('slug', language='text',
                                     css_class='codemirror-width-l codemirror-no-lines')
         self.setup_codemirror_field('i_order', language='text',
