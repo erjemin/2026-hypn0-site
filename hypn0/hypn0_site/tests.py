@@ -1386,7 +1386,7 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         self.assertContains(resp_parent, "Глава 1: Первичная модуляция")
         self.assertContains(resp_parent, "Глава 2: Фазовый сдвиг матрицы")
 
-        # 2. Проверка первой главы (связанный SVG, ссылка на родителя, следующая глава)
+        # 2. Проверка первой главы (связанный SVG, ссылка на родителя, следующая глава, хлебные крошки и JSON-LD)
         resp_ch1 = self.client.get(f"/blog/{ch1.slug}")
         self.assertEqual(resp_ch1.status_code, 200)
         self.assertContains(resp_ch1, "Глава 1: Первичная модуляция")
@@ -1398,6 +1398,18 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         self.assertContains(resp_ch1, "Вес:")
         self.assertContains(resp_ch1, "Следующая глава цикла")
         self.assertContains(resp_ch1, "Глава 2: Фазовый сдвиг матрицы")
+
+        # Проверка хлебных крошек
+        self.assertContains(resp_ch1, 'aria-label="Хлебные крошки"')
+        self.assertContains(resp_ch1, ch1.blog_nav_title)
+        self.assertContains(resp_ch1, "Глава 1 из 2")
+        self.assertContains(resp_ch1, 'aria-current="page"')
+
+        # Проверка JSON-LD BreadcrumbList
+        self.assertContains(resp_ch1, '"@type": "BreadcrumbList"')
+        self.assertContains(resp_ch1, '"name": "Главная"')
+        self.assertContains(resp_ch1, '"name": "Хроники гипноза"')
+        self.assertContains(resp_ch1, series_parent.s_title)
 
         # 3. Проверка второй главы (ссылка назад на главу 1)
         resp_ch2 = self.client.get(f"/blog/{ch2.slug}")

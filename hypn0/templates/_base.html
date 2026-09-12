@@ -101,13 +101,16 @@ val=>{if(val)document.documentElement.classList.add('dark');else document.docume
   файла css/tailwind-custom.css (подключён в input.css через @import).{% endcomment %}
   <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />{% endif %}
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "hypn0.xyz",
-      "url": "{{ request.scheme }}://{{ request.get_host }}/"
-    }{% block EXTRA_LD_JSON %}
-  {% endblock EXTRA_LD_JSON %}</script>
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "hypn0.xyz",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/"
+      }{% block EXTRA_LD_JSON %}
+      {% endblock EXTRA_LD_JSON %}
+    ]
+  </script>
   <script src="{% static 'js/alpine.min.js' %}" defer></script>
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
   <script>

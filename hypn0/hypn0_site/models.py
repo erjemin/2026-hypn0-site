@@ -567,3 +567,19 @@ class TbBlogPost(models.Model):
     def get_absolute_url(self) -> str:
         """Возвращает канонический URL статьи блога."""
         return f"/blog/{self.slug}" if self.slug else f"/blog/{self.pk}"
+
+    @property
+    def blog_nav_title(self) -> str:
+        """Детерминированный выбор названия раздела блога для навигации на основе ID статьи."""
+        nav_titles = (
+            "Блог Мозгоклюя",
+            "Записки Гипножабы",
+            "Дневник Мозговых Перцепторов",
+            "Хроники психо-резонанса",
+            "Мемуары астрального архива",
+            "Манифесты волновой матрицы",
+            "Бортовой журнал транс-погружения",
+        )
+        if not self.id:
+            return nav_titles[0]
+        return nav_titles[self.id % len(nav_titles)]

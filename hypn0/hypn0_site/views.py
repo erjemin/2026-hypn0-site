@@ -710,6 +710,7 @@ def blog_detail(request: HttpRequest, slug: str) -> HttpResponse:
         "svg_stats": svg_stats,
         "series_parent": series_parent,
         "series_posts": series_posts,
+        "series_total_count": len(series_posts) if series_posts else 0,
         "prev_post": prev_post,
         "next_post": next_post,
     }
