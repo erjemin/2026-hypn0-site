@@ -99,6 +99,10 @@
   font-size: 1.0625rem;
 }
 
+.prose > :first-child {
+  margin-top: 0 !important;
+}
+
 .dark .prose {
   color: #e7e5e4;
 }
