@@ -1393,10 +1393,9 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         self.assertContains(resp_ch1, "Материал входит в серию:")
         self.assertContains(resp_ch1, self.item.s_title)
         self.assertContains(resp_ch1, f"#{self.item.s_hash_id}")
-        self.assertContains(resp_ch1, "В галерею")
-        self.assertContains(resp_ch1, "Вес картины:")
-        self.assertContains(resp_ch1, "Просмотры:")
-        self.assertContains(resp_ch1, "Признание:")
+        self.assertContains(resp_ch1, f"/gallery/{self.item.s_hash_id}")
+        self.assertContains(resp_ch1, "Скачать SVG")
+        self.assertContains(resp_ch1, "Вес:")
         self.assertContains(resp_ch1, "Следующая глава цикла")
         self.assertContains(resp_ch1, "Глава 2: Фазовый сдвиг матрицы")
 

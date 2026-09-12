@@ -130,7 +130,28 @@
         <div class="aspect-square rounded-2xl overflow-hidden bg-stone-950 shadow-md flex items-center justify-center p-2 select-none hypn0-detail-canvas [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain">
           {% if active_svg %}
             <div class="w-full h-full flex items-center justify-center pointer-events-auto">
-              {{ active_svg|safe }}
+              <template shadowrootmode="open">
+                <style>
+                  :host {
+                    display: flex;
+                    width: 100%;
+                    height: 100%;
+                    align-items: center;
+                    justify-content: center;
+                    pointer-events: auto;
+                  }
+                  svg {
+                    width: 100%;
+                    height: 100%;
+                    max-width: 100%;
+                    max-height: 100%;
+                    object-fit: contain;
+                    display: block;
+                    --hypn0-play: running !important;
+                  }
+                </style>
+                {{ active_svg|safe }}
+              </template>
             </div>
           {% elif post.k_item.file_svg %}
             <img src="{{ post.k_item.file_svg.url }}" alt="{{ post.k_item.s_title }}" class="max-w-full max-h-full object-contain">
@@ -144,7 +165,9 @@
               {{ post.k_item.s_title|safe }}
             </div>
             <div class="flex items-center justify-end gap-1.5 mt-3.5">
-              <span class="text-[10px] px-2 py-0.5 rounded-full font-mono text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20 bg-purple-500/5">#{{ post.k_item.s_hash_id }}</span>
+              <a href="{% url 'hypn0_site:gallery_detail' post.k_item.s_hash_id %}"
+                 class="text-[10px] px-2 py-0.5 rounded-full font-mono text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/15 hover:border-purple-500/40 transition-colors"
+                 title="Открыть картину в галерее">#{{ post.k_item.s_hash_id }}</a>
             </div>
             <div class="flex items-center justify-end gap-1.5 mt-1.5">
               <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-bold">
@@ -173,7 +196,7 @@
             </div>
             {% endif %}
             <div class="flex justify-between items-center">
-              <span class="opacity-70"><svg class="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span><svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg></span>
@@ -182,10 +205,10 @@
               </span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="opacity-70"><svg class="w-3.5 h-3.5 fill-rose-500 text-rose-500 shrink-0" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <span><svg class="w-3.5 h-3.5 fill-rose-500 text-rose-500 shrink-0" viewBox="0 0 24 24" stroke="currentColor"  fill="none" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg></span>
-              <span class="inline-flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400">
+              <span class="inline-flex items-center gap-1 font-bold text-stone-900 dark:text-stone-200">
                 {{ post.k_item.i_likes_count }}
               </span>
             </div>
@@ -193,14 +216,6 @@
 
           <!-- Действия с экспонатом -->
           <div class="border-t border-stone-200/60 dark:border-zinc-800 pt-2 flex flex-col gap-1.5">
-            <a href="{% url 'hypn0_site:gallery_detail' post.k_item.s_hash_id %}"
-               class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-200/70 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all border border-stone-300/50 dark:border-zinc-700/50 border-0 text-center">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              <span>В галерею</span>
-            </a>
             <a href="{% url 'hypn0_site:gallery_download' post.k_item.s_hash_id %}"
                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-200/70 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all border border-stone-300/50 dark:border-zinc-700/50 border-0 text-center">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
