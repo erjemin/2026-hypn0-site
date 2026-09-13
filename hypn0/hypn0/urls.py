@@ -34,6 +34,7 @@ if settings.DEBUG:
     import mimetypes
     import debug_toolbar
     from django.views.static import serve
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
     def _serve_public_root_file(request, path):
         """Отдаёт файлы из корня `public` в dev-режиме в utf-8."""
@@ -68,5 +69,4 @@ if settings.DEBUG:
 
     urlpatterns = [path('__debug__/', include(debug_toolbar.urls)), ] + urlpatterns
     urlpatterns = [*PUBLIC_ROOT_URLPATTERNS, *urlpatterns]
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.PUBLIC_DIR.joinpath('static'))
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += staticfiles_urlpatterns()

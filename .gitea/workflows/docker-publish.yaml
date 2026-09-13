@@ -1,0 +1,74 @@
+name: HYPN0 Build and Push Docker Image
+run-name: HYPN0 Build and Push Docker Image ${{ github.ref_name }}
+
+on:
+  push:
+    # Запускать сборку только при создании тега, начинающегося с 'v' (например, v1.0.0, v2.3.1)
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: git.cube2.ru
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest  # Или метка вашего раннера, если он специфичный (например, macos или self-hosted)
+    container:
+      image: catthehacker/ubuntu:act-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Настройка QEMU для мультиплатформенной сборки (если нужно собирать под разные архитектуры)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      # Настройка Docker Buildx (обязательно для build-push-action)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Логин в реестр Gitea
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # Извлечение метаданных (тегов и лейблов) для Docker
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' }}
+
+      # Сборка и отправка образа
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          # Собираем под текущую архитектуру (linux/amd64).
+          # Если сервер и MacMini на разных архитектурах (x86 vs ARM), добавьте нужные, например: linux/amd64,linux/arm64
+          # platforms: linux/amd64,linux/arm64
+          # ---
+          # Собираем только под linux/amd64 (для скорости)
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # ДОБАВЛЕНО для медленного интернета и оптимизации сборки:
+          cache-from: type=registry
+          # cache-from: type=gha
+          cache-to: type=registry,mode=max
+          # cache-to: type=gha,mode=max
+          timeout: 1800  # Увеличено до 30 минут на всю сборку
