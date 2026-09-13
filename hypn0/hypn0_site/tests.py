@@ -1425,3 +1425,38 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         # 5. Проверка 404 для несуществующего слага
         resp_404 = self.client.get("/blog/non-existent-slug-xyz")
         self.assertEqual(resp_404.status_code, 404)
+
+    @override_settings(DEBUG=False)
+    def test_custom_404_page_rendering(self):
+        """Проверка отдачи кастомной страницы 404 в режиме DEBUG=False."""
+        response = self.client.get("/totally-non-existent-hypno-route-404")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Гипноузел не&nbsp;обнаружен", status_code=404)
+        self.assertContains(response, "СБОЙ МАТРИЦЫ // КОД?&nbsp;404", status_code=404)
+        self.assertContains(response, "return-btn", status_code=404)
+        self.assertContains(response, "Стираем остатки несущес­твующей страницы", status_code=404)
+
+    @override_settings(DEBUG=True)
+    def test_debug_error_preview_routing(self):
+        """Проверка dev-маршрутизации предпросмотра страниц ошибок при DEBUG=True."""
+        # 1. Индексный список страниц ошибок
+        resp_list = self.client.get("/_error/")
+        self.assertEqual(resp_list.status_code, 200)
+        self.assertContains(resp_list, "Центр отладки страниц ошибок")
+        self.assertContains(resp_list, "/_error/404")
+
+        # 2. Предпросмотр конкретной ошибки 404
+        resp_404 = self.client.get("/_error/404")
+        self.assertEqual(resp_404.status_code, 404)
+        self.assertContains(resp_404, "Гипноузел не&nbsp;обнаружен", status_code=404)
+        self.assertContains(resp_404, "СБОЙ МАТРИЦЫ // КОД?&nbsp;404", status_code=404)
+
+        # 3. Предпросмотр с суффиксом .html
+        resp_404_html = self.client.get("/_error/404.html")
+        self.assertEqual(resp_404_html.status_code, 404)
+        self.assertContains(resp_404_html, "Гипноузел не&nbsp;обнаружен", status_code=404)
+
+        # 4. Несуществующий шаблон ошибки в dev-режиме
+        resp_non_existent = self.client.get("/_error/non-existent-code-999")
+        self.assertEqual(resp_non_existent.status_code, 404)
+        self.assertContains(resp_non_existent, "Шаблон для ошибки 'non-existent-code-999' не найден", status_code=404)

@@ -157,6 +157,119 @@ def tmp(request: HttpRequest | None) -> HttpResponse:
     return render(request, "tmp.html", {})
 
 
+def debug_error_preview(request: HttpRequest, code: str = "") -> HttpResponse:
+    """
+    Dev-представление для отладки и предпросмотра страниц ошибок в режиме DEBUG.
+    Поддерживает пути вида /_error/404, /_error/404.html, /_error/500, /_error/, /_error/under_reconstruction.
+    """
+    from django.template.exceptions import TemplateDoesNotExist
+    from django.template.loader import get_template
+
+    # Очистка имени шаблона от расширения .html и слэшей
+    raw_name = code.strip("/").removesuffix(".html") if code else ""
+
+    available_codes = [
+        "400",
+        "401",
+        "403",
+        "404",
+        "413",
+        "429",
+        "500",
+        "502",
+        "503",
+        "504",
+        "under_reconstruction",
+    ]
+
+    if not raw_name:
+        # Индексная страница со списком всех кодов ошибок для dev-отладки
+        links = []
+        for c in available_codes:
+            exists = False
+            for tpl in [f"_error/{c}.html", f"{c}.html"]:
+                try:
+                    get_template(tpl)
+                    exists = True
+                    break
+                except TemplateDoesNotExist:
+                    pass
+            status_mark = "готов к просмотру" if exists else "шаблон не создан"
+            links.append(f"<li><a href='/_error/{c}'><strong>/{c}</strong></a> ({status_mark})</li>")
+
+        html = f"""<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Dev: Предпросмотр страниц ошибок // HypnoSVG</title>
+    <style>
+        body {{ font-family: ui-monospace, monospace; background: #09090b; color: #d9f99d; padding: 2rem; line-height: 1.6; }}
+        a {{ color: #a3e635; text-decoration: none; border-bottom: 1px dotted #a3e635; }}
+        a:hover {{ border-bottom-style: solid; }}
+        ul {{ list-style-type: square; margin-top: 1rem; }}
+        li {{ margin-bottom: 0.5rem; }}
+        .card {{ background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 1.5rem; max-width: 600px; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Центр отладки страниц ошибок (DEBUG=True)</h2>
+        <p>Выберите код для инспекции верстки и интерактивных скриптов перекалибровки:</p>
+        <ul>
+            {''.join(links)}
+        </ul>
+    </div>
+</body>
+</html>"""
+        return HttpResponse(html, content_type="text/html; charset=utf-8")
+
+    # Поиск соответствующего шаблона
+    template_candidates = [
+        f"_error/{raw_name}.html",
+        f"{raw_name}.html",
+        f"_error/{raw_name}",
+        raw_name,
+    ]
+
+    found_template = None
+    for candidate in template_candidates:
+        try:
+            get_template(candidate)
+            found_template = candidate
+            break
+        except TemplateDoesNotExist:
+            continue
+
+    if not found_template:
+        return HttpResponse(
+            f"<h1>Шаблон для ошибки '{raw_name}' не найден</h1><p>Проверены: {', '.join(template_candidates)}</p><p><a href='/_error/'>← Вернуться к списку</a></p>",
+            status=404,
+            content_type="text/html; charset=utf-8",
+        )
+
+    status_code = 200
+    if raw_name.isdigit() and 400 <= int(raw_name) <= 599:
+        status_code = int(raw_name)
+
+    return render(request, found_template, {}, status=status_code)
+
+
+def error_400(request: HttpRequest, exception: Exception | None = None) -> HttpResponse:
+    return render(request, "_error/400.html", {}, status=400)
+
+
+def error_403(request: HttpRequest, exception: Exception | None = None) -> HttpResponse:
+    return render(request, "_error/403.html", {}, status=403)
+
+
+def error_404(request: HttpRequest, exception: Exception | None = None) -> HttpResponse:
+    return render(request, "_error/404.html", {}, status=404)
+
+
+def error_500(request: HttpRequest) -> HttpResponse:
+    return render(request, "_error/500.html", {}, status=500)
+
+
 @require_POST
 def generate(request: HttpRequest) -> HttpResponse:
     """

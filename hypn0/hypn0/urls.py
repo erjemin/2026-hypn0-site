@@ -30,6 +30,11 @@ urlpatterns = [
     path('', include('hypn0_site.urls')),
 ]
 
+handler400 = "hypn0_site.views.error_400"
+handler403 = "hypn0_site.views.error_403"
+handler404 = "hypn0_site.views.error_404"
+handler500 = "hypn0_site.views.error_500"
+
 if settings.DEBUG:
     import mimetypes
     import debug_toolbar

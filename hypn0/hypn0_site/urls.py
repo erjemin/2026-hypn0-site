@@ -19,4 +19,9 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += [path("tmp/", views.tmp, name="web_tmp")]
+    urlpatterns += [
+        path("tmp/", views.tmp, name="web_tmp"),
+        path("_error", views.debug_error_preview, name="debug_error_list"),
+        path("_error/", views.debug_error_preview, name="debug_error_list_slash"),
+        path("_error/<path:code>", views.debug_error_preview, name="debug_error_preview"),
+    ]
