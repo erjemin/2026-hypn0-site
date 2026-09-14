@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>500 — Критический перегрев неокортекса | HypnoSVG</title>
+  <meta name="description" content="Ошибка 500: Внутренний сбой сервера HypnoSVG. Ведутся ментальные восстановительные работы." />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg" />
+  <link rel="shortcut icon" href="/static/img/favicon.ico" />
+  <script>
+    (function() {
+      var saved = localStorage.getItem('darkMode');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'true' || (saved === null && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-color: #fafaf9;
+      --bg-header: rgba(243, 244, 246, 0.85);
+      --bg-card: #ffffff;
+      --text-main: #047857;
+      --text-muted: #4b5563;
+      --text-dim: #9ca3af;
+      --border-color: #d1d5db;
+      --accent-color: #059669;
+      --accent-bg: #ecfdf5;
+      --btn-bg: #059669;
+      --btn-text: #ffffff;
+      --btn-hover: #047857;
+      --progress-bg: #e5e7eb;
+      --progress-fill: #059669;
+    }
+
+    html.dark {
+      --bg-color: #09090b;
+      --bg-header: rgba(30, 41, 59, 0.75);
+      --bg-card: #18181b;
+      --text-main: #d9f99d;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --border-color: #27272a;
+      --accent-color: #a3e635;
+      --accent-bg: #14280f;
+      --btn-bg: #a3e635;
+      --btn-text: #09090b;
+      --btn-hover: #bef264;
+      --progress-bg: #27272a;
+      --progress-fill: #a3e635;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: var(--bg-header);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+    }
+
+    .header-inner {
+      max-width: 80rem;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      border: 0;
+    }
+
+    .logo-img {
+      height: 2.25rem;
+      width: auto;
+      display: block;
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--accent-bg);
+      border-color: var(--accent-color);
+    }
+
+    main {
+      flex: 1;
+      max-width: 56rem;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .error-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 2.5rem 1.75rem;
+      width: 100%;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .error-art {
+      width: min(300px, 100%);
+      height: 300px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .error-art img, .error-art svg {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      animation: spin-spiral 40s linear infinite;
+      transform-origin: center center;
+    }
+
+    @keyframes spin-spiral {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .error-art img, .error-art svg {
+        animation: none;
+      }
+    }
+
+    .error-code-badge {
+      display: inline-block;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      background-color: var(--accent-bg);
+      color: var(--accent-color);
+      border: 1px solid var(--accent-color);
+      margin-bottom: 1rem;
+    }
+
+    .error-title {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .error-desc {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 40rem;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+
+    .hypno-quote {
+      background-color: var(--accent-bg);
+      border-left: 4px solid var(--accent-color);
+      padding: 0.875rem 1.25rem;
+      margin: 0 auto 2rem;
+      text-align: left;
+      font-size: 0.925rem;
+      color: var(--text-muted);
+      border-radius: 0 0.5rem 0.5rem 0;
+      max-width: 42rem;
+    }
+
+    .actions-box {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.875rem;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.85rem 1.75rem;
+      border-radius: 0.625rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      min-width: min(16rem, 100%);
+    }
+
+    .btn-primary {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      box-shadow: 0 4px 14px 0 rgba(5, 150, 105, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--btn-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.85;
+      cursor: wait;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--accent-bg);
+      border-color: var(--accent-color);
+    }
+
+    /* Задержка и смешные сообщения перекалибровки */
+    .calibration-panel {
+      display: none;
+      width: 100%;
+      max-width: 32rem;
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      background-color: var(--accent-bg);
+      border: 1px dashed var(--accent-color);
+      text-align: left;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background-color: var(--progress-bg);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.75rem 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--progress-fill);
+      transition: width 0.1s linear;
+    }
+
+    .calibration-status {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+      min-height: 1.5rem;
+    }
+
+    .calibration-subtext {
+      font-size: 0.775rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    .instant-link {
+      color: var(--accent-color);
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 0.775rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      font-size: 0.825rem;
+      color: var(--text-dim);
+    }
+
+    .ascii-grid {
+      font-size: 0.75rem;
+      line-height: 1.2;
+      color: var(--text-dim);
+      opacity: 0.4;
+      user-select: none;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — На главную">
+        <img src="/static/img/logo-hypn0.svg" onerror="this.onerror=null; this.src='/media/_error/logo-hypn0.svg';" alt="HypnoSVG" class="logo-img" />
+      </a>
+      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Переключить тему" title="Переключить тему">
+        <span id="theme-icon">●</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="error-card">
+      <div class="error-art">
+        <img src="/static/img/thinking.svg" onerror="this.onerror=null; this.src='/media/_error/thinking.svg';" alt="500 Internal Server Error Slug" />
+      </div>
+
+      <div class="error-code-badge">АВАРИЯ СЕРВЕРА // КОД&nbsp;500</div>
+
+      <h1 class="error-title">Нейроклинч интроспекций</h1>
+
+      <p class="error-desc">
+        Внутренний обработчик Т-волн подсознания столкнулся с&nbsp;непредвиденным логическим парадоксом. Ментальные службы уже приведены в&nbsp;состояние боевого транса.
+      </p>
+
+      <div class="hypno-quote">
+        <big>Справка бюрократа 24-го уровня:</big><br/>&nbsp;<br/>
+        <span style="margin-left: -0.49em;">«</span><em>Стек вызовов испустил синий дым, но&nbsp;паника строго запрещена циркуляром&nbsp;№16. Гипножаба, Мозгоклюй и&nbsp;дежурные Бри-Гады мозговых слизней уже&nbsp;инспектируют упавший поток перцепции и&nbsp;устраняет ментальную деградацию.</em>»
+      </div>
+
+      <div class="actions-box">
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" id="return-btn">
+            <span>● Дождаться регенерации и&nbsp;вернуться</span>
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
+            <span>↻ Повторить попытку</span>
+          </button>
+        </div>
+
+        <!-- Панель калибровки с задержкой и смешными фразами -->
+        <div class="calibration-panel" id="calibration-panel">
+          <div class="calibration-status" id="calibration-status">
+            Инициа&shy;лизация аварийной регенерации ядра…
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-bar"></div>
+          </div>
+          <div class="calibration-subtext">
+            <span>Снижение ментальной нагрузки на&nbsp;кластер</span>
+            <a href="/" class="instant-link" id="skip-link">Пройти гипноз мгновенно&nbsp;→</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="ascii-grid">░▒▓█ ERROR 500 INTERNAL SERVER ERROR █▓▒░</div>
+    <div>Hypn0.xyz (HypnoSVG) © 2026. Слава Гипножабе. Все права подчинены.</div>
+  </footer>
+
+  <script>
+    // 1. Управление темой оформления (Light / Dark)
+    var themeBtn = document.getElementById('theme-btn');
+    var themeIcon = document.getElementById('theme-icon');
+
+    function updateThemeIcon() {
+      var isDark = document.documentElement.classList.contains('dark');
+      themeIcon.textContent = isDark ? '●' : '○';
+    }
+    updateThemeIcon();
+
+    themeBtn.addEventListener('click', function() {
+      var isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('darkMode', isDark);
+      updateThemeIcon();
+    });
+
+    // 2. Умная кнопка с задержкой и смешными сообщениями перекалибровки
+    var returnBtn = document.getElementById('return-btn');
+    var calibPanel = document.getElementById('calibration-panel');
+    var calibStatus = document.getElementById('calibration-status');
+    var progressBar = document.getElementById('progress-bar');
+    var isCalibrating = false;
+
+    var phrases = [
+      { at: 0,   text: "✦ Фаза 1/4: Локализуем утечку астральной памяти в&nbsp;ядре сервера&hellip;" },
+      { at: 25,  text: "✦ Фаза 2/4: Бюрократ 24-го уровня перезапускает упавший процесс&hellip;" },
+      { at: 55,  text: "✦ Фаза 3/4: Гипножаба восстанавливает гармонию матриц неокотекса&hellip;" },
+      { at: 85,  text: "✦ Фаза 4/4: Ядро стабилизировано! Телепор&shy;тация на&nbsp;главную&hellip;" }
+    ];
+
+    returnBtn.addEventListener('click', function() {
+      if (isCalibrating) return;
+      isCalibrating = true;
+
+      returnBtn.disabled = true;
+      returnBtn.style.opacity = '0.7';
+      returnBtn.innerHTML = '<span>Выполняется внушение…</span>';
+      calibPanel.style.display = 'block';
+
+      var duration = 12000;
+      var startTime = Date.now();
+
+      var timer = setInterval(function() {
+        var elapsed = Date.now() - startTime;
+        var progress = Math.min(100, Math.round((elapsed / duration) * 100));
+
+        progressBar.style.width = progress + '%';
+
+        // Подбираем актуальную смешную фразу
+        for (var i = phrases.length - 1; i >= 0; i--) {
+          if (progress >= phrases[i].at) {
+            calibStatus.innerHTML = phrases[i].text;
+            break;
+          }
+        }
+
+        if (progress >= 100) {
+          clearInterval(timer);
+          window.location.href = '/';
+        }
+      }, 50);
+    });
+  </script>
+</body>
+</html>

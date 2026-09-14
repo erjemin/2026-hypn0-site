@@ -1444,12 +1444,30 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         self.assertEqual(resp_list.status_code, 200)
         self.assertContains(resp_list, "Центр отладки страниц ошибок")
         self.assertContains(resp_list, "/_error/404")
+        self.assertContains(resp_list, "готов к просмотру")
 
-        # 2. Предпросмотр конкретной ошибки 404
-        resp_404 = self.client.get("/_error/404")
-        self.assertEqual(resp_404.status_code, 404)
-        self.assertContains(resp_404, "Гипноузел не&nbsp;обнаружен", status_code=404)
-        self.assertContains(resp_404, "СБОЙ МАТРИЦЫ // КОД?&nbsp;404", status_code=404)
+        # 2. Проверка каждого кода ошибки
+        expected_checks = [
+            ("400", 400, "Сбой ментального протокола"),
+            ("401", 401, "Требуется ментальная идентификация"),
+            ("403", 403, "Отказано бюрократом 24-го уровня"),
+            ("404", 404, "Гипноузел не&nbsp;обнаружен"),
+            ("413", 413, "Перегрузка сенсорных каналов"),
+            ("429", 429, "Слишком много мыслей в&nbsp;секунду"),
+            ("500", 500, "Критический перегрев неокортекса"),
+            ("502", 502, "Контейнер потерял сознание"),
+            ("503", 503, "Плановый сеанс гипнотерапии"),
+            ("504", 504, "Разрыв астральной связи"),
+            ("under_reconstruction", 200, "Сектор на&nbsp;реконструкции"),
+        ]
+
+        for code, expected_status, text_fragment in expected_checks:
+            resp = self.client.get(f"/_error/{code}")
+            self.assertEqual(resp.status_code, expected_status, f"Ошибка при проверке кода {code}")
+            self.assertContains(resp, text_fragment, status_code=expected_status)
+            self.assertContains(resp, "return-btn", status_code=expected_status)
+            self.assertContains(resp, "logo-hypn0.svg", status_code=expected_status)
+            self.assertContains(resp, "thinking.svg", status_code=expected_status)
 
         # 3. Предпросмотр с суффиксом .html
         resp_404_html = self.client.get("/_error/404.html")
@@ -1460,3 +1478,30 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         resp_non_existent = self.client.get("/_error/non-existent-code-999")
         self.assertEqual(resp_non_existent.status_code, 404)
         self.assertContains(resp_non_existent, "Шаблон для ошибки 'non-existent-code-999' не найден", status_code=404)
+
+    def test_custom_django_error_handlers(self):
+        """Проверка прямого вызова стандартных Django-обработчиков ошибок."""
+        from django.test import RequestFactory
+        from hypn0_site.views import error_400, error_403, error_404, error_500
+
+        factory = RequestFactory()
+
+        req400 = factory.get("/bad-request")
+        resp400 = error_400(req400)
+        self.assertEqual(resp400.status_code, 400)
+        self.assertIn("Сбой ментального протокола", resp400.content.decode("utf-8"))
+
+        req403 = factory.get("/forbidden")
+        resp403 = error_403(req403)
+        self.assertEqual(resp403.status_code, 403)
+        self.assertIn("Отказано бюрократом 24-го уровня", resp403.content.decode("utf-8"))
+
+        req404 = factory.get("/not-found")
+        resp404 = error_404(req404)
+        self.assertEqual(resp404.status_code, 404)
+        self.assertIn("Гипноузел не&nbsp;обнаружен", resp404.content.decode("utf-8"))
+
+        req500 = factory.get("/server-error")
+        resp500 = error_500(req500)
+        self.assertEqual(resp500.status_code, 500)
+        self.assertIn("Критический перегрев неокортекса", resp500.content.decode("utf-8"))
