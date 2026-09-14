@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>404 — Векторная реальность не найдена | HypnoSVG</title>
-  <meta name="description" content="Ошибка 404: Запрашиваемая страница не существует или стёрта волей Гипножабы." />
+  <meta name="description" content="Ошибка 404: Запрашиваемая страница HypnoSVG не существует или стёрта волей Гипножабы." />
   <meta name="robots" content="noindex, follow" />
   <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg" />
   <link rel="shortcut icon" href="/static/img/favicon.ico" />
@@ -29,12 +29,10 @@
       --text-dim: #9ca3af;
       --border-color: #d1d5db;
       --accent-color: #059669;
-      --accent-hover: #047857;
       --accent-bg: #ecfdf5;
       --btn-bg: #059669;
       --btn-text: #ffffff;
       --btn-hover: #047857;
-      --glitch-color: #dc2626;
       --progress-bg: #e5e7eb;
       --progress-fill: #059669;
     }
@@ -48,12 +46,10 @@
       --text-dim: #71717a;
       --border-color: #27272a;
       --accent-color: #a3e635;
-      --accent-hover: #bef264;
       --accent-bg: #14280f;
       --btn-bg: #a3e635;
       --btn-text: #09090b;
       --btn-hover: #bef264;
-      --glitch-color: #f87171;
       --progress-bg: #27272a;
       --progress-fill: #a3e635;
     }
@@ -149,23 +145,28 @@
     }
 
     .error-art {
-      width: 300px;
+      width: min(300px, 100%);
       height: 300px;
       margin: 0 auto 1.5rem;
-      display: flex;
-      /* align-items: center;
-      justify-content: center; */
     }
 
     .error-art img, .error-art svg {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      animation: spin-spiral 40s linear infinite;
+      transform-origin: center center;
     }
 
-    @keyframes pulse-art {
-      0%, 100% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.05) rotate(-2deg); }
+    @keyframes spin-spiral {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .error-art img, .error-art svg {
+        animation: none;
+      }
     }
 
     .error-code-badge {
@@ -240,7 +241,7 @@
       gap: 0.5rem;
       text-decoration: none;
       transition: all 0.2s ease;
-      min-width: 16rem;
+      min-width: min(16rem, 100%);
     }
 
     .btn-primary {
@@ -408,7 +409,7 @@
   </main>
 
   <footer>
-    <div class="ascii-grid">░▒▓█ HYPNO-SVG // ERROR 404 NOT FOUND █▓▒░</div>
+    <div class="ascii-grid">░▒▓█ ERROR 404 NOT FOUND █▓▒░</div>
     <div>Hypn0.xyz (HypnoSVG) © 2026. Слава Гипножабе. Все права подчинены.</div>
   </footer>
 
@@ -437,10 +438,10 @@
     var isCalibrating = false;
 
     var phrases = [
-      { at: 0,   text: "✦ Фаза 1/4: Стираем остатки несущес­твующей страницы из подсознания…" },
-      { at: 25,  text: "✦ Фаза 2/4: Бюрократ 24-го уровня заверяет протокол 404…" },
-      { at: 55,  text: "✦ Фаза 3/4: Синхронизируем частоту мерцания с перцеп­торным полем…" },
-      { at: 85,  text: "✦ Фаза 4/4: Внушение принято! Телепор­тация на главную…" }
+      { at: 0,   text: "✦ Фаза 1/4: Стираем остатки несущес&shy;твующей страницы из&nbsp;подсознания&hellip;" },
+      { at: 25,  text: "✦ Фаза 2/4: Бюрократ 24-го уровня заверяет протокол&nbsp;404&hellip;" },
+      { at: 55,  text: "✦ Фаза 3/4: Синхронизируем частоту мерцания с&nbsp;перцеп&shy;торным полем&hellip;" },
+      { at: 85,  text: "✦ Фаза 4/4: Внушение принято! Телепор&shy;тация на&nbsp;главную&hellip;" }
     ];
 
     returnBtn.addEventListener('click', function() {
@@ -464,7 +465,7 @@
         // Подбираем актуальную смешную фразу
         for (var i = phrases.length - 1; i >= 0; i--) {
           if (progress >= phrases[i].at) {
-            calibStatus.textContent = phrases[i].text;
+            calibStatus.innerHTML = phrases[i].text;
             break;
           }
         }

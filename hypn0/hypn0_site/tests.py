@@ -1434,7 +1434,7 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         self.assertContains(response, "Гипноузел не&nbsp;обнаружен", status_code=404)
         self.assertContains(response, "СБОЙ МАТРИЦЫ // КОД?&nbsp;404", status_code=404)
         self.assertContains(response, "return-btn", status_code=404)
-        self.assertContains(response, "Стираем остатки несущес­твующей страницы", status_code=404)
+        self.assertContains(response, "Стираем остатки несущес&shy;твующей страницы", status_code=404)
 
     @override_settings(DEBUG=True)
     def test_debug_error_preview_routing(self):
