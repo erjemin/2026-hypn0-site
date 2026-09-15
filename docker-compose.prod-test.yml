@@ -1,0 +1,174 @@
+# ==============================================================================
+# Docker Compose для PRODUCTION
+# Этот файл запускается на боевом сервере.
+# Вариант 1 (если переименовали в docker-compose.yml): docker compose up -d
+# Вариант 2 (если оставили имя): docker compose -f docker-compose.prod-test.yml up -d
+# ==============================================================================
+
+# В новой версии Docker не нужно 
+# version: '3.8'
+
+services:
+  # --- СБОРКА ТАИЛВИНД CSS (Фронтенд-компилятор) ---
+  # Запускается один раз при старте, собирает свежий tailwind.min.css и завершает работу
+  tailwind-builder:
+    image: node:22-slim
+    container_name: hypn0-tailwind-builder
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: bash ./scripts/build-tailwind.sh
+    restart: "no"
+
+  # --- ОCНОВНОЙ СЕРВИС: DJANGO + GUNICORN + WHITENOISE ---
+  web:
+    # Имя контейнера
+    container_name: hypn0-backend
+
+    # Ждём успешного завершения компиляции стилей перед запуском бэкенда
+    depends_on:
+      tailwind-builder:
+        condition: service_completed_successfully
+
+    # 1. ОБРАЗ
+    # В продакшене мы используем готовый, собранный образ из реестра (Gitea)
+    # image: git.cube2.ru/erjemin/2026-hypn0-site:latest
+    # Если образа в gitae нет, то перенести весь код в прод и можно собирать локально:
+    build: .
+
+    restart: always
+
+    # 2. Метки для Watchtower (авто-обновление)
+    labels:
+      - "com.centurylinklabs.watchtower.scope=hypn0-scope"
+
+    # 3. КОМАНДА ЗАПУСКА (Замена entrypoint.sh)
+    # Выполняем цепочку команд внутри контейнера при запуске:
+    #    a. Миграции
+    #    b. Collectstatic
+    #    c. рехеш-id
+    #    d. Создаем папку nginx в примонтированном томе конфигов (если нет)
+    #    e. Копирование конфига Nginx с авто-заменой путей через sed (замену реального пути на хосте получаем
+    #       через переменную окружения HOST_PROJECT_PATH)
+    #    f. Инициализация боевого конфига (если нет)
+    #    g. Создаем папку для ошибок и копируем туда HTML error pages и их ассеты (там их увидит Nginx хоста)
+    #       — иконки, SVG-иллюстрации и under_reconstruction тоже должны лежать рядом, чтобы Nginx мог их отдать
+    #    h. Запуск Gunicorn
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput --clear &&
+             python manage.py rehash &&
+             mkdir -p /nginx_configs_host/nginx &&
+              sed \"s|/home/user/app/hypn0-site|${HOST_PROJECT_PATH:-/home/default_user/projects/hypn0-site}|g\" /home/app/web/config/nginx/hypn0-app--external-nginx.conf > /nginx_configs_host/nginx/nginx_hypn0.conf.example &&
+             if [ ! -f /nginx_configs_host/nginx/hypn0-app--external-nginx.conf ]; then
+                 cp /nginx_configs_host/nginx/nginx_hypn0.conf.example /nginx_configs_host/nginx/hypn0-app--external-nginx.conf;
+                 echo 'INIT: Created new nginx config with correct paths';
+             fi &&
+             ERROR_DIR=/home/app/web/public/media/_error &&
+             mkdir -p "$$ERROR_DIR" &&
+             for code in 400 401 403 404 413 429 500 502 503 504; do
+                  cp /home/app/web/hypn0/templates/_error/$${code}.html "$$ERROR_DIR/$${code}.html";
+              done &&
+             cp /home/app/web/hypn0/templates/_error/under_reconstruction.html "$$ERROR_DIR/under_reconstruction.html" &&
+             cp /home/app/web/public/static/img/favicon.svg "$$ERROR_DIR/favicon.svg" &&
+             cp /home/app/web/public/static/img/favicon.ico "$$ERROR_DIR/favicon.ico" &&
+             cp /home/app/web/public/static/img/logo-hypn0.svg "$$ERROR_DIR/logo-hypn0.svg" &&
+             cp /home/app/web/public/static/img/thinking.svg "$$ERROR_DIR/thinking.svg" &&
+             echo '*/30 * * * * cd '${HOST_PROJECT_PATH:-/home/default_user/projects/hypn0-site}' && docker compose exec -T web python manage.py rescore >> /var/log/hypn0-rescore.log 2>&1' > /nginx_configs_host/crontab.example &&
+             echo '' &&
+             echo '========================================================================' &&
+             echo ' [HYPN0 CRON NOTICE] Слава Гипножабе! Не забудь настроить cron на хосте:' &&
+             echo ' Добавь строку в `crontab -e` (или см. config/crontab.example):' &&
+             echo ' */30 * * * * cd '${HOST_PROJECT_PATH:-/home/default_user/projects/hypn0-site}' && docker compose exec -T web python manage.py rescore' &&
+             echo '========================================================================' &&
+             echo '' &&
+             python -m gunicorn --workers 2 --bind 0.0.0.0:8000 hypn0.wsgi:application"
+
+    # 4. Проброс портов (Внешний Nginx -> localhost:8042)
+    ports:
+      # Слушаем только на localhost хоста, чтобы закрыть прямой доступ из интернета к Gunicorn
+      - "127.0.0.1:8042:8000"
+
+    # 5. Тома (Volumes)
+    volumes:
+      # База данных
+      # Монтируем папку database с хоста в папку с базой внутри контейнера.
+      # Путь в контейнере: /home/app/web/database (так как Django ищет базу в BASE_DIR.parent/database)
+      - ./database:/home/app/web/database
+
+      # Медиа, служебные error-pages и их ассеты лежат в папке `media` на хосте.
+      - ./media:/home/app/web/public/media
+
+      # Конфиги (Монтируем папку ./config с хоста в /nginx_configs_host внутри контейнера)
+      # Это нужно, чтобы скрипт запуска мог положить туда .example конфиг и прочитать боевой конфиг.
+      - ./config:/nginx_configs_host
+
+    # 6. Пользователь и права
+    # На первом старте контейнеру нужны права на инициализацию bind-mount'ов
+    # (media/config/database) на хосте, иначе `mkdir` для `media/_error` падает с Permission denied.
+    # После первичной инициализации можно будет отдельно ужесточить права на уровне хоста.
+    user: "0:0"
+
+    # Когда нужна отладка процессов внутри контейнера, можно временно раскомментировать эту строку и запустить контейнер с правами root.
+    # cap_add:
+    #   - SYS_PTRACE
+
+    # 7. Переменные окружения
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=hypn0.settings
+      - PYTHONUNBUFFERED=1
+      # Передаем переменную с путем на хосте внутрь контейнера, чтобы sed мог её использовать
+      - HOST_PROJECT_PATH=${HOST_PROJECT_PATH:-/home/default_user/projects/hypn0-site}
+
+    # 8. Проверка здоровья контейнера (Healthcheck)
+    # Docker будет периодически проверять статус контейнера. Это критично для Watchtower!
+    # Если контейнер объявлен "unhealthy", Watchtower сначала остановит старый образ, потом запустит новый.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
+      interval: 3m         # Проверка каждые 3 минуты
+      timeout: 12s          # Таймаут ответа - 12 секунды
+      start_period: 20s    # Даем 20 секунд на стартап перед первой проверкой
+      retries: 3           # Unhealthy после 3 неудачных попыток
+
+    # 9. Логирование (Ротация)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # 10. Ресурсы
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+    mem_limit: 512m
+
+  # --- WATCHTOWER: АВТО-ОБНОВЛЕНИЕ ОБРАЗОВ ---
+  # Следит за реестром Gitea и обновляет контейнер web, если появился новый image
+  watchtower:
+    image: containrrr/watchtower
+    container_name: hypn0_watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Токен/Логин для вашего приватного реестра (нужно добавить в .env!)
+      # REPO_USER и REPO_PASS должны быть в .env файле на сервере
+      - REPO_USER=${REPO_USER}
+      - REPO_PASS=${REPO_PASS}
+      - WATCHTOWER_SCOPE=hypn0-scope
+      - WATCHTOWER_CLEANUP=true # Удалять старые образы после обновления
+      - DOCKER_API_VERSION=1.44
+      # Дополнительные опции для правильной работы с healthcheck
+      - WATCHTOWER_WAIT_ON_TIMEOUT=60  # Ждем 60 сек пока контейнер станет healthy перед финализацией
+      - WATCHTOWER_LIFECYCLE_HOOKS=true # Включаем lifecycle hooks для graceful shutdown
+    command: --interval 1800 --cleanup # Проверять каждые 30 минут
+    logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
