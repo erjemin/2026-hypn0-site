@@ -583,6 +583,7 @@ CLI больше не нужен.
 | `.env.sample`                                             | Env template                    |
 | `Dockerfile`                                              | Сборка                          |
 | `docker-compose.local.yml`                                | Dev                             |
+| `docker-compose.prod-test.yml`                            | Тестовый Prod                   |
 | `docker-compose.prod.yml`                                 | Prod                            |
 | `config/nginx/hypn0-app--external-nginx.conf`             | Nginx                           |
 | `.gitea/workflows/docker-publish.yaml`                    | CI/CD                           |
