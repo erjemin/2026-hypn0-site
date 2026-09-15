@@ -1,26 +1,27 @@
 // analytics.js — Аналитика и счетчики посещений для hypn0.xyz
-// Версия: 1.0 | Дата: 2026-05-15
-// Содержит: Google Analytics 4, Yandex.Metrika, Top.Mail.Ru
+// Версия: 1.2 | Дата: 2026-09-16
+// Содержит: Google Tag Manager, Yandex.Metrika
 
 (function() {
   'use strict';
 
   // ============================================================================
-  // Google Analytics 4 (GA4)
-  // ID: GT-XXXXXXXX
+  // Google Tag Manager (GTM)
+  // ID: GTM-5FVH3KMJ
   // ============================================================================
-  (function() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=GT-XXXXXXXX';
-    document.head.appendChild(script);
-
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    window.gtag = gtag;
-    gtag('js', new Date());
-    gtag('config', 'GT-XXXXXXXX');
-  })();
+  (function(w, d, s, l, i) {
+    w[l] = w[l] || [];
+    w[l].push({
+      'gtm.start': new Date().getTime(),
+      event: 'gtm.js'
+    });
+    var f = d.getElementsByTagName(s)[0],
+      j = d.createElement(s),
+      dl = l != 'dataLayer' ? '&l=' + l : '';
+    j.async = true;
+    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+    f.parentNode.insertBefore(j, f);
+  })(window, document, 'script', 'dataLayer', 'GTM-5FVH3KMJ');
 
   // ============================================================================
   // Yandex.Metrika (Яндекс.Метрика)
@@ -49,50 +50,7 @@
     });
   })();
 
-  // ============================================================================
-  // Top.Mail.Ru counter (Рейтинг@Mail.ru)
-  // ID: 1234567
-  // ============================================================================
-  (function() {
-    var _tmr = window._tmr || (window._tmr = []);
-    _tmr.push({
-      id: "1234567",
-      type: "pageView",
-      start: (new Date()).getTime()
-    });
-
-    (function(d, w, id) {
-      if (d.getElementById(id)) return;
-      var ts = d.createElement("script");
-      ts.type = "text/javascript";
-      ts.async = true;
-      ts.id = id;
-      ts.src = "https://top-fwz1.mail.ru/js/code.js";
-
-      var f = function() {
-        var s = d.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(ts, s);
-      };
-
-      if (w.opera == "[object Opera]") {
-        d.addEventListener("DOMContentLoaded", f, false);
-      } else {
-        f();
-      }
-    })(document, window, "tmr-code");
-
-    // Добавляем изображение для noscript
-    if (!window.noScriptAdded) {
-      window.noScriptAdded = true;
-      var noscriptDiv = document.createElement('div');
-      noscriptDiv.style.display = 'none';
-      noscriptDiv.innerHTML = '<img src="https://top-fwz1.mail.ru/counter?id=1234567;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" />';
-      document.body.appendChild(noscriptDiv);
-    }
-  })();
-
 })();
 
-// Экспортируем gtag в глобальный контекст для возможности использования в коде
-// window.gtag доступна через глобальную переменную
+// window.dataLayer доступна через глобальную переменную
 

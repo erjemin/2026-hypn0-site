@@ -146,6 +146,7 @@ val=>{if(val)document.documentElement.classList.add('dark');else document.docume
     {% block CONTENT %}{% endblock CONTENT %}
   </main>
   {# {% include "blocks/footer.jinja2" %} #}{% endblock BODY %}{% if not ALLOW_TRACKING %}{# Если клиент еще не согласился на отслеживание покажем ему уведомление #}{% include "block/allow-tracking.html" %}{% else %}{# Если согласился -- отслеживаем#}
-<script src="{% static 'js/analytics.js' %}"></script>{% endif %}
+<script src="{% static 'js/analytics.js' %}"></script>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5FVH3KMJ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>{% endif %}
 {% block ADD_JS1 %}{% endblock ADD_JS1 %}{% block ADD_JS2 %}{% endblock ADD_JS2 %}{% block ADD_JS3 %}{% endblock ADD_JS3 %}</body>
 </html>
