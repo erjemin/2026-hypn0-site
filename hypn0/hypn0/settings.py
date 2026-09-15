@@ -234,6 +234,9 @@ else:
     STORAGES['staticfiles'] = {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     }
+    # Предотвращает 500 ошибку, если какой-то статический файл отсутствует в манифесте
+    WHITENOISE_MANIFEST_STRICT = env.bool('DJANGO_WHITENOISE_MANIFEST_STRICT', default=False)
+
     # Конфигурация WhiteNoise для обслуживания статических файлов и файлов из /public (например,
     # robots.txt, favicon.ico и т.п.)
     WHITENOISE_ROOT = PUBLIC_DIR

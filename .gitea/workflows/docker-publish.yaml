@@ -67,9 +67,7 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # ДОБАВЛЕНО для медленного интернета и оптимизации сборки:
-          cache-from: type=registry
-          # cache-from: type=gha
-          cache-to: type=registry,mode=max
-          # cache-to: type=gha,mode=max
+          # ДОБАВЛЕНО для оптимизации сборки (кэш слоёв в реестре):
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
           timeout: 1800  # Увеличено до 30 минут на всю сборку

@@ -16,8 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
+from django.views.static import serve
 
 from hypn0_site.sitemaps import sitemaps
 from . import settings
@@ -75,3 +76,12 @@ if settings.DEBUG:
     urlpatterns = [path('__debug__/', include(debug_toolbar.urls)), ] + urlpatterns
     urlpatterns = [*PUBLIC_ROOT_URLPATTERNS, *urlpatterns]
     urlpatterns += staticfiles_urlpatterns()
+
+# ==============================================================================
+# РАЗДАЧА МЕДИА-ФАЙЛОВ (/media/...)
+# ВНИМАНИЕ: В боевом продакшене отдачей /media/ занимается внешний Nginx напрямую.
+# Этот маршрут нужен для локального тестирования (в dev и в standalone prod-тестах без Nginx).
+# ==============================================================================
+# urlpatterns += [
+#     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+# ]
