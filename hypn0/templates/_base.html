@@ -1,6 +1,6 @@
 <!doctype html><html lang="ru" x-data="{darkMode:false}" x-init="darkMode=localStorage.getItem('darkMode')==='true';$watch('darkMode',
 val=>{if(val)document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})" x-bind:class="{'dark':darkMode}">
-{# <!--█████████████████████████████████████████████████████████████████████████████████████████████████--> #}<head><meta charset="utf-8" />{% comment %}<!--
+<!--█████████████████████████████████████████████████████████████████████████████████████████████████--><head><meta charset="utf-8" /><!--
 █░░░░░░░░░░░░░░█░░░░░░█████████░░░░░░███████████████░░░░░░░░░░░░░░█░░░░░░█████████░░░░░░░░░░░░░░█░░░░░░░░░░░░░░░░███░░░░░░░░██░░░░░░░░████
 █░░▄▀▄▀▄▀▄▀▄▀░░█░░▄▀░░█████████░░▄▀░░███████████████░░▄▀▄▀▄▀▄▀▄▀░░█░░▄▀░░█████████░░▄▀▄▀▄▀▄▀▄▀░░█░░▄▀▄▀▄▀▄▀▄▀▄▀░░███░░▄▀▄▀░░██░░▄▀▄▀░░████
 █░░▄▀░░░░░░▄▀░░█░░▄▀░░█████████░░▄▀░░███████████████░░▄▀░░░░░░░░░░█░░▄▀░░█████████░░▄▀░░░░░░▄▀░░█░░▄▀░░░░░░░░▄▀░░███░░░░▄▀░░██░░▄▀░░░░████
@@ -38,7 +38,7 @@ val=>{if(val)document.documentElement.classList.add('dark');else document.docume
 █░░▄▀░░██░░▄▀░░███████░░▄▀░░███████░░▄▀░░█████████░░▄▀░░██░░▄▀▄▀▄▀▄▀▄▀░░█░░▄▀░░░░░░▄▀░░█████░░▄▀░░█████░░▄▀░░░░░░▄▀░░█░░▄▀░░██░░▄▀░░█░░▄▀░░░░▄▀▄▀░░█░░░░░░█
 █░░▄▀░░██░░▄▀░░███████░░▄▀░░███████░░▄▀░░█████████░░▄▀░░██░░░░░░░░░░▄▀░░█░░▄▀▄▀▄▀▄▀▄▀░░█████░░▄▀░░█████░░▄▀▄▀▄▀▄▀▄▀░░█░░▄▀░░██░░▄▀░░█░░▄▀▄▀▄▀▄▀░░░░█░░▄▀░░█
 █░░░░░░██░░░░░░███████░░░░░░███████░░░░░░█████████░░░░░░██████████░░░░░░█░░░░░░░░░░░░░░█████░░░░░░█████░░░░░░░░░░░░░░█░░░░░░██░░░░░░█░░░░░░░░░░░░███░░░░░░█
-████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████-->{% endcomment %}{% load static %}
+████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████-->{% load static %}
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -147,6 +147,7 @@ val=>{if(val)document.documentElement.classList.add('dark');else document.docume
   </main>
   {# {% include "blocks/footer.jinja2" %} #}{% endblock BODY %}{% if not ALLOW_TRACKING %}{# Если клиент еще не согласился на отслеживание покажем ему уведомление #}{% include "block/allow-tracking.html" %}{% else %}{# Если согласился -- отслеживаем#}
 <script src="{% static 'js/analytics.js' %}"></script>
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5FVH3KMJ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>{% endif %}
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5FVH3KMJ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<noscript><div><img src="https://mc.yandex.ru/watch/112812760" style="position:absolute; left:-9999px;" alt="" /></div></noscript>{% endif %}
 {% block ADD_JS1 %}{% endblock ADD_JS1 %}{% block ADD_JS2 %}{% endblock ADD_JS2 %}{% block ADD_JS3 %}{% endblock ADD_JS3 %}</body>
 </html>
