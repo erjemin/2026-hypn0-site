@@ -41,7 +41,8 @@
       <input type="hidden" name="color" value="{% if primary_color %}{{ primary_color }}{% else %}#a855ff{% endif %}">
 
       <button id="like-to-gallery" type="submit" title="Отправить в галерею"
-              :disabled="isPublishing"
+              :disabled="isPublishing"{% if ALLOW_TRACKING %}
+              {# Отслеживание Яндекс #}@click="window.ym && ym(112812760, 'reachGoal', 'like_art')"{% endif %}
               class="group flex items-center gap-2 bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100 disabled:pointer-events-none cursor-pointer">
         <template x-if="isPublishing">
           <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
