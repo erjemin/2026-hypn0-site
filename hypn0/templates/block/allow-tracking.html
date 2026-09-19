@@ -1,13 +1,18 @@
-{# НИЖНИЙ POPUP О КУКУХ И ОТСЛЕЖИВАНИИ #}<div id="allow-tracking-popup" x-data="{ agreed: !!localStorage.getItem('hypn0_vid') }" x-show="!agreed" x-cloak class="sticky bottom-0 z-50 bg-gray-100/80 dark:bg-slate-800/70 backdrop-blur border-t border-gray-300 dark:border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-[auto_1fr] gap-x-4">
-        <p class="flex-col px-6 py-6">
-            Внимание! В&nbsp;соответствии с&nbsp;152-<abbr title="Федеральный закон">ФЗ</abbr>
-            и&nbsp;<abbr title="General Data Protection Regulation">GDPR</abbr> и&nbsp;протоколами Нового Нью-Йорка,
-            этот сайт использует файлы-присоски (cookies). ВСЕ СЛАВЯТ ГИПНОЖАБУ.&nbsp;Ваши обезли&shy;ченные данные
-            считываются алгоритмами ментального мерцания. Оставаясь на&nbsp;гипно-платформе <strong>hypn0</strong>, вы&nbsp;добровольно
-            впадаете в&nbsp;транс и&nbsp;принимаете условия нашей <a href="/blog/security-and-privacy-policy">политики
-            конфи&shy;денциаль&shy;ности</a>. <strong>Не&nbsp;пытайтесь переключить вкладку!</strong>
+{# НИЖНИЙ POPUP О КУКУХ И ОТСЛЕЖИВАНИИ #}<div id="allow-tracking-popup" x-data="{ agreed: !!localStorage.getItem('hypn0_vid') }" x-show="!agreed" x-cloak class="sticky bottom-0 z-50 bg-gray-100/95 dark:bg-slate-800/90 backdrop-blur border-t border-gray-300 dark:border-gray-700">
+    <div class="max-w-7xl mx-auto p-3 sm:p-4 md:px-4 md:py-8 flex flex-col md:grid md:grid-cols-[1fr_auto] gap-2.5 md:gap-x-4 items-center">
+        <p class="p-0 md:px-6 md:py-6 text-xs sm:text-sm md:text-base leading-snug md:leading-normal">
+            <span class="md:hidden">
+                Внимание! Этот сайт использует файлы-присоски (cookies) и алгоритмы ментального мерцания в&nbsp;соответствии с&nbsp;152-<abbr title="Федеральный закон">ФЗ</abbr>, <abbr title="General Data Protection Regulation">GDPR</abbr> и&nbsp;<a href="/blog/security-and-privacy-policy">политикой конфи&shy;денциаль&shy;ности</a>.
+            </span>
+            <span class="hidden md:inline">
+                Внимание! В&nbsp;соответствии с&nbsp;152-<abbr title="Федеральный закон">ФЗ</abbr>
+                и&nbsp;<abbr title="General Data Protection Regulation">GDPR</abbr> и&nbsp;протоколами Нового Нью-Йорка,
+                этот сайт использует файлы-присоски (cookies). ВСЕ СЛАВЯТ ГИПНОЖАБУ.&nbsp;Ваши обезли&shy;ченные данные
+                считываются алгоритмами ментального мерцания. Оставаясь на&nbsp;гипно-платформе <strong>hypn0</strong>, вы&nbsp;добровольно
+                впадаете в&nbsp;транс и&nbsp;принимаете условия нашей <a href="/blog/security-and-privacy-policy">политики
+                конфи&shy;денциаль&shy;ности</a>. <strong>Не&nbsp;пытайтесь переключить вкладку!</strong>
+            </span>
         </p>
-        <button @click="const vid = crypto.randomUUID(); localStorage.setItem('hypn0_vid', vid); document.cookie = `hypn0_vid=${vid}; path=/; max-age=63072000; SameSite=Lax`; agreed = true" class="text-lg px-6 py-2 my-6 border-2 rounded-md bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white">Подчиниться Гипножабе!</button>
+        <button @click="const vid = crypto.randomUUID(); localStorage.setItem('hypn0_vid', vid); document.cookie = `hypn0_vid=${vid}; path=/; max-age=63072000; SameSite=Lax`; agreed = true" class="w-full md:w-auto text-xs sm:text-sm md:text-lg px-4 md:px-6 py-2 md:py-2 my-0 md:my-6 border md:border-2 rounded-md bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white font-bold whitespace-nowrap cursor-pointer transition-colors">Подчиниться Гипножабе!</button>
     </div>
 </div>{# / НИЖНИЙ POPUP О КУКУХ И ОТСЛЕЖИВАНИИ #}
