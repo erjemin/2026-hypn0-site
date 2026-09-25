@@ -8,32 +8,14 @@
      class="absolute inset-0 z-10 flex items-center justify-center p-3 sm:p-4 border-0 border-none no-underline hover:border-0 hover:border-none focus:outline-none"
      title="«{{ item.s_title }}» — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG"
      aria-label="«{{ item.s_title }}» — Векторная картина #{{ item.s_hash_id }} в галерее HypnoSVG">
-    <div class="hypn0-card-svg w-full h-full flex items-center justify-center drop-shadow-sm transition-transform duration-300 group-hover:scale-105 border-0">
-      <template shadowrootmode="open">
-        {# Declarative Shadow DOM: изолирует ID (<defs id="s1"..>) и стили каждой картины в галерее. #}
-        {# В отличие от <img>, события мыши не блокируются, а в отличие от обычного inline SVG нет конфликтов идентификаторов. #}
-        <style>
-          :host {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            align-items: center;
-            justify-content: center;
-            pointer-events: auto;
-          }
-          svg {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-          }
-          {# В покое внутри SVG действует --hypn0-play: paused (0% нагрузки на CPU). #}
-          {# При наведении мыши на хост-карточку переопределяем переменную на running, и анимация оживает. #}
-          :host(:hover) svg, svg:hover {
-            --hypn0-play: running !important;
-          }
-        </style>
-        {{ item.card_svg|safe }}
-      </template>
+    <div x-data="hypn0LazySvg('{% if item.file_svg %}{{ item.file_svg.url }}{% endif %}')"
+         class="hypn0-card-svg w-full h-full flex items-center justify-center drop-shadow-sm transition-transform duration-300 group-hover:scale-105 border-0">
+      <noscript>
+        <div class="flex flex-col items-center justify-center p-3 text-center gap-1">
+          <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400">Требуется JS для анимации</span>
+          <span class="text-[10px] text-stone-500 dark:text-stone-400 underline">«{{ item.s_title }}»</span>
+        </div>
+      </noscript>
     </div>
   </a>
 

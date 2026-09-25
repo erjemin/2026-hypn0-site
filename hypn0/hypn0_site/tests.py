@@ -878,9 +878,9 @@ class CardBgStyleTests(BaseMediaTestCase):
         self.assertIn('id="test-svg"', item.card_svg)
 
         response = self.client.get(reverse("hypn0_site:index"))
-        self.assertContains(response, 'template shadowrootmode="open"')
+        self.assertContains(response, "hypn0LazySvg")
         self.assertContains(response, "hypn0-card-svg")
-        self.assertContains(response, "--hypn0-play: running !important")
+        self.assertContains(response, item.file_svg.url)
 
 
 class GalleryArchiveTests(BaseMediaTestCase):
@@ -1458,7 +1458,7 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
             ("502", 502, "Контейнер потерял сознание"),
             ("503", 503, "Плановый сеанс гипнотерапии"),
             ("504", 504, "Разрыв астральной связи"),
-            ("under_reconstruction", 200, "Сектор на&nbsp;реконструкции"),
+            ("under_reconstruction", 200, "Отдел мозга на&nbsp;реконструкции"),
         ]
 
         for code, expected_status, text_fragment in expected_checks:
