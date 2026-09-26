@@ -90,6 +90,209 @@
 }
 
 /* ==========================================================================
+   КОМПОНЕНТЫ КАРТОЧКИ ГАЛЕРЕИ (HYPNO GALLERY CARD)
+   ========================================================================== */
+
+@layer components {
+  /* Карточка картины */
+  .card {
+    @apply aspect-square rounded-2xl border border-stone-300/80 dark:border-zinc-800/80 
+           overflow-hidden relative transition-all duration-300 
+           hover:scale-[1.03] hover:shadow-2xl hover:border-amber-500/60 dark:hover:border-amber-500/50 
+           flex items-center justify-center select-none shadow-sm 
+           bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)];
+  }
+
+  /* Ссылка и оверлей */
+  .card-link {
+    @apply absolute inset-0 z-10 flex items-center justify-center p-3 sm:p-4 
+           border-0 border-none no-underline hover:border-0 hover:border-none focus:outline-none;
+  }
+
+  /* Контейнер SVG */
+  .card-svg {
+    @apply w-full h-full flex items-center justify-center drop-shadow-sm 
+           transition-transform duration-300 group-hover:scale-105 border-0;
+  }
+
+  /* Верхний бейдж хэша и уровня */
+  .card-tag {
+    @apply text-[10px] font-mono font-bold tracking-tight px-1.5 py-0.5 rounded 
+           backdrop-blur-md transition-opacity;
+  }
+  .card-tag-immortal {
+    @apply bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 opacity-80 group-hover:opacity-100;
+  }
+  .card-tag-curated {
+    @apply bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 opacity-80 group-hover:opacity-100;
+  }
+  .card-tag-fresh {
+    @apply bg-stone-900/70 text-stone-200 border border-white/10 opacity-75 group-hover:opacity-100;
+  }
+
+  /* Нижний бейдж статистики */
+  .card-stat {
+    @apply inline-flex items-center gap-1 font-mono px-2 py-0.5 rounded-full 
+           backdrop-blur-md shadow-sm transition-opacity;
+  }
+  .card-stat-immortal {
+    @apply text-[11px] font-bold bg-stone-900/80 text-emerald-400 border border-emerald-500/20 opacity-90 group-hover:opacity-100;
+  }
+  .card-stat-curated {
+    @apply text-[11px] font-bold bg-stone-900/80 text-cyan-400 border border-cyan-500/20 opacity-90 group-hover:opacity-100;
+  }
+  .card-stat-fresh {
+    @apply text-[11px] font-bold bg-stone-900/80 text-amber-400 border border-amber-500/20 opacity-90 group-hover:opacity-100;
+  }
+  .card-stat-views {
+    @apply text-[10px] bg-stone-900/80 text-stone-400 px-1.5 py-0.5 opacity-0 group-hover:opacity-100;
+  }
+
+  /* Панели карточки */
+  .card-top {
+    @apply absolute top-2 left-2 z-20 pointer-events-none flex items-center gap-1;
+  }
+  .card-bottom {
+    @apply absolute bottom-2 left-2 right-2 z-20 flex items-center justify-between pointer-events-none;
+  }
+
+  /* Заглушка noscript внутри карточки */
+  .card-noscript {
+    @apply flex flex-col items-center justify-center p-3 text-center gap-1;
+  }
+  .card-noscript-warn {
+    @apply text-[11px] font-bold text-amber-600 dark:text-amber-400;
+  }
+  .card-noscript-title {
+    @apply text-[10px] text-stone-500 dark:text-stone-400 underline;
+  }
+}
+
+/* ==========================================================================
+   КОМПОНЕНТЫ СТРАНИЦЫ АРХИВА ГАЛЕРЕИ (GALLERY ARCHIVE)
+   ========================================================================== */
+
+@layer components {
+  /* Навигация и заголовок архива */
+  .archive-back {
+    @apply inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider 
+           text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 
+           transition-colors border-0 no-underline;
+  }
+  .archive-phase {
+    @apply text-xs font-mono text-stone-500 dark:text-stone-400;
+  }
+  .archive-header {
+    @apply border-b border-stone-200 dark:border-zinc-800 pb-6 space-y-2;
+  }
+  .archive-title {
+    @apply text-3xl font-black uppercase tracking-tight text-stone-900 dark:text-stone-100;
+  }
+  .archive-badge {
+    @apply text-xs font-bold font-mono px-2.5 py-1 rounded-full 
+           bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-400 
+           border border-purple-300 dark:border-purple-800/50;
+  }
+  .archive-desc {
+    @apply text-sm text-stone-500 dark:text-stone-400;
+  }
+
+  /* Панель фильтров архива */
+  .archive-filter-bar {
+    @apply flex flex-col md:flex-row md:items-center justify-between gap-4 
+           bg-stone-100/70 dark:bg-zinc-900/70 p-3 rounded-2xl 
+           border border-stone-200 dark:border-zinc-800 backdrop-blur-sm;
+  }
+  .archive-tab {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold 
+           transition-all border-0 no-underline;
+  }
+  .archive-tab-all-active {
+    @apply bg-purple-600 text-white shadow-sm;
+  }
+  .archive-tab-all-idle {
+    @apply text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-zinc-800;
+  }
+  .archive-tab-fresh-active {
+    @apply bg-amber-500 text-white shadow-sm;
+  }
+  .archive-tab-fresh-idle {
+    @apply text-stone-600 dark:text-stone-300 hover:bg-amber-100/60 dark:hover:bg-amber-950/40;
+  }
+  .archive-tab-curated-active {
+    @apply bg-cyan-600 text-white shadow-sm;
+  }
+  .archive-tab-curated-idle {
+    @apply text-stone-600 dark:text-stone-300 hover:bg-cyan-100/60 dark:hover:bg-cyan-950/40;
+  }
+  .archive-tab-top-active {
+    @apply bg-emerald-600 text-white shadow-sm;
+  }
+  .archive-tab-top-idle {
+    @apply text-stone-600 dark:text-stone-300 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40;
+  }
+
+  /* Сортировка */
+  .archive-sort-wrap {
+    @apply flex items-center gap-2 self-end md:self-auto;
+  }
+  .archive-sort-label {
+    @apply text-xs font-bold text-stone-500 dark:text-stone-400 shrink-0;
+  }
+  .archive-sort-select {
+    @apply text-xs font-medium bg-white dark:bg-zinc-800 text-stone-800 dark:text-stone-200 
+           border border-stone-300 dark:border-zinc-700 rounded-xl px-3 py-1.5 
+           focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer shadow-sm;
+  }
+
+  /* Сетка и пустое состояние */
+  .gallery-grid {
+    @apply grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6;
+  }
+  .archive-empty {
+    @apply col-span-full py-16 text-center text-stone-400 space-y-3 
+           bg-stone-100/50 dark:bg-zinc-900/50 rounded-2xl border border-stone-200 dark:border-zinc-800;
+  }
+  .archive-empty-icon {
+    @apply w-12 h-12 mx-auto opacity-30 animate-pulse;
+  }
+  .archive-empty-text {
+    @apply font-medium text-sm;
+  }
+
+  /* Пагинация */
+  .paginator {
+    @apply flex items-center justify-between pt-6 border-t border-stone-200 dark:border-zinc-800;
+  }
+  .paginator-btn {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold 
+           transition-all border-0 no-underline;
+  }
+  .paginator-btn-prev {
+    @apply bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 
+           text-stone-700 dark:text-stone-300 hover:scale-105 active:scale-95 shadow-sm 
+           border border-stone-200 dark:border-zinc-700/60 cursor-pointer;
+  }
+  .paginator-btn-next {
+    @apply bg-purple-600 hover:bg-purple-700 text-white hover:scale-105 active:scale-95 shadow-md cursor-pointer;
+  }
+  .paginator-btn-disabled {
+    @apply text-stone-400 dark:text-stone-600 bg-stone-100/50 dark:bg-zinc-900/50 
+           border border-stone-200/50 dark:border-zinc-800/50 opacity-50 cursor-not-allowed;
+  }
+  .paginator-pages {
+    @apply hidden sm:flex items-center gap-1.5 font-mono text-xs;
+  }
+  .paginator-page-active {
+    @apply w-8 h-8 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center shadow-md;
+  }
+  .paginator-page-link {
+    @apply w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 
+           text-stone-700 dark:text-stone-300 flex items-center justify-center transition-colors border-0 no-underline;
+  }
+}
+
+/* ==========================================================================
    ТИПОГРАФИКА И СТИЛИ ДЛЯ СТАТЕЙ БЛОГА (CodeMirror / Rich HTML Content)
    ========================================================================== */
 

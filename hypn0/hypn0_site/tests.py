@@ -1505,3 +1505,17 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         resp500 = error_500(req500)
         self.assertEqual(resp500.status_code, 500)
         self.assertIn("Критический перегрев неокортекса", resp500.content.decode("utf-8"))
+
+    def test_s_title_plain_property(self):
+        """Проверка очистки HTML-тегов и мнемоник в s_title_plain для моделей TbHypn0Item и TbBlogPost."""
+        item = TbHypn0Item(
+            s_title="<nobr>Шедевр&nbsp;ноосферы</nobr> &laquo;Альфа&raquo;",
+            s_hash_id="testPlain",
+        )
+        self.assertEqual(item.s_title_plain, "Шедевр ноосферы «Альфа»")
+
+        post = TbBlogPost(
+            s_title="<b>Записки&nbsp;Гипножабы:</b> Раздел&amp;Смысл",
+            slug="test-plain",
+        )
+        self.assertEqual(post.s_title_plain, "Записки Гипножабы: Раздел&Смысл")

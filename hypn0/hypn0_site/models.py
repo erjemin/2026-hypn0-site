@@ -1,4 +1,6 @@
 import hashlib
+from html import unescape
+import re
 from django.core.exceptions import ValidationError
 from django.db import models, transaction, IntegrityError
 from django.db.models import F
@@ -158,6 +160,17 @@ class TbHypn0Item(models.Model):
 
     def __str__(self) -> str:
         return f"{self.s_title} ({self.s_hash_id})"
+
+    @property
+    def s_title_plain(self) -> str:
+        """
+        Возвращает чистый заголовок картины без HTML-тегов и с декодированными мнемониками (&nbsp; и др.)
+        для безопасного использования в HTML-атрибутах (title, aria-label, alt, meta).
+        """
+        if not self.s_title:
+            return ""
+        text = re.sub(r"<[^>]+>", "", self.s_title)
+        return unescape(text).replace("\xa0", " ").strip()
 
     def get_absolute_url(self) -> str:
         """Возвращает канонический URL детальной страницы картины."""
@@ -563,6 +576,17 @@ class TbBlogPost(models.Model):
 
     def __str__(self) -> str:
         return self.s_title
+
+    @property
+    def s_title_plain(self) -> str:
+        """
+        Возвращает чистый заголовок статьи без HTML-тегов и с декодированными мнемониками
+        для безопасного использования в мета-тегах и атрибутах.
+        """
+        if not self.s_title:
+            return ""
+        text = re.sub(r"<[^>]+>", "", self.s_title)
+        return unescape(text).replace("\xa0", " ").strip()
 
     def get_absolute_url(self) -> str:
         """Возвращает канонический URL статьи блога."""

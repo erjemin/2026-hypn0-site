@@ -1,11 +1,11 @@
 {% extends "_base.html" %}
 {% load static %}
 
-{% block PAGE_TITLE %}{{ item.s_title }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
-{% block META_TITLE %}{{ item.s_title }} — Векторный транс #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
-{% block META_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} векторных осцилляторов. Генератор анимированных SVG-халфтонов HypnoSVG.{% endblock %}
-{% block OG_TITLE %}{{ item.s_title }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
-{% block OG_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title }}» (#{{ item.s_hash_id }}). Векторный транс в галерее HypnoSVG.{% endblock %}
+{% block PAGE_TITLE %}{{ item.s_title_plain }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block META_TITLE %}{{ item.s_title_plain }} — Векторный транс #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block META_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title_plain }}» (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} векторных осцилляторов. Генератор анимированных SVG-халфтонов HypnoSVG.{% endblock %}
+{% block OG_TITLE %}{{ item.s_title_plain }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block OG_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title_plain }}» (#{{ item.s_hash_id }}). Векторный транс в галерее HypnoSVG.{% endblock %}
 {% block OG_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
 {% block TWITTER_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
 
@@ -77,8 +77,8 @@
 
     <!-- Полноэкранный просмотр SVG с живой анимацией и плавающими стрелками -->
     <div style="{{ item.card_bg_style }}" 
-         title="«{{ item.s_title }}» — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG"
-         aria-label="«{{ item.s_title }}» — Векторная картина #{{ item.s_hash_id }} в галерее HypnoSVG"
+         title="«{{ item.s_title_plain }}» — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG"
+         aria-label="«{{ item.s_title_plain }}» — Векторная картина #{{ item.s_hash_id }} в галерее HypnoSVG"
          class="relative w-full aspect-square flex items-center justify-center rounded-2xl overflow-hidden shadow-inner border border-stone-300/80 dark:border-zinc-800/80 group select-none bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]">
       
       <!-- Плавающая кнопка: Назад -->
