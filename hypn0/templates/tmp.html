@@ -1,69 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Security &amp; Privacy Policy — HypnoSVG</title>
-</head>
-<body>
-TEMPORARY DRAFT
+{% extends '_base.html' %}
+{% load static %}
 
-<h1>Security &amp; Privacy Policy (SECURITY)</h1>
+{% block PAGE_TITLE %}About HypnoSVG (hypn0) — Procedural Animated Halftone & Vector Matrix Engine{% endblock %}
 
-—teaser:
+{% block META_TITLE %}About HypnoSVG — Production-Ready Animated Halftones & Vector Matrices{% endblock %}
 
-<p>We&nbsp;don’t know who you are…&nbsp;and&nbsp;we&nbsp;don’t want to&nbsp;know. The&nbsp;Hypn0.xyz (HypnoSVG) platform operates in&nbsp;strict compliance with&nbsp;Inter&shy;galactic DOOP Protocols and&nbsp;GDPR directives, adhering to&nbsp;the&nbsp;Zero Personally Identifiable Information (Zero-PII) doctrine. No&nbsp;registration, logins, passwords, emails, SMS, or&nbsp;phone numbers. The&nbsp;database contains zero user or&nbsp;account tables. Synthesized SVG files contain purely mathematical coordinates of&nbsp;vector primitives and&nbsp;inline CSS animations. No&nbsp;source image metadata is&nbsp;embedded (EXIF tags, geolocation, and&nbsp;hardware device profiles are purged during raster&shy;ization).</p>
-<h2>Prologue: The&nbsp;Anatomy of&nbsp;Privacy in&nbsp;the&nbsp;Age of&nbsp;Mental Resonance</h2>
-<p><em>We are the&nbsp;Hypnotoad, the&nbsp;Brain Slugs, and the&nbsp;Receptors of&nbsp;Planetary Mind-Numbing. And we don’t want to&nbsp;know who you are. Don’t even try to&nbsp;persuade us.</em></p>
-<p>The&nbsp;Hypn0 platform is&nbsp;engineered from&nbsp;the&nbsp;ground up on&nbsp;the&nbsp;<strong>Zero-PII (Zero Personally Identifiable Information)</strong> doctrine. We&nbsp;do not&nbsp;require registration, logins, passwords, email addresses, or&nbsp;phone numbers. In&nbsp;the&nbsp;project database, user and&nbsp;account tables simply do not&nbsp;exist. Generated SVG files contain only mathematical coordinates of&nbsp;geometric primitives and&nbsp;inline CSS keyframes. Zero metadata from&nbsp;source images is&nbsp;retained (EXIF tags, GPS coordinates, device specs, and&nbsp;even source file names are completely stripped during raster&shy;ization).</p>
-<hr/>
-<h2>Section&nbsp;I.&nbsp;No-Consent Mode (Default / No-Tracking)</h2>
-<p>If&nbsp;you have not&nbsp;clicked the&nbsp;“<strong>Submit to&nbsp;Hypnotoad!</strong>” button—you are completely invisible in&nbsp;the&nbsp;astral realm. This&nbsp;means:</p>
-<ol>
-<li>Hypn0 (HypnoSVG) does not&nbsp;deploy <strong>any client identifiers</strong>. Neither cookies nor browser <code>localStorage</code> records are created.</li>
-<li><strong>External analytics systems are disabled</strong>: tracking beacons and metric counters (Google Tag Manager, analytics scripts, etc.) are blocked at&nbsp;the&nbsp;template level and&nbsp;physically never loaded onto the&nbsp;client device.</li>
-<li><strong>Server logs</strong>—the&nbsp;only baseline telemetry captured by&nbsp;infrast&shy;ructure (IP address, User-Agent, requested URL, and&nbsp;timestamp) — are utilized strictly for&nbsp;DDoS defense and&nbsp;uptime monitoring, retained for&nbsp;a&nbsp;minimal duration with&nbsp;regular rotation faster than memories fade after a&nbsp;hypnosis session.</li>
-</ol>
-<hr/>
-<h2>Section II.&nbsp;Restrictions for&nbsp;Free Humanoids Without a&nbsp;Brain Slug</h2>
-<p>Humanoids who decline tracking or&nbsp;withhold explicit consent can freely use the&nbsp;local vector generator and&nbsp;browse the&nbsp;gallery. However, they&nbsp;<strong>cannot access pseudo-social platform features</strong>:</p>
-<ul>
-<li>Publishing original works to&nbsp;the&nbsp;public “<a href="/gallery">Trance Gallery</a>”;</li>
-<li>Voting for&nbsp;artworks (transmitting psychic resonance / likes);</li>
-<li>Submitting complaints or&nbsp;flagging spam and&nbsp;non-transcendent content.</li>
-</ul>
-<h3>Reason for&nbsp;Restrictions: Anti-Abuse &amp; Bot Defense</h3>
-<p>To&nbsp;operate the&nbsp;gravit&shy;ational Brain Slug sorting algorithm (curated ranking) and&nbsp;fairly distribute artworks across tiers (“Incubator”, “Approved by&nbsp;Brain Slug”, “Deep Trance Hall of&nbsp;Fame”), the&nbsp;platform requires a&nbsp;unique anonymous client anchor.</p>
-<p>Because a&nbsp;humanoid who has not&nbsp;“surrendered to&nbsp;the&nbsp;Hypnotoad” carries no&nbsp;device anchor, the&nbsp;Lord of&nbsp;Mental Intros&shy;pections (the&nbsp;server) cannot recognize duplicate votes. This&nbsp;would lead to&nbsp;instant scripted vote tampering, spam surges, and&nbsp;the&nbsp;destabi&shy;lization of&nbsp;the&nbsp;entire gallery ecosystem.</p>
-<hr/>
-<h2>Section III.&nbsp;Consent Mechanism via “Submit to&nbsp;Hypnotoad!”</h2>
-<ol>
-<li>The&nbsp;browser generates a&nbsp;cryptog&shy;raphic pseudo-random identifier via <code>crypto.randomUUID()</code> (UUID v4).</li>
-<li>The&nbsp;value is&nbsp;stored in&nbsp;a&nbsp;cookie and/or&nbsp;browser <code>localStorage</code> under the&nbsp;key <code>hypn0_vid</code>.</li>
-<li>The&nbsp;lifespan is&nbsp;configured for&nbsp;two Earth years, with&nbsp;transmission flags set to&nbsp;safe mode (<code>path=/; SameSite=Lax</code>).</li>
-<li>The&nbsp;<code>hypn0_vid</code> token is&nbsp;a&nbsp;purely random string and&nbsp;cannot be linked to&nbsp;your real identity, physical vessel, or&nbsp;cerebral Theta/Alpha brainwaves.</li>
-<li>The&nbsp;identifier is&nbsp;used by&nbsp;the&nbsp;backend exclusively for&nbsp;rate limiting and&nbsp;enforcing the&nbsp;“one vote per artwork per browser” rule.</li>
-</ol>
-<hr/>
-<h2>Section IV.&nbsp;File Processing Security during SVG Generation</h2>
-<ul>
-<li><strong>Input Data Sanitization (Source Images):</strong> All inbound images pass through the&nbsp;Pillow mental shredder, decoded exclusively in&nbsp;RAM, and&nbsp;immediately cleansed of&nbsp;mundane metadata. No&nbsp;EXIF tags, geolocation, camera models, or&nbsp;temporary disk artifacts remain on&nbsp;server storage.</li>
-<li><strong>Output Vector Security:</strong> The&nbsp;server stores only vector artworks synthesized by&nbsp;the&nbsp;native Hypn0 (HypnoSVG) core. Output SVGs are generated strictly program&shy;matically and&nbsp;contain no&nbsp;<code>&lt;script&gt;</code> tags, external <code>xlink:href</code> links, or&nbsp;event handlers like <code>onload</code> or&nbsp;<code>onclick</code>. This&nbsp;eliminates Stored XSS risks when&nbsp;viewing other humanoids’ works: foreign halftones are completely harmless to&nbsp;your optic nerves (aside from&nbsp;the&nbsp;risk of&nbsp;spontaneous hypnotic trance).</li>
-<li><strong>Resource Limits (DoS Prevention):</strong> Strict thresholds are?&nbsp;enforced on&nbsp;maximum upload size, grid density (<code>cols</code>), and&nbsp;element radii, preventing memory exhaustion and&nbsp;overheating of&nbsp;New New York processors.</li>
-</ul>
-<hr/>
-<h2>Epilogue: Matrix Anomalies &amp; Vulner&shy;ability Disclosure</h2>
-<p>If&nbsp;you discover a&nbsp;security flaw capable of&nbsp;bypassing the&nbsp;will of&nbsp;the&nbsp;Hypnotoad or&nbsp;injecting alien code into&nbsp;the&nbsp;consciousness of&nbsp;Hypn0 — please approach disclosure with&nbsp;utmost inter&shy;galactic respon&shy;sibility:</p>
-<ul>
-<li>Do not&nbsp;publish vulner&shy;ability details publicly, preventing space pirates and&nbsp;rogue bots from&nbsp;exploiting them before a&nbsp;patch is&nbsp;deployed.</li>
-<li>Send a&nbsp;detailed report to&nbsp;the&nbsp;project maintainer via the&nbsp;<a href="https://github.com/erjemin/2026-hypn0-site/issues" target="_blank">repository issue tracker</a> marked as&nbsp;security, or&nbsp;directly to&nbsp;the&nbsp;<a href="#" id="c-l" onclick="this.href='ma'+atob('aWx0bzplcmplb'+'WluQGdtYWlsLmNvbQ==');">admin&shy;istrator’s email</a>.</li>
-<li>Describe attack vectors, step-by-step reproduction (PoC), and&nbsp;potential system impact.</li>
-<li>We will promptly acknowledge receipt and&nbsp;neutralize the&nbsp;anomaly. Please refrain from&nbsp;public disclosure until the&nbsp;vulner&shy;ability is&nbsp;resolved.</li>
-</ul>
+{% block META_DESCRIPTION %}Learn how HypnoSVG turns raster graphics into lightweight, hypnotic animated vector matrices. Practical use cases for web design, banner backdrops, hero typography, open-source repository, and custom bespoke engineering.{% endblock %}
 
-<hr/>
-<hr/>
-<hr/>
-<hr/>
+{% block OG_TITLE %}About HypnoSVG — Procedural Animated Vector Halftone Engine{% endblock %}
 
-</body>
-</html>
+{% block OG_DESCRIPTION %}Deconstruct raster images into pulsating CSS-animated SVG matrices. Production-ready, ultra-lightweight, open-source, and zero JS execution overhead.{% endblock %}
+
+{% block CANONICAL %}{{ request.scheme }}://{{ request.get_host }}/about/{% endblock %}
+
+{% block CONTENT %}
+<article class="prose max-w-7xl mx-auto py-4 font-sans text-stone-800 dark:text-stone-200">
+
+  <!-- Header -->
+  <header>
+    <p><em>About the Platform &amp; Practical Utility</em></p>
+    <h1>Vector Halftones That Refuse to Be Ignored</h1>
+    <p>
+      <strong>HypnoSVG (hypn0)</strong> is an open-source procedural raster-to-vector engine that transforms ordinary photos, logos, and digital graphics into pulsating, mathematically synchronized SVG matrices with zero JavaScript runtime overhead.
+    </p>
+  </header>
+
+  <hr>
+
+  <!-- Core Proposition -->
+  <section>
+    <h2>What Is HypnoSVG and Why Does It Exist?</h2>
+    <p>
+      Modern web design is saturated with static flat illustrations and bloated, power-hungry video backgrounds. GIF animations are heavy and pixelated, while canvas-based WebGL shaders often spike mobile CPU load and drain battery life.
+    </p>
+    <p>
+      <strong>HypnoSVG</strong> bridges the gap by decomposing raster images into procedural geometric grids (circles, concentric rings, diamonds, stars, binary code, snowflakes, and custom glyphs) driven by native, phase-shifted <strong>pure CSS <code>@keyframes</code></strong>.
+    </p>
+    <ul>
+      <li><strong>Ultra-Lightweight (20–50 KB):</strong> Clean vector markup that scales infinitely from a mobile favicon to a 4K billboard without pixelation.</li>
+      <li><strong>Zero Scripting Overhead:</strong> 100% hardware-accelerated browser rendering with zero JS dependencies.</li>
+      <li><strong>CC0 1.0 Public Domain Output:</strong> All generated vector files are completely free for personal and commercial use without mandatory attribution.</li>
+      <li><strong>Open-Source Core:</strong> The source code is open and available on <a href="https://git.cube2.ru/erjemin/2026-hypn0-site" target="_blank" rel="noopener">git.cube2.ru</a> and mirrored on <a href="https://github.com/erjemin/2026-hypn0-site" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial License.</li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <!-- Practical Use Cases -->
+  <section>
+    <h2>Practical Ways to Use HypnoSVG in Production</h2>
+    <p>
+      While our aesthetic draws subtle inspiration from the hypnotic frequencies of the legendary Hypnotoad, the generated output is engineered strictly for real-world web design, UI/UX, marketing, and creative engineering:
+    </p>
+
+    <h3>1. High-Conversion Banner Backdrops (Defeating Banner Blindness)</h3>
+    <p>
+      Standard static display ads and promotional blocks often get filtered out by human peripheral vision. An animated HypnoSVG matrix introduces subtle, rhythmic micro-pulsation that naturally draws attention without being intrusive.
+    </p>
+    <blockquote>
+      <p>
+        <strong>Pro-Tip for Text Legibility:</strong> Inside the generated SVG (or via its CSS container), adjust the overall opacity to <code>opacity: 0.15–0.35</code> and place it over a solid or slightly tinted background. Any promotional typography, CTA buttons, or pricing tags placed on top will remain <strong>100% crisp and readable</strong>, while the living matrix underneath delivers an unmistakable dynamic depth.
+      </p>
+    </blockquote>
+
+    <h3>2. Hero Sections &amp; Knockout "Cut-Out" Typography</h3>
+    <p>
+      For tech startups, SaaS intros, and modern landing pages, contrast is essential. Invert the visual hierarchy: generate a rich, high-density dark or neon duotone halftone matrix, and overlay heavy white "knockout" text (reverse typography) across the viewport.
+    </p>
+    <p>
+      The kinetic motion within the matrix breathes vitality through the negative space of the letters, giving your headline an organic, almost living presence.
+    </p>
+
+    <h3>3. UI Atmospheric Layers, 404 Backdrops &amp; Interactive Preloaders</h3>
+    <p>
+      Embed animated SVGs directly inline or as CSS <code>background-image</code> rules. They work seamlessly as ambient background textures for Dark Mode interfaces, cyberpunk dashboards, radar HUDs, or error screens that turn a standard 404 into an engaging brand touchpoint.
+    </p>
+
+    <h3>4. Merchandise, Posters &amp; CNC / Laser Fabrication</h3>
+    <p>
+      When paused or downloaded as static vector paths, HypnoSVG files are ready for screen printing, vinyl plotting, laser engraving, and silk-screen apparel design.
+    </p>
+  </section>
+
+  <hr>
+
+  <!-- Online Generator Limits & Bespoke Customization -->
+  <section>
+    <h2>Online Generator Limits &amp; Custom Commercial Projects</h2>
+    <p>
+      The public online generator at <a href="{% url 'hypn0_site:index' %}">hypn0.xyz</a> is tuned for instant browser-based responsiveness and shared server stability, with reasonable limits on upload dimensions, grid density, and element counts.
+    </p>
+    <p>
+      Need something beyond standard online capabilities? The author is available for <strong>custom development and bespoke vector engineering</strong>:
+    </p>
+    <ul>
+      <li>High-density ultra-resolution offline generations (billboards, high-DPI prints, complex multi-layer vector matrices).</li>
+      <li>Engine modifications, custom algorithmic shaders, specialized geometric primitives, and branded SVG patterns.</li>
+      <li>Tailored frontend integrations for interactive websites, dynamic data visualizations, and bespoke design systems.</li>
+    </ul>
+    <p>
+      To discuss bespoke commissions, engine licensing, or technical collaboration, reach out to the <a href="#" id="c-l" onclick="this.href='ma'+atob('aWx0bzplcmplb'+'WluQGdtYWlsLmNvbQ==')+'?subject='+encodeURIComponent('HypnoSVG: Bespoke Project / Custom Commission');">administrator’s email</a>.
+    </p>
+  </section>
+
+  <hr>
+
+  <!-- Community Showcase & Blog Features -->
+  <section>
+    <h2>Community Showcase: Get Featured on Hypno Chronicles</h2>
+    <p>
+      We actively highlight real-world use cases, design experiments, and production deployments in our official blog (<strong>Hypno Chronicles</strong>).
+    </p>
+    <p>
+      Have you used HypnoSVG in a live website, landing page, advertising campaign, poster series, album cover, or generative coding project? Send us your case study!
+    </p>
+    <ul>
+      <li><strong>Case submission:</strong> Send your project description, live URL, and accompanying illustrations or screenshots.</li>
+      <li><strong>Curated selection:</strong> We do not publish automated submissions blindly, but the more interesting your project and the more detailed the write-up, the closer you get to a <strong>100% guarantee of publication</strong>.</li>
+      <li><strong>Backlinks &amp; Visibility:</strong> Published articles feature an in-depth breakdown of your workflow with direct, prominent links to your portfolio, agency, or social profiles, plus potential induction into the <a href="----">Trance Gallery Hall of Fame</a>.</li>
+    </ul>
+    <p>
+      Send your showcase submissions via <a href="https://github.com/erjemin/2026-hypn0-site/issues" target="_blank" rel="noopener">GitHub Issues</a> or directly via the <a href="#" id="c-l-showcase" onclick="this.href='ma'+atob('aWx0bzplcmplb'+'WluQGdtYWlsLmNvbQ==')+'?subject='+encodeURIComponent('HypnoSVG: Showcase Case Study Submission');">administrator’s email</a>.
+    </p>
+  </section>
+
+  <hr>
+
+  <!-- Open Source & Licensing -->
+  <section>
+    <h2>Open Source &amp; Licensing</h2>
+    <p>
+      HypnoSVG is developed with transparency and respect for creative independence:
+    </p>
+    <ul>
+      <li><strong>Source Repository:</strong> Hosted at <a href="https://git.cube2.ru/erjemin/2026-hypn0-site" target="_blank" rel="noopener">git.cube2.ru/erjemin/2026-hypn0-site</a> and mirrored on <a href="https://github.com/erjemin/2026-hypn0-site" target="_blank" rel="noopener">GitHub</a>.</li>
+      <li><strong>Platform Code:</strong> Licensed under <a href="https://git.cube2.ru/erjemin/2026-hypn0-site/src/branch/master/LICENSE.md" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a>.</li>
+      <li><strong>Synthesized SVGs:</strong> Released under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">Creative Commons Zero (CC0 1.0 Universal)</a> — completely unrestricted for personal and commercial usage.</li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <!-- Footer Navigation -->
+  <footer>
+    <p>
+      <a href="{% url 'hypn0_site:index' %}">Launch Generator &rarr;</a> |
+      <a href="----">Explore Gallery &rarr;</a> |
+      <a href="{% url 'hypn0_site:blog_feed' %}">Read Blog &rarr;</a>
+    </p>
+    <p><small>All glory to the Hypnotoad. Generated vectors are licensed under CC0 1.0 Universal.</small></p>
+  </footer>
+
+</article>
+{% endblock CONTENT %}
