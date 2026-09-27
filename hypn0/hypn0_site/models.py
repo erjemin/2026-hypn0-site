@@ -596,13 +596,13 @@ class TbBlogPost(models.Model):
     def blog_nav_title(self) -> str:
         """Детерминированный выбор названия раздела блога для навигации на основе ID статьи."""
         nav_titles = (
-            "Блог Мозгоклюя",
-            "Записки Гипножабы",
-            "Дневник Мозговых Перцепторов",
-            "Хроники психо-резонанса",
-            "Мемуары астрального архива",
-            "Манифесты волновой матрицы",
-            "Бортовой журнал транс-погружения",
+            "Brain Slug Blog",
+            "Hypnotoad Field Notes",
+            "Neural Perceptor Diary",
+            "Psycho-Resonance Chronicles",
+            "Astral Archive Memoirs",
+            "Wave Matrix Manifestos",
+            "Deep Trance Flight Log",
         )
         if not self.id:
             return nav_titles[0]

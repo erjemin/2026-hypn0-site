@@ -5,11 +5,11 @@
 
 {% block META_TITLE %}{{ post.s_title|striptags }} — HypnoSVG{% endblock %}
 
-{% block META_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:160 }}{% else %}Dispatch from the Hypno Chronicles of HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
+{% block META_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:"160" }}{% else %}Dispatch from the Hypno Chronicles of HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
 
 {% block OG_TITLE %}{{ post.s_title|striptags }} | HypnoSVG{% endblock %}
 
-{% block OG_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:200 }}{% else %}Dispatch from the Hypno Chronicles of HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
+{% block OG_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:"200" }}{% else %}Dispatch from the Hypno Chronicles of HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
 
 {% block OG_IMAGE %}{% if post.f_cover_img %}{{ request.scheme }}://{{ request.get_host }}{{ post.f_cover_img.url }}{% elif post.k_item and post.k_item.file_svg %}{{ request.scheme }}://{{ request.get_host }}{{ post.k_item.file_svg.url }}{% else %}{% static 'img/og-hypn0-default.png' %}{% endif %}{% endblock %}
 
@@ -57,8 +57,8 @@
       "@type": "Article",
       "headline": "{{ post.s_title|striptags|escapejs }}",
       "description": "{{ post.s_teaser|striptags|escapejs }}",
-      "datePublished": "{{ post.d_published_at|date:'r' }}",
-      "dateModified": "{{ post.d_updated_at|date:'r' }}",
+      "datePublished": "{{ post.d_published_at|date:"r" }}",
+      "dateModified": "{{ post.d_updated_at|date:"r" }}",
       "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": "{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}"
@@ -116,27 +116,21 @@
   </div>
   {% endif %}
 
-  <!-- ЕДИНАЯ ДВУХКОЛОНОЧНАЯ СЕТКА: 1/4 слева (превью + SVG), 3/4 справа (заголовок + дата + тизер + контент) -->
+  {% if post.f_cover_img and post.k_item %}
+  <!-- ДВА БЛОКА: 1. Верхний ряд (обложка слева + заголовок/тизер справа) и 2. Нижний ряд (SVG/экспликация слева + контент справа) -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 items-start">
 
     <!-- 1. Верхний ряд слева (1/4): Тизер-превью обложки -->
-    <div class="md:col-span-1 w-full pb-8">
-      {% if post.f_cover_img %}{# ЕСТЬ ТИЗЕР-КАРТИНКА И ПОКАЗЫВАЕМ ЕË #}
-      <div class="aspect-square sm:aspect-[4/3] md:aspect-square rounded-2xl overflow-hidden border border-stone-200 dark:border-zinc-800 shadow-md bg-stone-100 dark:bg-zinc-900">
+    <div class="order-2 md:order-1 md:col-span-1 w-full pb-8">
+      <div class="aspect-square rounded-2xl overflow-hidden border border-stone-200 dark:border-zinc-800 shadow-md bg-stone-100 dark:bg-zinc-900">
         <img src="{{ post.f_cover_img.url }}"
              alt="{{ post.s_title|striptags }}"
              class="w-full h-full object-cover">
       </div>
-      {% else %}{# НЕТ ТИЗЕР-КАРТИНКИ И ПОКАЗЫВАЕМ ЗАГЛУШКУ #}
-      <div class="aspect-square sm:aspect-[4/3] md:aspect-square rounded-2xl border border-dashed border-stone-300 dark:border-zinc-700 bg-stone-100/40 dark:bg-zinc-900/40 flex flex-col items-center justify-center p-3 text-stone-400 dark:text-stone-600 text-center">
-        <img src="{% static 'img/brain-slug.svg' %}" alt="Brain Slug" class="w-10 h-10 opacity-40 mb-1">{# <-- СЮДА ДЕФОЛТНУЮ КАРТИНКУ #}
-        <span class="text-[10px] uppercase tracking-wider">No visual transmitted</span>{# <-- А ПОСЛЕ ЭТО УБРАТЬ #}
-      </div>
-      {% endif %}
     </div>
 
     <!-- 1. Верхний ряд справа (3/4): Заголовок + Дата + Тизер с непрерывной пунктирной линией -->
-    <div class="md:col-span-3 border-l-1 border-purple-500 border-dotted pl-6 pb-8 space-y-4">
+    <div class="order-1 md:order-2 md:col-span-3 border-l-0 md:border-l-1 border-purple-500 border-dotted pl-0 md:pl-6 pb-8 space-y-4">
       <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 dark:text-stone-100 leading-tight">
         {{ post.s_title|safe }}
       </h1>
@@ -161,12 +155,11 @@
       {% endif %}
     </div>
 
-    <!-- 2. Нижний ряд слева (1/4): Связанный SVG + Музейная экспликация (выровнены по вертикали с первой строкой контента) -->
-    <div class="md:col-span-1 space-y-4">
-      {% if post.k_item %}
+    <!-- 2. Нижний ряд слева (1/4): Связанный SVG + Музейная экспликация под ним -->
+    <div class="order-2 md:order-1 md:col-span-1 space-y-4 pt-6 md:pt-0">
       <aside class="space-y-3 md:sticky md:top-6">
         <!-- Интерактивное SVG-полотно экспоната -->
-        <div class="aspect-square rounded-2xl overflow-hidden bg-stone-950 shadow-md flex items-center justify-center p-2 select-none hypn0-detail-canvas [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain">
+        <div class="aspect-square rounded-2xl overflow-hidden bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)] border border-stone-300/80 dark:border-zinc-800/80 shadow-md flex items-center justify-center p-2 select-none hypn0-detail-canvas [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain">
           {% if active_svg %}
             <div class="w-full h-full flex items-center justify-center pointer-events-auto">
               <template shadowrootmode="open">
@@ -265,17 +258,174 @@
           </div>
         </div>
       </aside>
-      {% endif %}
     </div>
 
     <!-- 2. Нижний ряд справа (3/4): Текстовый блок статьи -->
-    <div class="md:col-span-3 border-l-1 border-purple-500 border-dotted pl-6">
+    <div class="order-1 md:order-2 md:col-span-3 border-l-0 md:border-l-1 border-purple-500 border-dotted pl-0 md:pl-6">
       <div class="prose max-w-none font-sans text-base sm:text-lg">
         {{ post.s_content|safe }}
       </div>
     </div>
 
   </div>
+
+  {% else %}
+  <!-- ЕДИНЫЙ БЛОК: Левая колонка (SVG/экспликация, либо обложка, либо заглушка) + Правая колонка (заголовок + дата + тизер + контент) -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 items-start">
+
+    <!-- Левая колонка (1/4) -->
+    <div class="order-2 md:order-1 md:col-span-1 space-y-4 pt-6 md:pt-0">
+      {% if post.k_item %}{# 1. ЕСТЬ SVG (И НЕТ ОБЛОЖКИ) — ПОКАЗЫВАЕМ SVG И ПОД НИМ ЭКСПЛИКАЦИЮ #}
+      <aside class="space-y-3 md:sticky md:top-6">
+        <!-- Интерактивное SVG-полотно экспоната -->
+        <div class="aspect-square rounded-2xl overflow-hidden bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)] border border-stone-300/80 dark:border-zinc-800/80 shadow-md flex items-center justify-center p-2 select-none hypn0-detail-canvas [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain">
+          {% if active_svg %}
+            <div class="w-full h-full flex items-center justify-center pointer-events-auto">
+              <template shadowrootmode="open">
+                <style>
+                  :host {
+                    display: flex;
+                    width: 100%;
+                    height: 100%;
+                    align-items: center;
+                    justify-content: center;
+                    pointer-events: auto;
+                  }
+                  svg {
+                    width: 100%;
+                    height: 100%;
+                    max-width: 100%;
+                    max-height: 100%;
+                    object-fit: contain;
+                    display: block;
+                    --hypn0-play: running !important;
+                  }
+                </style>
+                {{ active_svg|safe }}
+              </template>
+            </div>
+          {% elif post.k_item.file_svg %}
+            <img src="{{ post.k_item.file_svg.url }}" alt="{{ post.k_item.s_title }}" class="max-w-full max-h-full object-contain">
+          {% endif %}
+        </div>
+
+        <!-- Музейная экспликация (Табличка с описанием экспоната) -->
+        <div class="bg-stone-100/80 dark:bg-zinc-900/80 border border-stone-200/80 dark:border-zinc-800 rounded-2xl p-3.5 space-y-2.5 text-xs shadow-sm">
+          <div class="text-right">
+            <div class="font-bold text-stone-900 dark:text-stone-100 text-sm leading-snug">
+              {{ post.k_item.s_title|safe }}
+            </div>
+            <div class="flex items-center justify-end gap-1.5 my-2.5">
+              <a href="{% url 'hypn0_site:gallery_detail' post.k_item.s_hash_id %}"
+                 class="text-[10px]"
+                 title="View artwork in gallery">#{{ post.k_item.s_hash_id }}</a>
+            </div>
+            <div class="flex items-center justify-end gap-1.5 mt-1.5">
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-bold">
+                {{ post.k_item.get_i_level_display }}
+              </span>
+            </div>
+          </div>
+
+          <div class="border-t border-stone-200/60 dark:border-zinc-800 pt-2 space-y-1.5 text-[11px] text-stone-600 dark:text-stone-400">
+            {% if svg_stats.total_oscillators %}
+            <div class="flex justify-between items-center">
+              <span class="opacity-70">Oscillators:</span>
+              <span class="font-bold text-stone-900 dark:text-stone-200">{{ svg_stats.total_oscillators }}</span>
+            </div>
+            {% endif %}
+            {% if svg_stats.viewbox %}
+            <div class="flex justify-between items-center">
+              <span class="opacity-70">viewBox:</span>
+              <span class="font-mono text-purple-600 dark:text-purple-400">{{ svg_stats.viewbox }}</span>
+            </div>
+            {% endif %}
+            {% if svg_stats.total_kb %}
+            <div class="flex justify-between items-center">
+              <span class="opacity-70">Weight:</span>
+              <span class="font-mono text-stone-900 dark:text-stone-200">{{ svg_stats.total_kb }} KB</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between items-center">
+              <span><svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg></span>
+              <span class="inline-flex items-center gap-1 font-bold text-stone-900 dark:text-stone-200">
+                {{ post.k_item.i_views_count }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span><svg class="w-3.5 h-3.5 fill-rose-500 text-rose-500 shrink-0" viewBox="0 0 24 24" stroke="currentColor"  fill="none" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg></span>
+              <span class="inline-flex items-center gap-1 font-bold text-stone-900 dark:text-stone-200">
+                {{ post.k_item.i_likes_count }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Действия с экспонатом -->
+          <div class="border-t border-stone-200/60 dark:border-zinc-800 pt-2 flex flex-col gap-1.5">
+            <a href="{% url 'hypn0_site:gallery_download' post.k_item.s_hash_id %}"
+               class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-200/70 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all border border-stone-300/50 dark:border-zinc-700/50 border-0 text-center">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              <span>Download SVG</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+      {% elif post.f_cover_img %}{# 2. ЕСТЬ ТОЛЬКО ОБЛОЖКА #}
+      <div class="aspect-square rounded-2xl overflow-hidden border border-stone-200 dark:border-zinc-800 shadow-md bg-stone-100 dark:bg-zinc-900">
+        <img src="{{ post.f_cover_img.url }}"
+             alt="{{ post.s_title|striptags }}"
+             class="w-full h-full object-cover">
+      </div>
+      {% else %}{# 3. НЕТ НИ SVG, НИ ОБЛОЖКИ — ДЕФОЛТНАЯ ЗАГЛУШКА #}
+      <div class="aspect-square rounded-2xl border border-dashed border-stone-300 dark:border-zinc-700 bg-stone-100/40 dark:bg-zinc-900/40 flex flex-col items-center justify-center p-3 text-stone-400 dark:text-stone-600 text-center">
+        <img src="{% static 'img/brain-slug.svg' %}" alt="Brain Slug" class="w-10 h-10 opacity-40 mb-1">
+        <span class="text-[10px] uppercase tracking-wider">No visual transmitted</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Правая колонка (3/4): Заголовок + Дата + Тизер + Контент -->
+    <div class="order-1 md:order-2 md:col-span-3 border-l-0 md:border-l-1 border-purple-500 border-dotted pl-0 md:pl-6 space-y-6">
+      <div class="space-y-4">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 dark:text-stone-100 leading-tight">
+          {{ post.s_title|safe }}
+        </h1>
+
+        <!-- Дата и время публикации статьи в рамочке с иконкой часов -->
+        <div class="flex items-center justify-start">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-bold text-sm">
+            <svg class="w-3.5 h-3.5 text-purple-700 dark:text-purple-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <time datetime="{{ post.d_published_at|date:"c" }}">
+              {{ post.d_published_at|date:"r" }}
+            </time>
+          </div>
+        </div>
+
+        <!-- Лид / Тизер статьи -->
+        {% if post.s_teaser %}
+        <div class="text-base sm:text-lg text-stone-600 dark:text-stone-300 leading-relaxed font-sans p-4 sm:p-5 bg-stone-100 dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-2xl">
+          {{ post.s_teaser|safe }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Основной текст статьи -->
+      <div class="prose max-w-none font-sans text-base sm:text-lg">
+        {{ post.s_content|safe }}
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
 
   <!-- РАЗДЕЛ СЕРИИ: список глав (если статья является родительской подборкой/серией) -->
   {% if series_posts and not series_parent %}
@@ -292,7 +442,7 @@
       <div class="bg-stone-100/70 dark:bg-zinc-900/70 rounded-2xl border border-stone-200 dark:border-zinc-800 p-4 space-y-2 hover:border-purple-400 dark:hover:border-purple-600 transition-colors">
         <div class="flex items-center justify-between text-[11px] text-stone-400">
           <span class="font-bold text-purple-600 dark:text-purple-400">Chapter {{ child.i_order }}</span>
-          <time datetime="{{ child.d_published_at|date:"c" }}">{{ child.d_published_at|date:'r' }}</time>
+          <time datetime="{{ child.d_published_at|date:"c" }}">{{ child.d_published_at|date:"r" }}</time>
         </div>
         <h3 class="font-bold text-sm text-stone-900 dark:text-stone-100">
           <a href="{{ child.get_absolute_url }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors border-0">

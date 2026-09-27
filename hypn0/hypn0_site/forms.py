@@ -6,25 +6,25 @@ class HalftoneGenerateForm(forms.Form):
     Форма валидации входных параметров для генерации гипнотического SVG.
     """
     SHAPE_CHOICES = [
-        ("circle", "Круг"),
-        ("ring", "Кольцо"),
-        ("triangle", "Треугольник"),
-        ("square", "Квадрат"),
-        ("diamond", "Ромб"),
-        ("hexagon", "Шестиугольник"),
-        ("star", "Звезда"),
-        ("cross", "Крестик"),
-        ("line", "Линия"),
-        ("snowflake", "Снежинка"),
-        ("binary", "Матрица (0/1)"),
-        ("heart", "Сердечко"),
+        ("circle", "Circle"),
+        ("ring", "Ring"),
+        ("triangle", "Triangle"),
+        ("square", "Square"),
+        ("diamond", "Diamond"),
+        ("hexagon", "Hexagon"),
+        ("star", "Star"),
+        ("cross", "Cross"),
+        ("line", "Line"),
+        ("snowflake", "Snowflake"),
+        ("binary", "Binary (0/1)"),
+        ("heart", "Heart"),
     ]
 
     image = forms.ImageField(
         required=True,
         error_messages={
-            "required": "Покорми Гипножабу изображением!",
-            "invalid_image": "Гипножаба не может переварить этот файл. Нужна картинка (PNG, JPG, WEBP).",
+            "required": "Feed the Hypnotoad with an image!",
+            "invalid_image": "Hypnotoad cannot digest this file. Image required (PNG, JPG, WEBP).",
         },
     )
     shape = forms.ChoiceField(

@@ -196,14 +196,14 @@ def debug_error_preview(request: HttpRequest, code: str = "") -> HttpResponse:
                     break
                 except TemplateDoesNotExist:
                     pass
-            status_mark = "готов к просмотру" if exists else "шаблон не создан"
+            status_mark = "ready to preview" if exists else "template not found"
             links.append(f"<li><a href='/_error/{c}'><strong>/{c}</strong></a> ({status_mark})</li>")
 
         html = f"""<!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Dev: Предпросмотр страниц ошибок // HypnoSVG</title>
+    <title>Dev: Error Pages Preview // HypnoSVG</title>
     <style>
         body {{ font-family: ui-monospace, monospace; background: #09090b; color: #d9f99d; padding: 2rem; line-height: 1.6; }}
         a {{ color: #a3e635; text-decoration: none; border-bottom: 1px dotted #a3e635; }}
@@ -215,8 +215,8 @@ def debug_error_preview(request: HttpRequest, code: str = "") -> HttpResponse:
 </head>
 <body>
     <div class="card">
-        <h2>Центр отладки страниц ошибок (DEBUG=True)</h2>
-        <p>Выберите код для инспекции верстки и интерактивных скриптов перекалибровки:</p>
+        <h2>Error Pages Debug Center (DEBUG=True)</h2>
+        <p>Select an error code to inspect layout and recalibration scripts:</p>
         <ul>
             {''.join(links)}
         </ul>
@@ -244,7 +244,7 @@ def debug_error_preview(request: HttpRequest, code: str = "") -> HttpResponse:
 
     if not found_template:
         return HttpResponse(
-            f"<h1>Шаблон для ошибки '{raw_name}' не найден</h1><p>Проверены: {', '.join(template_candidates)}</p><p><a href='/_error/'>← Вернуться к списку</a></p>",
+            f"<h1>Template for error '{raw_name}' not found</h1><p>Checked: {', '.join(template_candidates)}</p><p><a href='/_error/'>← Back to index</a></p>",
             status=404,
             content_type="text/html; charset=utf-8",
         )
@@ -281,7 +281,7 @@ def generate(request: HttpRequest) -> HttpResponse:
     form = HalftoneGenerateForm(request.POST, request.FILES)
 
     if not form.is_valid():
-        error_msg = next(iter(form.errors.values()))[0] if form.errors else "Ошибка параметров генерации"
+        error_msg = next(iter(form.errors.values()))[0] if form.errors else "Generation parameter error"
         return render(request, "block/preview.html", {"error": error_msg})
 
     image_file = form.cleaned_data["image"]
@@ -313,7 +313,7 @@ def generate(request: HttpRequest) -> HttpResponse:
         return render(
             request,
             "block/preview.html",
-            {"error": f"Сбой в матрице гипноза: {str(e)}"},
+            {"error": f"Glitch in hypno matrix: {str(e)}"},
         )
 
     return render(
@@ -338,7 +338,7 @@ def publish(request: HttpRequest) -> HttpResponse:
         return render(
             request,
             "block/publish_status.html",
-            {"error": "Нет данных SVG для публикации. Попробуйте сгенерировать заново."},
+            {"error": "No SVG data for publication. Please try generating again."},
         )
 
     visitor_uuid = request.COOKIES.get("hypn0_vid")
@@ -411,7 +411,7 @@ def publish(request: HttpRequest) -> HttpResponse:
         return render(
             request,
             "block/publish_status.html",
-            {"error": f"Сбой фиксации в трансе: {str(e)}"},
+            {"error": f"Failed to record in trance: {str(e)}"},
         )
 
     return render(

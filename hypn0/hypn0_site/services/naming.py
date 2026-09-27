@@ -47,7 +47,7 @@ HYPNO_GENITIVES = [
 HYPNO_POSTFIXES = [
     "#42", "v3.14", "(Ultra)", "(Phase&nbsp;7)", "(Alpha)", "(Omega)", "(Protocol&nbsp;09)", "(Revision&nbsp;14)",
     "(Extract)", "(Layer&nbsp;9)", "(Ward&nbsp;106)", "(Hangar&nbsp;18)", "(Unfinished Opus)", "(Secret Project)",
-    "[Classified]", "(DOOP-66)", "(Sub-Level&nbsp;4)", "(MK-Ultra)", "С90"
+    "[Classified]", "(DOOP-66)", "(Sub-Level&nbsp;4)", "(MK-Ultra)", "C90"
 ]
 
 

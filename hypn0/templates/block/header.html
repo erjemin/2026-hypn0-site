@@ -11,7 +11,7 @@
       {# ПРАВОЕ МЕНЮ #}<menu class="flex items-center gap-x-2 md:gap-x-4 justify-self-start text-sm sm:text-base md:text-xl font-semibold text-slate-900 dark:text-slate-100">
         <a href="{% url 'hypn0_site:gallery_archive' %}" class="px-2.5 py-1 sm:px-4 sm:py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg border-0 text-slate-900 dark:text-slate-100">gallery</a>
         <a href="{% url 'hypn0_site:blog_feed' %}" class="px-2.5 py-1 sm:px-4 sm:py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg hidden md:block hyphens-none border-0 text-slate-900 dark:text-slate-100">blog</a>
-        <a href="#" class="px-2.5 py-1 sm:px-4 sm:py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg hidden lg:block border-0 text-slate-900 dark:text-slate-100" @click.prevent="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" title="Light/Dark theme"><span x-text="darkMode?'●':'○'"></span></a>
+        <a href="#" class="px-2.5 py-1 sm:px-4 sm:py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg border-0 text-slate-900 dark:text-slate-100" @click.prevent="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" title="Light/Dark theme"><span x-text="darkMode?'●':'○'"></span></a>
       </menu>{# /ПРАВОЕ МЕНЮ #}
     </div>
   </header>

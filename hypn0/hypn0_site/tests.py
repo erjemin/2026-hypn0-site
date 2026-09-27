@@ -232,7 +232,7 @@ class HalftoneViewTests(BaseMediaTestCase):
         self.assertContains(response, 'X-CSRFToken')
         self.assertContains(response, "handleFileChange")
         self.assertContains(response, "imagePreviewUrl")
-        self.assertContains(response, "Гипножаба облизывается на:")
+        self.assertContains(response, "Hypnotoad salivates over:")
         # Проверяем, что csrf_token не пустой в hx-headers
         content = response.content.decode("utf-8")
         self.assertNotIn('hx-headers=\'{"X-CSRFToken": ""}\'', content)
@@ -291,7 +291,7 @@ class HalftoneViewTests(BaseMediaTestCase):
     def test_generate_post_no_image(self):
         response = self.client.post(reverse("hypn0_site:generate"), data={"shape": "circle"})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Покорми Гипножабу")
+        self.assertContains(response, "Feed the Hypnotoad")
 
     def test_generate_post_success(self):
         buf = io.BytesIO()
@@ -366,8 +366,8 @@ class PublishViewTests(BaseMediaTestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Мозговые слизняки протестуют!")
-        self.assertContains(response, "Подчиниться и опубликовать")
+        self.assertContains(response, "Brain Slugs are&nbsp;rioting!")
+        self.assertContains(response, "Submit and&nbsp;Publish")
         self.assertEqual(TbHypn0Item.objects.count(), 0)
 
     def test_publish_with_cookie_success(self):
@@ -389,8 +389,8 @@ class PublishViewTests(BaseMediaTestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Уже в галерее транса")
-        self.assertContains(response, "идет прорастание психо-паутины...")
+        self.assertContains(response, "In&nbsp;the&nbsp;Trance Gallery")
+        self.assertContains(response, "psychic neural web expanding&hellip;")
 
         # Проверяем запись в БД
         self.assertEqual(TbHypn0Item.objects.count(), 1)
@@ -419,7 +419,7 @@ class PublishViewTests(BaseMediaTestCase):
             data={"svg_content": ""},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Нет данных SVG для публикации")
+        self.assertContains(response, "No SVG data for publication")
         self.assertEqual(TbHypn0Item.objects.count(), 0)
 
 
@@ -522,11 +522,11 @@ class GalleryDetailAndDownloadTests(BaseMediaTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Астральный Транс Сознания #42")
         self.assertContains(response, f"#{self.item.s_hash_id}")
-        self.assertContains(response, "Векторная анатомия")
-        self.assertContains(response, "Синтез психо-сетки")
-        self.assertContains(response, "Астральный паспорт")
-        self.assertContains(response, "Копировать SVG-код")
-        self.assertContains(response, "Скачать .svg")
+        self.assertContains(response, "Vector Anatomy")
+        self.assertContains(response, "Psych-Grid Synthesis")
+        self.assertContains(response, "Astral Passport")
+        self.assertContains(response, "Copy SVG code")
+        self.assertContains(response, "Download .svg")
 
         # Проверка инкремента просмотров
         self.item.refresh_from_db()
@@ -557,7 +557,7 @@ class GalleryDetailAndDownloadTests(BaseMediaTestCase):
         client = Client()
         response = client.post(reverse("hypn0_site:gallery_vote", kwargs={"hash_id": self.item.s_hash_id}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Подчинитесь воле Гипножабы!")
+        self.assertContains(response, "Surrender to&nbsp;Hypnotoad!")
 
 
 class GalleryRandomAndNavigationTests(BaseMediaTestCase):
@@ -699,8 +699,8 @@ class UnconsciousMatrixTests(BaseMediaTestCase):
         item = self.items[0]
         response = self.client.get(reverse("hypn0_site:gallery_detail", kwargs={"hash_id": item.s_hash_id}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Матрица бессознательного")
-        self.assertContains(response, "5 узлов")
+        self.assertContains(response, "Matrix of the Unconscious")
+        self.assertContains(response, "5 nodes")
         self.assertContains(response, f"#{item.s_hash_id}")
         self.assertContains(response, "btn-nav-prev")
         self.assertContains(response, "btn-nav-next")
@@ -782,7 +782,7 @@ class GalleryFreshFloorTests(BaseMediaTestCase):
 
         response = self.client.get(reverse("hypn0_site:index"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Плеск бессознательного")
+        self.assertContains(response, "Incubator of&nbsp;the Unconscious")
         self.assertContains(response, "FRESH STREAM")
         self.assertContains(response, f"gallery-card-{item.s_hash_id}")
         self.assertContains(response, f"¤{item.s_hash_id}")
@@ -935,12 +935,12 @@ class GalleryArchiveTests(BaseMediaTestCase):
         url = reverse("hypn0_site:gallery_archive")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Галерея транса")
+        self.assertContains(response, "Trance Gallery")
         self.assertContains(response, "ARCHIVE")
-        self.assertContains(response, "Все волны")
-        self.assertContains(response, "Инкубатор")
-        self.assertContains(response, "Одобрено")
-        self.assertContains(response, "Золотой фонд")
+        self.assertContains(response, "All waves")
+        self.assertContains(response, "Incubator")
+        self.assertContains(response, "Approved")
+        self.assertContains(response, "Hall of&nbsp;Fame")
         # Все 3 картины присутствуют в выдаче
         self.assertContains(response, f"gallery-card-{self.item_fresh.s_hash_id}")
         self.assertContains(response, f"gallery-card-{self.item_curated.s_hash_id}")
@@ -1013,21 +1013,21 @@ class GalleryArchiveTests(BaseMediaTestCase):
         resp_p1 = self.client.get(url, data={"floor": "all", "sort": "likes"})
         self.assertEqual(resp_p1.status_code, 200)
         self.assertEqual(len(resp_p1.context["page_obj"]), 16)
-        self.assertContains(resp_p1, "Фаза 1 из 2")
-        self.assertContains(resp_p1, "<title>Галерея транса — Каталог анимированных картин | HypnoSVG</title>")
+        self.assertContains(resp_p1, "Phase 1 of&nbsp;2")
+        self.assertContains(resp_p1, "<title>Trance Gallery — Animated SVG Catalog | HypnoSVG</title>")
         # Проверяем сохранение query-параметров в ссылках пагинатора
         self.assertContains(resp_p1, "floor=all&sort=likes&page=2")
 
         resp_p2 = self.client.get(url, data={"floor": "all", "sort": "likes", "page": 2})
         self.assertEqual(resp_p2.status_code, 200)
         self.assertEqual(len(resp_p2.context["page_obj"]), 2)
-        self.assertContains(resp_p2, "Фаза 2 из 2")
-        self.assertContains(resp_p2, "<title>Галерея транса — Каталог анимированных картин (Фаза 2) | HypnoSVG</title>")
+        self.assertContains(resp_p2, "Phase 2 of&nbsp;2")
+        self.assertContains(resp_p2, "<title>Trance Gallery — Animated SVG Catalog (Phase 2) | HypnoSVG</title>")
         self.assertContains(resp_p2, "floor=all&sort=likes&page=1")
 
         # Проверяем Title при фильтрации по этажу
         resp_curated = self.client.get(url, data={"floor": "curated"})
-        self.assertContains(resp_curated, "<title>Одобрено Мозговым Слизнем | HypnoSVG</title>")
+        self.assertContains(resp_curated, "<title>Approved by Brain Slug | HypnoSVG</title>")
 
 
 class RescoreCommandTests(BaseMediaTestCase):
@@ -1311,12 +1311,12 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         # Проверяем, что отображается один из динамических заголовков секции
         content = response.content.decode("utf-8")
         possible_headings = (
-            "Сигналы из параллельного континуума",
-            "Психо-артефакты ноосферы",
-            "Заметки астрального консилиума",
-            "Рефлекторные отклики мозговых слизней",
-            "Публикации из глубин подсознания",
-            "Материалы хроник гипноза",
+            "Signals from&nbsp;Parallel Continuum",
+            "Noosphere Psycho-Artifacts",
+            "Astral Council Field Notes",
+            "Reflexive Responses of&nbsp;Brain Slugs",
+            "Dispatches from&nbsp;Subconscious Depths",
+            "Materials from&nbsp;Hypno Chronicles",
         )
         self.assertTrue(any(heading in content for heading in possible_headings))
         self.assertContains(response, "Хроники гипно-транса: Урок 1")
@@ -1345,7 +1345,7 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         # Проверка 1-й страницы ленты блога
         response = self.client.get("/blog")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Хроники гипноза")
+        self.assertContains(response, "Hypno Chronicles")
         self.assertContains(response, "Тестовая депеша 11")
         self.assertNotContains(response, "Черновик ноосферы")
         self.assertContains(response, "page=2")
@@ -1388,7 +1388,7 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         resp_parent = self.client.get(f"/blog/{series_parent.slug}")
         self.assertEqual(resp_parent.status_code, 200)
         self.assertContains(resp_parent, "Цикл: Основы векторного гипноза")
-        self.assertContains(resp_parent, "Материалы и главы этого цикла")
+        self.assertContains(resp_parent, "Chapters in This Series")
         self.assertContains(resp_parent, "Глава 1: Первичная модуляция")
         self.assertContains(resp_parent, "Глава 2: Фазовый сдвиг матрицы")
 
@@ -1396,31 +1396,31 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         resp_ch1 = self.client.get(f"/blog/{ch1.slug}")
         self.assertEqual(resp_ch1.status_code, 200)
         self.assertContains(resp_ch1, "Глава 1: Первичная модуляция")
-        self.assertContains(resp_ch1, "Материал входит в серию:")
+        self.assertContains(resp_ch1, "Part of&nbsp;the&nbsp;series:")
         self.assertContains(resp_ch1, self.item.s_title)
         self.assertContains(resp_ch1, f"#{self.item.s_hash_id}")
         self.assertContains(resp_ch1, f"/gallery/{self.item.s_hash_id}")
-        self.assertContains(resp_ch1, "Скачать SVG")
-        self.assertContains(resp_ch1, "Вес:")
-        self.assertContains(resp_ch1, "Следующая глава цикла")
+        self.assertContains(resp_ch1, "Download SVG")
+        self.assertContains(resp_ch1, "Weight:")
+        self.assertContains(resp_ch1, "Next chapter in series")
         self.assertContains(resp_ch1, "Глава 2: Фазовый сдвиг матрицы")
 
         # Проверка хлебных крошек
-        self.assertContains(resp_ch1, 'aria-label="Хлебные крошки"')
+        self.assertContains(resp_ch1, 'aria-label="Breadcrumbs"')
         self.assertContains(resp_ch1, ch1.blog_nav_title)
-        self.assertContains(resp_ch1, "Глава 1 из 2")
+        self.assertContains(resp_ch1, "Chapter 1 of 2")
         self.assertContains(resp_ch1, 'aria-current="page"')
 
         # Проверка JSON-LD BreadcrumbList
         self.assertContains(resp_ch1, '"@type": "BreadcrumbList"')
-        self.assertContains(resp_ch1, '"name": "Главная"')
-        self.assertContains(resp_ch1, '"name": "Хроники гипноза"')
+        self.assertContains(resp_ch1, '"name": "Home"')
+        self.assertContains(resp_ch1, '"name": "Hypno Chronicles"')
         self.assertContains(resp_ch1, series_parent.s_title)
 
         # 3. Проверка второй главы (ссылка назад на главу 1)
         resp_ch2 = self.client.get(f"/blog/{ch2.slug}")
         self.assertEqual(resp_ch2.status_code, 200)
-        self.assertContains(resp_ch2, "Предыдущая глава цикла")
+        self.assertContains(resp_ch2, "Previous chapter in series")
         self.assertContains(resp_ch2, "Глава 1: Первичная модуляция")
 
         # 4. Проверка доступа по числовому ID
@@ -1437,10 +1437,10 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         """Проверка отдачи кастомной страницы 404 в режиме DEBUG=False."""
         response = self.client.get("/totally-non-existent-hypno-route-404")
         self.assertEqual(response.status_code, 404)
-        self.assertContains(response, "Гипноузел не&nbsp;обнаружен", status_code=404)
-        self.assertContains(response, "СБОЙ МАТРИЦЫ // КОД?&nbsp;404", status_code=404)
+        self.assertContains(response, "Hypno-Node Not Found", status_code=404)
+        self.assertContains(response, "MATRIX ANOMALY // CODE&nbsp;404", status_code=404)
         self.assertContains(response, "return-btn", status_code=404)
-        self.assertContains(response, "Стираем остатки несущес&shy;твующей страницы", status_code=404)
+        self.assertContains(response, "Erasing traces of the phantom page", status_code=404)
 
     @override_settings(DEBUG=True)
     def test_debug_error_preview_routing(self):
@@ -1448,23 +1448,23 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         # 1. Индексный список страниц ошибок
         resp_list = self.client.get("/_error/")
         self.assertEqual(resp_list.status_code, 200)
-        self.assertContains(resp_list, "Центр отладки страниц ошибок")
+        self.assertContains(resp_list, "Error Pages Debug Center")
         self.assertContains(resp_list, "/_error/404")
-        self.assertContains(resp_list, "готов к просмотру")
+        self.assertContains(resp_list, "ready to preview")
 
         # 2. Проверка каждого кода ошибки
         expected_checks = [
-            ("400", 400, "Сбой ментального протокола"),
-            ("401", 401, "Требуется ментальная идентификация"),
-            ("403", 403, "Отказано бюрократом 24-го уровня"),
-            ("404", 404, "Гипноузел не&nbsp;обнаружен"),
-            ("413", 413, "Перегрузка сенсорных каналов"),
-            ("429", 429, "Слишком много мыслей в&nbsp;секунду"),
-            ("500", 500, "Критический перегрев неокортекса"),
-            ("502", 502, "Контейнер потерял сознание"),
-            ("503", 503, "Плановый сеанс гипнотерапии"),
-            ("504", 504, "Разрыв астральной связи"),
-            ("under_reconstruction", 200, "Отдел мозга на&nbsp;реконструкции"),
+            ("400", 400, "Perceptual Protocol Mismatch"),
+            ("401", 401, "Subconscious Identity Required"),
+            ("403", 403, "Cognitive Lockdown Active"),
+            ("404", 404, "Hypno-Node Not Found"),
+            ("413", 413, "Sensory Channel Saturation"),
+            ("429", 429, "Too Many Thoughts per Second"),
+            ("500", 500, "Introspection Neural Lock"),
+            ("502", 502, "Uplink to Hippocampus Lost"),
+            ("503", 503, "Scheduled Hypnotherapy in Progress"),
+            ("504", 504, "Astral Synapse Timed Out"),
+            ("under_reconstruction", 200, "Brain Sector Under Reconstruction"),
         ]
 
         for code, expected_status, text_fragment in expected_checks:
@@ -1478,12 +1478,12 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         # 3. Предпросмотр с суффиксом .html
         resp_404_html = self.client.get("/_error/404.html")
         self.assertEqual(resp_404_html.status_code, 404)
-        self.assertContains(resp_404_html, "Гипноузел не&nbsp;обнаружен", status_code=404)
+        self.assertContains(resp_404_html, "Hypno-Node Not Found", status_code=404)
 
         # 4. Несуществующий шаблон ошибки в dev-режиме
         resp_non_existent = self.client.get("/_error/non-existent-code-999")
         self.assertEqual(resp_non_existent.status_code, 404)
-        self.assertContains(resp_non_existent, "Шаблон для ошибки 'non-existent-code-999' не найден", status_code=404)
+        self.assertContains(resp_non_existent, "Template for error 'non-existent-code-999' not found", status_code=404)
 
     def test_custom_django_error_handlers(self):
         """Проверка прямого вызова стандартных Django-обработчиков ошибок."""
@@ -1495,22 +1495,22 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
         req400 = factory.get("/bad-request")
         resp400 = error_400(req400)
         self.assertEqual(resp400.status_code, 400)
-        self.assertIn("Сбой ментального протокола", resp400.content.decode("utf-8"))
+        self.assertIn("Perceptual Protocol Mismatch", resp400.content.decode("utf-8"))
 
         req403 = factory.get("/forbidden")
         resp403 = error_403(req403)
         self.assertEqual(resp403.status_code, 403)
-        self.assertIn("Отказано бюрократом 24-го уровня", resp403.content.decode("utf-8"))
+        self.assertIn("Cognitive Lockdown Active", resp403.content.decode("utf-8"))
 
         req404 = factory.get("/not-found")
         resp404 = error_404(req404)
         self.assertEqual(resp404.status_code, 404)
-        self.assertIn("Гипноузел не&nbsp;обнаружен", resp404.content.decode("utf-8"))
+        self.assertIn("Hypno-Node Not Found", resp404.content.decode("utf-8"))
 
         req500 = factory.get("/server-error")
         resp500 = error_500(req500)
         self.assertEqual(resp500.status_code, 500)
-        self.assertIn("Критический перегрев неокортекса", resp500.content.decode("utf-8"))
+        self.assertIn("Introspection Neural Lock", resp500.content.decode("utf-8"))
 
     def test_s_title_plain_property(self):
         """Проверка очистки HTML-тегов и мнемоник в s_title_plain для моделей TbHypn0Item и TbBlogPost."""
