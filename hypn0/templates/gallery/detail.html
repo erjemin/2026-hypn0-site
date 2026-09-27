@@ -1,11 +1,11 @@
 {% extends "_base.html" %}
 {% load static %}
 
-{% block PAGE_TITLE %}{{ item.s_title_plain }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
-{% block META_TITLE %}{{ item.s_title_plain }} — Векторный транс #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
-{% block META_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title_plain }}» (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} векторных осцилляторов. Генератор анимированных SVG-халфтонов HypnoSVG.{% endblock %}
-{% block OG_TITLE %}{{ item.s_title_plain }} — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
-{% block OG_DESCRIPTION %}Гипнотическая векторная картина «{{ item.s_title_plain }}» (#{{ item.s_hash_id }}). Векторный транс в галерее HypnoSVG.{% endblock %}
+{% block PAGE_TITLE %}{{ item.s_title_plain }} — Animated SVG Artwork #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block META_TITLE %}{{ item.s_title_plain }} — Vector Trance #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block META_DESCRIPTION %}Hypnotic vector artwork "{{ item.s_title_plain }}" (#{{ item.s_hash_id }}). {{ svg_stats.total_oscillators }} vector oscillators. HypnoSVG animated halftone generator.{% endblock %}
+{% block OG_TITLE %}{{ item.s_title_plain }} — Animated SVG Artwork #{{ item.s_hash_id }} | HypnoSVG{% endblock %}
+{% block OG_DESCRIPTION %}Hypnotic vector artwork "{{ item.s_title_plain }}" (#{{ item.s_hash_id }}). Vector trance in the HypnoSVG gallery.{% endblock %}
 {% block OG_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
 {% block TWITTER_IMAGE %}{% static 'img/og-hypn0-default.png' %}{% endblock %}
 
@@ -18,27 +18,27 @@
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>
-      <span>К генератору транса</span>
+      <span>Generator</span>
     </a>
 
     <!-- Кольцевая навигация: Предыдущая / Следующая (нативные ссылки) -->
     <div class="flex items-center gap-2">
       <a href="{{ prev_url }}"
          id="btn-nav-prev"
-         title="Предыдущая волна транса [← или A]"
+         title="Previous trance wave [← or A]"
          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-stone-700 dark:text-stone-300 transition-all hover:scale-105 active:scale-95 shadow-sm border border-stone-200 dark:border-zinc-700/60 cursor-pointer">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
-        <span class="hidden sm:inline">Предыдущая</span>
+        <span class="hidden sm:inline">Previous</span>
         <span class="text-[10px] opacity-40 font-mono hidden md:inline">[←]</span>
       </a>
 
       <a href="{{ next_url }}"
          id="btn-nav-next"
-         title="Следующая волна транса [→ или D]"
+         title="Next trance wave [→ or D]"
          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white transition-all hover:scale-105 active:scale-95 shadow-md border-0 cursor-pointer">
-        <span class="inline">Следующая</span>
+        <span class="inline">Next</span>
         <span class="text-[10px] opacity-60 font-mono hidden md:inline">[→]</span>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -66,7 +66,7 @@
           {{ item.s_title|safe }}
         </h1>
         <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">
-          Зафиксировано в пространстве: <time datetime="{{ item.d_created_at|date:'Y-m-d H:i:s' }}">{{ item.d_created_at|date:'c' }}</time>
+          Captured in&nbsp;spacetime: <time datetime="{{ item.d_created_at|date:'Y-m-d H:i:s' }}">{{ item.d_created_at|date:'r' }}</time>
         </p>
       </div>
 
@@ -77,13 +77,13 @@
 
     <!-- Полноэкранный просмотр SVG с живой анимацией и плавающими стрелками -->
     <div style="{{ item.card_bg_style }}" 
-         title="«{{ item.s_title_plain }}» — Анимированная SVG-картина #{{ item.s_hash_id }} | HypnoSVG"
-         aria-label="«{{ item.s_title_plain }}» — Векторная картина #{{ item.s_hash_id }} в галерее HypnoSVG"
+         title="&ldquo;{{ item.s_title_plain }}&rdquo; — Animated SVG artwork #{{ item.s_hash_id }} | HypnoSVG"
+         aria-label="&ldquo;{{ item.s_title_plain }}&rdquo; — Vector artwork #{{ item.s_hash_id }} in HypnoSVG gallery"
          class="relative w-full aspect-square flex items-center justify-center rounded-2xl overflow-hidden shadow-inner border border-stone-300/80 dark:border-zinc-800/80 group select-none bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]">
       
       <!-- Плавающая кнопка: Назад -->
       <a href="{{ prev_url }}"
-         title="Предыдущая картина [← или A]"
+         title="Previous artwork [← or A]"
          class="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-stone-900/70 hover:bg-purple-600 text-white flex items-center justify-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-90 z-20 border border-solid border-white/10 no-underline">
         <svg class="w-5 h-5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
@@ -92,7 +92,7 @@
 
       <!-- Плавающая кнопка: Вперед -->
       <a href="{{ next_url }}"
-         title="Следующая картина [→ или D]"
+         title="Next artwork [→ or D]"
          class="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-stone-900/70 hover:bg-purple-600 text-white flex items-center justify-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-90 z-20 border border-solid border-white/10 no-underline">
         <svg class="w-5 h-5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
@@ -131,7 +131,7 @@
           <svg x-show="copiedSvg" class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
-          <span x-text="copiedSvg ? 'SVG скопирован!' : 'Копировать SVG-код'">Копировать SVG-код</span>
+          <span x-text="copiedSvg ? 'SVG copied!' : 'Copy SVG code'">Copy SVG code</span>
         </button>
 
         <!-- Кнопка Скачать SVG -->
@@ -142,7 +142,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
           </svg>
-          <span>Скачать .svg</span>
+          <span>Download .svg</span>
         </a>
 
         <!-- Кнопка Поделиться -->
@@ -152,13 +152,13 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
           </svg>
-          <span x-text="copiedUrl ? 'Ссылка в буфере!' : 'Поделиться'">Поделиться</span>
+          <span x-text="copiedUrl ? 'Link in clipboard!' : 'Share'">Share</span>
         </button>
       </div>
 
       <!-- Метрики просмотров и объема -->
       <div class="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
-        <span title="Число уникальных сеансов транса" class="flex items-center gap-1">
+        <span title="Unique trance sessions" class="flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -166,7 +166,7 @@
           <span>{{ item.i_views_count }}</span>
         </span>
         <span>•</span>
-        <span>{{ svg_stats.total_kb }} КБ</span>
+        <span>{{ svg_stats.total_kb }} KB</span>
       </div>
     </div>
   </div>
@@ -177,12 +177,12 @@
     <div class="flex items-center gap-3">
       <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
       <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
-        {% if item.id|divisibleby:6 %}Сигналы из параллельного континуума
-        {% elif item.id|divisibleby:5 %}Психо-артефакты ноосферы
-        {% elif item.id|divisibleby:4 %}Заметки астрального консилиума
-        {% elif item.id|divisibleby:3 %}Рефлекторные отклики мозговых слизней
-        {% elif item.id|divisibleby:2 %}Публикации из глубин подсознания
-        {% else %}Материалы хроник гипноза{% endif %}
+        {% if item.id|divisibleby:6 %}Signals from&nbsp;Parallel Continuum
+        {% elif item.id|divisibleby:5 %}Noosphere Psycho-Artifacts
+        {% elif item.id|divisibleby:4 %}Astral Council Field Notes
+        {% elif item.id|divisibleby:3 %}Reflexive Responses of&nbsp;Brain Slugs
+        {% elif item.id|divisibleby:2 %}Dispatches from&nbsp;Subconscious Depths
+        {% else %}Materials from&nbsp;Hypno Chronicles{% endif %}
       </h2>
     </div>
 
@@ -205,11 +205,11 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
                 </svg>
-                Серия: {{ blog_post.k_parent_post.s_title|safe }}
+                Series: {{ blog_post.k_parent_post.s_title|safe }}
               </span>
               {% endif %}
               <time datetime="{{ blog_post.d_published_at|date:"c" }}" class="text-[11px] text-stone-400 dark:text-stone-500 font-mono {% if blog_post.k_parent_post %}ml-auto{% endif %}">
-                {{ blog_post.d_published_at|date:"d E Y" }}
+                {{ blog_post.d_published_at|date:"d M Y" }}
               </time>
             </div>
 
@@ -228,11 +228,11 @@
             <div class="pt-1">
               <a href="{{ blog_post.get_absolute_url }}"
                  class="group inline-flex items-center gap-1.5 text-xs font-bold transition-colors">
-                {% if blog_post.id|divisibleby:5 %}и&nbsp;так далее, в&nbsp;глубинах подсознания
-                {% elif blog_post.id|divisibleby:4 %}подробнее, в&nbsp;блоге Гипножабы
-                {% elif blog_post.id|divisibleby:3 %}подробнее, в&nbsp;записках Мозгового Слизня
-                {% elif blog_post.id|divisibleby:2 %}занятный бред, продолжу чтение
-                {% else %}безвольно продолжить чтение{% endif %}
+                {% if blog_post.id|divisibleby:5 %}and so forth, into the&nbsp;depths
+                {% elif blog_post.id|divisibleby:4 %}read more in&nbsp;the&nbsp;Hypnotoad blog
+                {% elif blog_post.id|divisibleby:3 %}read more in&nbsp;the&nbsp;Brain Slug notes
+                {% elif blog_post.id|divisibleby:2 %}fascinating trance, keep reading
+                {% else %}passively surrender to&nbsp;reading{% endif %}
                 <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
@@ -251,7 +251,7 @@
     <div class="flex items-center gap-3">
       <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
       <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
-        Метрики и структура волновой матрицы
+        Wave Matrix Metrics &amp; Architecture
       </h2>
     </div>
 
@@ -261,42 +261,42 @@
       <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
         <div class="flex items-center justify-between border-b border-stone-200 dark:border-zinc-800 pb-2.5">
           <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Векторная анатомия
+            Vector Anatomy
           </h3>
           <span class="text-[10px] font-mono opacity-60">DOM / SVG</span>
         </div>
 
         <ul class="space-y-2.5 text-xs">
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Осцилляций:</span>
+            <span class="text-stone-500 dark:text-stone-400">Oscillations:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.total_oscillators }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Морфо-примитивов (&lt;defs&gt;):</span>
+            <span class="text-stone-500 dark:text-stone-400">Morph-primitives&nbsp;p;(&lt;defs&gt;):</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.defs_count }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Групп кластеризации (&lt;g&gt;):</span>
+            <span class="text-stone-500 dark:text-stone-400">Cluster groups&nbsp;(&lt;g&gt;):</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.groups_count }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Частотных классов CSS:</span>
+            <span class="text-stone-500 dark:text-stone-400">CSS frequency classes:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.classes_count }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Гармоник модуляции:</span>
-            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.keyframes_count }} (@keyframes)</span>
+            <span class="text-stone-500 dark:text-stone-400">Modulation harmonics:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ svg_stats.keyframes_count }}&nbsp;(@keyframes)</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Пространство viewBox:</span>
+            <span class="text-stone-500 dark:text-stone-400">viewBox coordinates:</span>
             <span class="font-mono text-purple-600 dark:text-purple-400">{{ svg_stats.viewbox }} ({{ svg_stats.aspect_ratio }})</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Плотность осцилляторов:</span>
+            <span class="text-stone-500 dark:text-stone-400">Oscillator density:</span>
             <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.density }}&nbsp;μpx²</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Энтропия данных:</span>
+            <span class="text-stone-500 dark:text-stone-400">Data entropy:</span>
             <span class="font-mono text-stone-900 dark:text-stone-100">{{ svg_stats.bytes_per_quantum }} byte/quant</span>
           </li>
         </ul>
@@ -306,42 +306,42 @@
       <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
         <div class="flex items-center justify-between border-b border-stone-200 dark:border-zinc-800 pb-2.5">
           <h3 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-            Синтез психо-сетки
+            Psych-Grid Synthesis
           </h3>
           <span class="text-[10px] font-mono opacity-60">j_metadata</span>
         </div>
 
         <ul class="space-y-2.5 text-xs">
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Глюко-элемент:</span>
+            <span class="text-stone-500 dark:text-stone-400">Glitch element:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.shape|default:'circle' }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Колонки дискретизации:</span>
+            <span class="text-stone-500 dark:text-stone-400">Sampling columns:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.cols|default:'35' }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Предельный радиус:</span>
-            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.max_radius|default:'8' }} px</span>
+            <span class="text-stone-500 dark:text-stone-400">Max radius:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.max_radius|default:'8' }}&nbsp;px</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Период модуляции (Blink):</span>
-            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.blink|default:'6' }} с</span>
+            <span class="text-stone-500 dark:text-stone-400">Modulation period (Blink):</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.blink|default:'6' }}&nbsp;s</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Фазовый угол поворота:</span>
+            <span class="text-stone-500 dark:text-stone-400">Phase rotation angle:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.rotation|default:'0' }}°</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Угол поляризации:</span>
+            <span class="text-stone-500 dark:text-stone-400">Polarization angle:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.angle|default:'0' }}°</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Масштаб амплитуды:</span>
+            <span class="text-stone-500 dark:text-stone-400">Amplitude scale:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ metadata.scale|default:'980' }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Хроматический спектр:</span>
+            <span class="text-stone-500 dark:text-stone-400">Chromatic spectrum:</span>
             <span class="flex items-center gap-1.5 font-mono text-stone-900 dark:text-stone-100">
               <span class="w-3.5 h-3.5 rounded-full border border-stone-400/40 shadow-inner" style="background-color: {{ metadata.color|default:'#a855ff' }}"></span>
               <span>{{ metadata.color|default:'#a855ff' }}</span>
@@ -354,44 +354,44 @@
       <div class="bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-stone-200 dark:border-zinc-800 p-5 space-y-4 backdrop-blur-sm">
         <div class="flex items-center justify-between border-b border-stone-200 dark:border-zinc-800 pb-2.5">
           <h3 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-            Астральный паспорт
+            Astral Passport
           </h3>
           <span class="text-[10px] font-mono opacity-60">Zero-PII</span>
         </div>
 
         <ul class="space-y-2.5 text-xs">
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">ID-Хэш транса:</span>
+            <span class="text-stone-500 dark:text-stone-400">Trance ID-Hash:</span>
             <span class="font-bold text-purple-600 dark:text-purple-400 font-mono">¤{{ item.s_hash_id }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Психо-хэш автора:</span>
+            <span class="text-stone-500 dark:text-stone-400">Author psych-hash:</span>
             <span class="font-mono text-[11px] text-stone-700 dark:text-stone-300" title="{% if author_fp %}{{ author_fp }}{% endif %}">
-              {% if author_fp %}{{ author_fp|slice:":10" }}...{{ author_fp|slice:"-6:" }}{% else %}Анонимная сущность{% endif %}
+              {% if author_fp %}{{ author_fp|slice:":10" }}...{{ author_fp|slice:"-6:" }}{% else %}Anonymous Entity{% endif %}
             </span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Гравитация:</span>
-            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{% if item.f_score < 0.01  %}N/A{% else %}{{ item.f_score|floatformat:4 }}{%  endif %}</span>
+            <span class="text-stone-500 dark:text-stone-400">Gravity:</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100 font-mono">{{ item.f_score|stringformat:".4e" }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Статус:</span>
+            <span class="text-stone-500 dark:text-stone-400">Status:</span>
             <span class="font-bold text-stone-900 dark:text-stone-100">{{ item.get_i_level_display }}</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Клинч неокортекса:</span>
+            <span class="text-stone-500 dark:text-stone-400">Neocortex clinch:</span>
             <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">1/{% widthratio item.i_views_count item.i_likes_count 1 %}&nbsp;ɢLÜCK</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Трансцендентность:</span>
-            <span class="font-mono text-stone-900 dark:text-stone-100 scale-x-[-1]">Ȅ&nbsp;<sup>{% widthratio svg_stats.i_likes_count item.total_bytes 1 %}0</sup>/<sub>{% widthratio svg_stats.total_bytes item.i_likes_count 1 %}</sub></span>
+            <span class="text-stone-500 dark:text-stone-400">Transcendence:</span>
+            <span class="font-mono text-stone-900 dark:text-stone-100 scale-x-[-1]">Թ&nbsp;<sub>{% widthratio svg_stats.i_likes_count item.total_bytes 1 %}0</sub>\<sup>{% widthratio svg_stats.total_bytes item.i_likes_count 1 %}</sup></span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Синтез-движок:</span>
+            <span class="text-stone-500 dark:text-stone-400">Synthesis engine:</span>
             <span class="text-purple-600 dark:text-purple-400 font-bold">HypnoSVG</span>
           </li>
           <li class="flex justify-between items-center">
-            <span class="text-stone-500 dark:text-stone-400">Бредогенерация:</span>
+            <span class="text-stone-500 dark:text-stone-400">Delirium synthesis:</span>
             <span class="text-purple-600 dark:text-purple-400 font-bold">v0.1.1</span>
           </li>
         </ul>
@@ -404,10 +404,10 @@
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 dark:border-zinc-800 pb-2.5">
         <div class="flex items-center gap-2">
           <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Матрица бессознательного
+            Matrix of the Unconscious
           </h3>
           <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-stone-200/60 dark:bg-zinc-800 text-stone-600 dark:text-stone-300">
-            {{ matrix_items|length }} узлов
+            {{ matrix_items|length }} nodes
           </span>
         </div>
         <span class="text-[10px] font-mono opacity-50 text-stone-500 dark:text-stone-400">seed: {{ seed }}</span>
@@ -417,7 +417,7 @@
       <div class="flex flex-wrap gap-1.5 sm:gap-2 max-h-72 overflow-y-auto p-1 font-mono text-[11px] leading-tight select-none">
         {% for node in matrix_items %}
           {% if node.is_current %}
-            <span class="px-2.5 py-1 rounded-md bg-stone-100 dark:bg-zinc-800 font-bold text-stone-900 dark:text-stone-100 border-2 border-purple-500/80 shadow-sm cursor-default" title="Текущий транс: #{{ node.s_hash_id }}">
+            <span class="px-2.5 py-1 rounded-md bg-stone-100 dark:bg-zinc-800 font-bold text-stone-900 dark:text-stone-100 border-2 border-purple-500/80 shadow-sm cursor-default" title="Current trance: #{{ node.s_hash_id }}">
               #{{ node.s_hash_id }}
             </span>
           {% else %}

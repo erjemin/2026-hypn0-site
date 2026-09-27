@@ -1,15 +1,15 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block PAGE_TITLE %}{{ post.s_title|striptags }} | Хроники гипноза HypnoSVG{% endblock %}
+{% block PAGE_TITLE %}{{ post.s_title|striptags }} | Hypno Chronicles | HypnoSVG{% endblock %}
 
 {% block META_TITLE %}{{ post.s_title|striptags }} — HypnoSVG{% endblock %}
 
-{% block META_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:160 }}{% else %}Статья из хроник гипноза HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
+{% block META_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:160 }}{% else %}Dispatch from the Hypno Chronicles of HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
 
 {% block OG_TITLE %}{{ post.s_title|striptags }} | HypnoSVG{% endblock %}
 
-{% block OG_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:200 }}{% else %}Статья из хроник гипноза HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
+{% block OG_DESCRIPTION %}{% if post.s_teaser %}{{ post.s_teaser|striptags|truncatechars:200 }}{% else %}Dispatch from the Hypno Chronicles of HypnoSVG: {{ post.s_title|striptags }}{% endif %}{% endblock %}
 
 {% block OG_IMAGE %}{% if post.f_cover_img %}{{ request.scheme }}://{{ request.get_host }}{{ post.f_cover_img.url }}{% elif post.k_item and post.k_item.file_svg %}{{ request.scheme }}://{{ request.get_host }}{{ post.k_item.file_svg.url }}{% else %}{% static 'img/og-hypn0-default.png' %}{% endif %}{% endblock %}
 
@@ -23,13 +23,13 @@
         {
           "@type": "ListItem",
           "position": 1,
-          "name": "Главная",
+          "name": "Home",
           "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'hypn0_site:index' %}"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "Хроники гипноза",
+          "name": "Hypno Chronicles",
           "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'hypn0_site:blog_feed' %}"
         }{% if series_parent %},
         {
@@ -57,8 +57,8 @@
       "@type": "Article",
       "headline": "{{ post.s_title|striptags|escapejs }}",
       "description": "{{ post.s_teaser|striptags|escapejs }}",
-      "datePublished": "{{ post.d_published_at|date:'c' }}",
-      "dateModified": "{{ post.d_updated_at|date:'c' }}",
+      "datePublished": "{{ post.d_published_at|date:'r' }}",
+      "dateModified": "{{ post.d_updated_at|date:'r' }}",
       "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": "{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}"
@@ -70,12 +70,12 @@
 <article class="mx-auto space-y-10">
 
   <!-- Навигационная полоса / Хлебные крошки -->
-  <nav aria-label="Хлебные крошки" class="flex flex-wrap items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-    <a href="{% url 'hypn0_site:index' %}" class="inline-flex items-center gap-1 " title="Главная">
+  <nav aria-label="Breadcrumbs" class="flex flex-wrap items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+    <a href="{% url 'hypn0_site:index' %}" class="inline-flex items-center gap-1 " title="Home">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
       </svg>
-      <span class="hidden sm:inline">Главная</span>
+      <span class="hidden sm:inline">Home</span>
     </a>
 
     <span class="text-stone-300 dark:text-zinc-700">/</span>
@@ -87,7 +87,7 @@
     {% if series_parent %}
     <span class="text-stone-300 dark:text-zinc-700">/</span>
     <a href="{{ series_parent.get_absolute_url }}" title="{{ series_parent.s_title|striptags }}">
-      Глава {{ post.i_order }}{% if series_total_count %} из {{ series_total_count }}{% endif %}
+      Chapter {{ post.i_order }}{% if series_total_count %} of {{ series_total_count }}{% endif %}
     </a>
     {% endif %}
 
@@ -104,14 +104,14 @@
     <div class="flex items-center gap-3">
       <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse shrink-0"></span>
       <div class="text-xs">
-        <span class="text-stone-500 dark:text-stone-400">Материал входит в серию:</span>
+        <span class="text-stone-500 dark:text-stone-400">Part of&nbsp;the&nbsp;series:</span>
         <a href="{{ series_parent.get_absolute_url }}" class="font-bold text-purple-700 dark:text-purple-300 hover:underline border-0 ml-1">
           {{ series_parent.s_title|safe }}
         </a>
       </div>
     </div>
     <span class="text-[11px] text-purple-600 dark:text-purple-400 shrink-0">
-      Глава {{ post.i_order }}
+      Chapter&nbsp;{{ post.i_order }}
     </span>
   </div>
   {% endif %}
@@ -129,8 +129,8 @@
       </div>
       {% else %}{# НЕТ ТИЗЕР-КАРТИНКИ И ПОКАЗЫВАЕМ ЗАГЛУШКУ #}
       <div class="aspect-square sm:aspect-[4/3] md:aspect-square rounded-2xl border border-dashed border-stone-300 dark:border-zinc-700 bg-stone-100/40 dark:bg-zinc-900/40 flex flex-col items-center justify-center p-3 text-stone-400 dark:text-stone-600 text-center">
-        <img src="{% static 'img/brain-slug.svg' %}" alt="Гипножаба" class="w-10 h-10 opacity-40 mb-1">{# <-- СЮДА ДЕФОЛТНУЮ КАРТИНКУ #}
-        <span class="text-[10px] uppercase tracking-wider">Тут ничего не нарисовано</span>{# <-- А ПОСЛЕ ЭТО УБРАТЬ #}
+        <img src="{% static 'img/brain-slug.svg' %}" alt="Brain Slug" class="w-10 h-10 opacity-40 mb-1">{# <-- СЮДА ДЕФОЛТНУЮ КАРТИНКУ #}
+        <span class="text-[10px] uppercase tracking-wider">No visual transmitted</span>{# <-- А ПОСЛЕ ЭТО УБРАТЬ #}
       </div>
       {% endif %}
     </div>
@@ -147,8 +147,8 @@
           <svg class="w-3.5 h-3.5 text-purple-700 dark:text-purple-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <time datetime="{{ post.d_published_at|date:'c' }}">
-            {{ post.d_published_at|date:'d E 30y, H:i:s' }}
+          <time datetime="{{ post.d_published_at|date:"c" }}">
+            {{ post.d_published_at|date:"r" }}
           </time>
         </div>
       </div>
@@ -206,7 +206,7 @@
             <div class="flex items-center justify-end gap-1.5 my-2.5">
               <a href="{% url 'hypn0_site:gallery_detail' post.k_item.s_hash_id %}"
                  class="text-[10px]"
-                 title="Открыть картину в галерее">#{{ post.k_item.s_hash_id }}</a>
+                 title="View artwork in gallery">#{{ post.k_item.s_hash_id }}</a>
             </div>
             <div class="flex items-center justify-end gap-1.5 mt-1.5">
               <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-bold">
@@ -218,7 +218,7 @@
           <div class="border-t border-stone-200/60 dark:border-zinc-800 pt-2 space-y-1.5 text-[11px] text-stone-600 dark:text-stone-400">
             {% if svg_stats.total_oscillators %}
             <div class="flex justify-between items-center">
-              <span class="opacity-70">Осцилляций:</span>
+              <span class="opacity-70">Oscillators:</span>
               <span class="font-bold text-stone-900 dark:text-stone-200">{{ svg_stats.total_oscillators }}</span>
             </div>
             {% endif %}
@@ -230,8 +230,8 @@
             {% endif %}
             {% if svg_stats.total_kb %}
             <div class="flex justify-between items-center">
-              <span class="opacity-70">Вес:</span>
-              <span class="font-mono text-stone-900 dark:text-stone-200">{{ svg_stats.total_kb }} Кб</span>
+              <span class="opacity-70">Weight:</span>
+              <span class="font-mono text-stone-900 dark:text-stone-200">{{ svg_stats.total_kb }} KB</span>
             </div>
             {% endif %}
             <div class="flex justify-between items-center">
@@ -260,7 +260,7 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
               </svg>
-              <span>Скачать SVG</span>
+              <span>Download SVG</span>
             </a>
           </div>
         </div>
@@ -283,7 +283,7 @@
     <div class="flex items-center gap-3">
       <div class="w-3 h-3 rounded-full bg-purple-500"></div>
       <h2 class="text-xl font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
-        Материалы и главы этого цикла
+        Chapters in This Series
       </h2>
     </div>
 
@@ -291,8 +291,8 @@
       {% for child in series_posts %}
       <div class="bg-stone-100/70 dark:bg-zinc-900/70 rounded-2xl border border-stone-200 dark:border-zinc-800 p-4 space-y-2 hover:border-purple-400 dark:hover:border-purple-600 transition-colors">
         <div class="flex items-center justify-between text-[11px] text-stone-400">
-          <span class="font-bold text-purple-600 dark:text-purple-400">Глава {{ child.i_order }}</span>
-          <time datetime="{{ child.d_published_at|date:'c' }}">{{ child.d_published_at|date:'d E Y' }}</time>
+          <span class="font-bold text-purple-600 dark:text-purple-400">Chapter {{ child.i_order }}</span>
+          <time datetime="{{ child.d_published_at|date:"c" }}">{{ child.d_published_at|date:'r' }}</time>
         </div>
         <h3 class="font-bold text-sm text-stone-900 dark:text-stone-100">
           <a href="{{ child.get_absolute_url }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors border-0">
@@ -322,7 +322,7 @@
           <svg class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-          {% if series_parent %}Предыдущая глава цикла{% else %}Предыдущая депеша{% endif %}
+          {% if series_parent %}Previous chapter in series{% else %}Previous dispatch{% endif %}
         </span>
         <span class="font-bold text-sm text-stone-900 dark:text-stone-100 line-clamp-2">
           {{ prev_post.s_title|safe }}
@@ -331,10 +331,10 @@
       {% else %}
       <div class="p-5 rounded-2xl bg-stone-100/30 dark:bg-zinc-900/30 border border-stone-200/40 dark:border-zinc-800/40 opacity-40">
         <span class="text-xs text-stone-400 block mb-1">
-          {% if series_parent %}Первая глава цикла{% else %}Начало хроник гипноза{% endif %}
+          {% if series_parent %}First chapter in series{% else %}Beginning of the chronicles{% endif %}
         </span>
         <span class="font-bold text-sm text-stone-500 dark:text-stone-400">
-          Нет предшествующих записей
+          No prior dispatches
         </span>
       </div>
       {% endif %}
@@ -344,7 +344,7 @@
       <a href="{{ next_post.get_absolute_url }}"
          class="group flex flex-col items-end text-right p-5 rounded-2xl bg-stone-100/70 dark:bg-zinc-900/70 border border-stone-200 dark:border-zinc-800 hover:border-purple-400 dark:hover:border-purple-600 transition-all shadow-sm border-0">
         <span class="text-xs text-stone-400 dark:text-stone-500 mb-1 inline-flex items-center gap-1 group-hover:text-purple-600 transition-colors">
-          {% if series_parent %}Следующая глава цикла{% else %}Следующая депеша{% endif %}
+          {% if series_parent %}Next chapter in series{% else %}Next dispatch{% endif %}
           <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
@@ -356,10 +356,10 @@
       {% else %}
       <div class="flex flex-col items-end text-right p-5 rounded-2xl bg-stone-100/30 dark:bg-zinc-900/30 border border-stone-200/40 dark:border-zinc-800/40 opacity-40">
         <span class="text-xs text-stone-400 block mb-1">
-          {% if series_parent %}Финальная глава цикла{% else %}Край ноосферы{% endif %}
+          {% if series_parent %}Final chapter in series{% else %}Edge of the noosphere{% endif %}
         </span>
         <span class="font-bold text-sm text-stone-500 dark:text-stone-400">
-          Свежие депеши еще материализуются
+          Fresh dispatches still materializing
         </span>
       </div>
       {% endif %}
@@ -373,7 +373,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
         </svg>
-        <span>Все статьи в хрониках</span>
+        <span>All Chronicles</span>
       </a>
     </div>
   </footer>

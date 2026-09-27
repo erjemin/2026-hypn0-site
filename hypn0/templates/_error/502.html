@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>502 — Контейнер потерял сознание | HypnoSVG</title>
-  <meta name="description" content="Ошибка 502: Прокси-сервер не получил ответа от бэкенда HypnoSVG." />
+  <title>502 — Severed Astral Uplink | HypnoSVG</title>
+  <meta name="description" content="Error 502: Bad gateway between Nginx and Django hippocampus in HypnoSVG." />
   <meta name="robots" content="noindex, follow" />
   <link rel="icon" type="image/svg+xml" href="/media/_error/favicon.svg" />
   <link rel="shortcut icon" href="/media/_error/favicon.ico" />
@@ -353,10 +353,10 @@
 <body>
   <header>
     <div class="header-inner">
-      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — На главную">
+      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — Home">
         <img src="/static/img/logo-hypn0.svg" onerror="this.onerror=null; this.src='/media/_error/logo-hypn0.svg';" alt="HypnoSVG" class="logo-img" />
       </a>
-      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Переключить тему" title="Переключить тему">
+      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Toggle theme" title="Toggle theme">
         <span id="theme-icon">●</span>
       </button>
     </div>
@@ -368,40 +368,40 @@
         <img src="/static/img/thinking.svg" onerror="this.onerror=null; this.src='/media/_error/thinking.svg';" alt="502 Bad Gateway Slug" />
       </div>
 
-      <div class="error-code-badge">ОБРЫВ ШЛЮЗА // КОД&nbsp;502</div>
+      <div class="error-code-badge">GATEWAY SEVERED // CODE&nbsp;502</div>
 
-      <h1 class="error-title">Нет связи с&nbsp;Гипокампом</h1>
+      <h1 class="error-title">Uplink to Hippocampus Lost</h1>
 
       <p class="error-desc">
-        Прокси-сервер Nginx послал импульс через энторинальную кору в&nbsp;Django-гипокамп, но&nbsp;обратный синапсический отклик потерян. Аксоны в&nbsp;состоянии звенящей астральной&nbsp;пустоты.
+        The Nginx reverse proxy pulsed an impulse across the entorhinal cortex to the Django hippocampus, but the synaptic handshake vanished into astral void.
       </p>
 
       <div class="hypno-quote">
-        <big>Справка бюрократа 24-го уровня:</big><br/>&nbsp;<br/>
-        <span style="margin-left: -0.49em;">«</span><em>Gunicorn ушёл в&nbsp;глубокую интроспекцию или временно дезориентирован в&nbsp;docker-пространстве. Бри-Гады мозговых слизней уже&nbsp;инспектируют упавший поток перцепции и&nbsp;устраняет ментальную деградацию.</em>»
+        <big>Grade 24 Bureaucrat Notice:</big><br/>&nbsp;<br/>
+        <span style="margin-left: -0.49em;">“</span><em>Gunicorn has drifted into deep philosophical trance or is temporarily misplaced in Docker hyperspace. Brain Slug brigades are inspecting the severed stream and clearing mental degradation.</em>”
       </div>
 
       <div class="actions-box">
         <div class="btn-group">
           <button type="button" class="btn btn-primary" id="return-btn">
-            <span>● Восстановить связь и&nbsp;вернуться</span>
+            <span>● Re-establish Uplink &amp;&nbsp;Return</span>
           </button>
           <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
-            <span>↻ Перезагрузить страницу</span>
+            <span>↻ Reload Page</span>
           </button>
         </div>
 
-        <!-- Панель калибровки с задержкой и смешными фразами -->
+        <!-- Calibration panel with delay and witty messages -->
         <div class="calibration-panel" id="calibration-panel">
           <div class="calibration-status" id="calibration-status">
-            Инициа&shy;лизация реанимации шлюза…
+            Initializing gateway resuscitation…
           </div>
           <div class="progress-bar-container">
             <div class="progress-bar-fill" id="progress-bar"></div>
           </div>
           <div class="calibration-subtext">
-            <span>Снижение ментальной нагрузки на&nbsp;кластер</span>
-            <a href="/" class="instant-link" id="skip-link">Пройти гипноз мгновенно&nbsp;→</a>
+            <span>Reducing mental load on&nbsp;cluster</span>
+            <a href="/" class="instant-link" id="skip-link">Instant Hypnosis&nbsp;→</a>
           </div>
         </div>
       </div>
@@ -410,11 +410,11 @@
 
   <footer>
     <div class="ascii-grid">░▒▓█ ERROR 502 BAD GATEWAY █▓▒░</div>
-    <div>Hypn0.xyz (HypnoSVG) © 2026. Слава Гипножабе. Все права подчинены.</div>
+    <div>Hypn0.xyz (HypnoSVG) ©&nbsp;2026. All Glory to&nbsp;the&nbsp;Hypnotoad. All minds subjugated.</div>
   </footer>
 
   <script>
-    // 1. Управление темой оформления (Light / Dark)
+    // 1. Theme switcher (Light / Dark)
     var themeBtn = document.getElementById('theme-btn');
     var themeIcon = document.getElementById('theme-icon');
 
@@ -430,7 +430,7 @@
       updateThemeIcon();
     });
 
-    // 2. Умная кнопка с задержкой и смешными сообщениями перекалибровки
+    // 2. Smart button with delay and humorous recalibration messages
     var returnBtn = document.getElementById('return-btn');
     var calibPanel = document.getElementById('calibration-panel');
     var calibStatus = document.getElementById('calibration-status');
@@ -438,10 +438,10 @@
     var isCalibrating = false;
 
     var phrases = [
-      { at: 0,   text: "✦ Фаза 1/4: Пингуем упавший контейнер интроспекций через Unix-сокеты&hellip;" },
-      { at: 25,  text: "✦ Фаза 2/4: Подаем разряд бodрящих волн Шумана в&nbsp;воркеры Gunicorn&hellip;" },
-      { at: 55,  text: "✦ Фаза 3/4: Прокси-шлюз Nginx восстанавливает ментальный маршрут&hellip;" },
-      { at: 85,  text: "✦ Фаза 4/4: Мост налажен! Возвращаемся на&nbsp;главную&hellip;" }
+      { at: 0,   text: "✦ Phase 1/4: Pinging dormant introspection container over Unix sockets&hellip;" },
+      { at: 25,  text: "✦ Phase 2/4: Jolting Gunicorn workers with invigorating Schumann waves&hellip;" },
+      { at: 55,  text: "✦ Phase 3/4: Nginx proxy gate rebuilds mental routing table&hellip;" },
+      { at: 85,  text: "✦ Phase 4/4: Neural bridge restored! Returning to base&hellip;" }
     ];
 
     returnBtn.addEventListener('click', function() {
@@ -450,7 +450,7 @@
 
       returnBtn.disabled = true;
       returnBtn.style.opacity = '0.7';
-      returnBtn.innerHTML = '<span>Выполняется внушение…</span>';
+      returnBtn.innerHTML = '<span>Transmitting hypnotic command…</span>';
       calibPanel.style.display = 'block';
 
       var duration = 12000;
@@ -462,7 +462,7 @@
 
         progressBar.style.width = progress + '%';
 
-        // Подбираем актуальную смешную фразу
+        // Select the active phrase
         for (var i = phrases.length - 1; i >= 0; i--) {
           if (progress >= phrases[i].at) {
             calibStatus.innerHTML = phrases[i].text;

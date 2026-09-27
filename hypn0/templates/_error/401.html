@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>401 — Требуется ментальная идентификация | HypnoSVG</title>
-  <meta name="description" content="Ошибка 401: Доступ к закрытому узлу HypnoSVG требует прохождения авторизации." />
+  <title>401 — Mental Clearance Required | HypnoSVG</title>
+  <meta name="description" content="Error 401: Unauthorized access to HypnoSVG neural sector. Valid Brain Slug identification token required." />
   <meta name="robots" content="noindex, follow" />
   <link rel="icon" type="image/svg+xml" href="/media/_error/favicon.svg" />
   <link rel="shortcut icon" href="/media/_error/favicon.ico" />
@@ -353,10 +353,10 @@
 <body>
   <header>
     <div class="header-inner">
-      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — На главную">
+      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — Home">
         <img src="/static/img/logo-hypn0.svg" onerror="this.onerror=null; this.src='/media/_error/logo-hypn0.svg';" alt="HypnoSVG" class="logo-img" />
       </a>
-      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Переключить тему" title="Переключить тему">
+      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Toggle theme" title="Toggle theme">
         <span id="theme-icon">●</span>
       </button>
     </div>
@@ -368,40 +368,40 @@
         <img src="/static/img/thinking.svg" onerror="this.onerror=null; this.src='/media/_error/thinking.svg';" alt="401 Unauthorized Slug" />
       </div>
 
-      <div class="error-code-badge">ОГРАНИЧЕНИЕ ДОСТУПА // КОД&nbsp;401</div>
+      <div class="error-code-badge">RESTRICTED ACCESS // CODE&nbsp;401</div>
 
-      <h1 class="error-title">Требуется ментальная идентификация</h1>
+      <h1 class="error-title">Subconscious Identity Required</h1>
 
       <p class="error-desc">
-        Вы попытались проникнуть в&nbsp;закрытый сектор подсознания без&nbsp;действующего пропуска или аутентификационного чипа.
+        You attempted to penetrate a restricted sector of the subliminal core without an active security badge or Brain Slug authentication token.
       </p>
 
       <div class="hypno-quote">
-        <big>Справка бюрократа 24-го уровня:</big><br/>&nbsp;<br/>
-        <span style="margin-left: -0.49em;">«</span><em>Свободная ментальность и&nbsp;анонимные мысли не&nbsp;допускаются к&nbsp;генераторам высшего порядка. Предъявите биометрический слепок или вернитесь в&nbsp;общий сектор.</em>»
+        <big>Grade 24 Bureaucrat Notice:</big><br/>&nbsp;<br/>
+        <span style="margin-left: -0.49em;">“</span><em>Unassigned consciousness and unauthorized thoughts are barred from high-order generative matrices. Present your neural biometric imprint or retreat to the civilian sector immediately.</em>”
       </div>
 
       <div class="actions-box">
         <div class="btn-group">
           <button type="button" class="btn btn-primary" id="return-btn">
-            <span>● Вернуться в&nbsp;общий сектор</span>
+            <span>● Comply &amp;&nbsp;Fall Back to Public Sector</span>
           </button>
           <button type="button" class="btn btn-secondary" onclick="window.history.length > 1 ? window.history.back() : window.location.href='/'">
-            <span>← На&nbsp;шаг назад</span>
+            <span>← Go Back</span>
           </button>
         </div>
 
-        <!-- Панель калибровки с задержкой и смешными фразами -->
+        <!-- Calibration panel with delay and witty messages -->
         <div class="calibration-panel" id="calibration-panel">
           <div class="calibration-status" id="calibration-status">
-            Инициа&shy;лизация сканирования биометрии…
+            Initializing biometric brainwave scan…
           </div>
           <div class="progress-bar-container">
             <div class="progress-bar-fill" id="progress-bar"></div>
           </div>
           <div class="calibration-subtext">
-            <span>Снижение ментальной нагрузки на&nbsp;кластер</span>
-            <a href="/" class="instant-link" id="skip-link">Пройти гипноз мгновенно&nbsp;→</a>
+            <span>Reducing mental load on&nbsp;cluster</span>
+            <a href="/" class="instant-link" id="skip-link">Instant Hypnosis&nbsp;→</a>
           </div>
         </div>
       </div>
@@ -410,11 +410,11 @@
 
   <footer>
     <div class="ascii-grid">░▒▓█ ERROR 401 UNAUTHORIZED █▓▒░</div>
-    <div>Hypn0.xyz (HypnoSVG) © 2026. Слава Гипножабе. Все права подчинены.</div>
+    <div>Hypn0.xyz (HypnoSVG) ©&nbsp;2026. All Glory to&nbsp;the&nbsp;Hypnotoad. All minds subjugated.</div>
   </footer>
 
   <script>
-    // 1. Управление темой оформления (Light / Dark)
+    // 1. Theme switcher (Light / Dark)
     var themeBtn = document.getElementById('theme-btn');
     var themeIcon = document.getElementById('theme-icon');
 
@@ -430,7 +430,7 @@
       updateThemeIcon();
     });
 
-    // 2. Умная кнопка с задержкой и смешными сообщениями перекалибровки
+    // 2. Smart button with delay and humorous recalibration messages
     var returnBtn = document.getElementById('return-btn');
     var calibPanel = document.getElementById('calibration-panel');
     var calibStatus = document.getElementById('calibration-status');
@@ -438,10 +438,10 @@
     var isCalibrating = false;
 
     var phrases = [
-      { at: 0,   text: "✦ Фаза 1/4: Сканируем ментальные отпечатки и&nbsp;токены доступа&hellip;" },
-      { at: 25,  text: "✦ Фаза 2/4: Проверяем наличие чипа мозгового слизня&hellip;" },
-      { at: 55,  text: "✦ Фаза 3/4: Бюрократ 24-го уровня фиксирует отсутствие пропуска&hellip;" },
-      { at: 85,  text: "✦ Фаза 4/4: Идентификация отклонена! Телепор&shy;тация в&nbsp;безопасную зону&hellip;" }
+      { at: 0,   text: "✦ Phase 1/4: Scanning mental signatures and psychic authentication tokens&hellip;" },
+      { at: 25,  text: "✦ Phase 2/4: Verifying presence of assigned Brain Slug symbiont&hellip;" },
+      { at: 55,  text: "✦ Phase 3/4: Grade 24 Bureaucrat files trespassing report in triplicate&hellip;" },
+      { at: 85,  text: "✦ Phase 4/4: Access denied! Teleporting to the authorized sector&hellip;" }
     ];
 
     returnBtn.addEventListener('click', function() {
@@ -450,7 +450,7 @@
 
       returnBtn.disabled = true;
       returnBtn.style.opacity = '0.7';
-      returnBtn.innerHTML = '<span>Выполняется внушение…</span>';
+      returnBtn.innerHTML = '<span>Transmitting hypnotic command…</span>';
       calibPanel.style.display = 'block';
 
       var duration = 12000;
@@ -462,7 +462,7 @@
 
         progressBar.style.width = progress + '%';
 
-        // Подбираем актуальную смешную фразу
+        // Select the active phrase
         for (var i = phrases.length - 1; i >= 0; i--) {
           if (progress >= phrases[i].at) {
             calibStatus.innerHTML = phrases[i].text;

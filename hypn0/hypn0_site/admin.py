@@ -302,8 +302,8 @@ class BlogPostAdminForm(CodeMirrorFormMixin):
     )
     etp_language = forms.ChoiceField(
         label="Язык типографики",
-        choices=[('ru', 'Русский'), ('en', 'English'), ('ru,en', 'Ru + En')],
-        initial='ru',
+        choices=[('en', 'English'), ('ru', 'Русский'), ('en,ru', 'En + Ru'), ('ru,en', 'Ru + En')],
+        initial='en',
         required=False
     )
     etp_quotes = forms.BooleanField(

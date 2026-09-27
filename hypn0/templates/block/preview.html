@@ -40,7 +40,7 @@
       <input type="hidden" name="angle" value="{% if form_data.angle is not None %}{{ form_data.angle }}{% else %}0{% endif %}">
       <input type="hidden" name="color" value="{% if primary_color %}{{ primary_color }}{% else %}#a855ff{% endif %}">
 
-      <button id="like-to-gallery" type="submit" title="Отправить в галерею"
+      <button id="like-to-gallery" type="submit" title="Submit to Gallery"
               :disabled="isPublishing"{% if ALLOW_TRACKING %}
               {# Отслеживание Яндекс #}@click="window.ym && ym(112812760, 'reachGoal', 'like_art')"{% endif %}
               class="group flex items-center gap-2 bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-md px-4 py-2.5 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100 disabled:pointer-events-none cursor-pointer">
@@ -50,7 +50,7 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
           </svg>
         </template>
-        <span x-text="isPublishing ? 'Проникновение в транс...' : 'Кандидат в галерею транса'">Кандидат в галерею транса</span>
+        <span x-text="isPublishing ? 'Transmitting into Trance...' : 'Nominate for&nbsp;Trance Gallery'">Nominate for&nbsp;Trance Gallery</span>
         <svg x-show="!isPublishing" class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>

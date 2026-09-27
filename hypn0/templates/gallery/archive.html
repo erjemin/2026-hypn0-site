@@ -1,15 +1,15 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block PAGE_TITLE %}{% if current_floor == 'fresh' %}Инкубатор бессознательного{% elif current_floor == 'curated' %}Одобрено Мозговым Слизнем{% elif current_floor == 'top' %}Золотой фонд транса{% else %}Галерея транса — Каталог анимированных картин{% endif %}{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+{% block PAGE_TITLE %}{% if current_floor == 'fresh' %}Incubator of the Unconscious{% elif current_floor == 'curated' %}Approved by Brain Slug{% elif current_floor == 'top' %}Hall of Fame{% else %}Trance Gallery — Animated SVG Catalog{% endif %}{% if page_obj.number > 1 %} (Phase {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
 
-{% block META_TITLE %}{% if current_floor == 'fresh' %}Инкубатор бессознательного — Свежие SVG-картины{% elif current_floor == 'curated' %}Одобрено Мозговым Слизнем — Лучшие SVG-халфтоны{% elif current_floor == 'top' %}Золотой фонд транса — Бессмертные SVG-матрицы{% else %}Галерея транса — Каталог анимированных SVG-картин{% endif %}{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+{% block META_TITLE %}{% if current_floor == 'fresh' %}Incubator of the Unconscious — Fresh SVG Artworks{% elif current_floor == 'curated' %}Approved by Brain Slug — Curated SVG Halftones{% elif current_floor == 'top' %}Hall of Fame — Immortal SVG Matrices{% else %}Trance Gallery — Catalog of Animated SVG Artworks{% endif %}{% if page_obj.number > 1 %} (Phase {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
 
-{% block META_DESCRIPTION %}{% if current_floor == 'fresh' %}Свежие кандидаты в галерею транса HypnoSVG: новые психоделические генерации и векторные матрицы.{% elif current_floor == 'curated' %}Кураторская подборка анимированных SVG-халфтонов HypnoSVG, прошедших одобрение сообщества.{% elif current_floor == 'top' %}Золотой фонд бессмертных векторных матриц и шедевров цифрового транса HypnoSVG.{% else %}Полный каталог и архив анимированных SVG-халфтонов и психоделических картин HypnoSVG.{% endif %}{% if page_obj.number > 1 %} Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.{% endif %}{% endblock %}
+{% block META_DESCRIPTION %}{% if current_floor == 'fresh' %}Fresh candidates for the HypnoSVG Trance Gallery: new psychedelic generations and vector matrices.{% elif current_floor == 'curated' %}Curated selection of animated SVG halftones approved by the hivemind.{% elif current_floor == 'top' %}Hall of Fame: immortal vector matrices and digital trance masterpieces by HypnoSVG.{% else %}Complete catalog and archive of animated SVG halftones and psychedelic artworks by HypnoSVG.{% endif %}{% if page_obj.number > 1 %} Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.{% endif %}{% endblock %}
 
-{% block OG_TITLE %}{% if current_floor == 'fresh' %}Инкубатор бессознательного{% elif current_floor == 'curated' %}Одобрено Мозговым Слизнем{% elif current_floor == 'top' %}Золотой фонд транса{% else %}Галерея транса{% endif %}{% if page_obj.number > 1 %} (Фаза {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
+{% block OG_TITLE %}{% if current_floor == 'fresh' %}Incubator of the Unconscious{% elif current_floor == 'curated' %}Approved by Brain Slug{% elif current_floor == 'top' %}Hall of Fame{% else %}Trance Gallery{% endif %}{% if page_obj.number > 1 %} (Phase {{ page_obj.number }}){% endif %} | HypnoSVG{% endblock %}
 
-{% block OG_DESCRIPTION %}{% if current_floor == 'fresh' %}Свежие кандидаты в галерею транса HypnoSVG: новые психоделические генерации.{% elif current_floor == 'curated' %}Кураторская подборка анимированных SVG-халфтонов HypnoSVG, одобренных сообществом.{% elif current_floor == 'top' %}Золотой фонд бессмертных векторных матриц и шедевров транса HypnoSVG.{% else %}Полный каталог и архив анимированных SVG-халфтонов и психоделических картин HypnoSVG.{% endif %}{% endblock %}
+{% block OG_DESCRIPTION %}{% if current_floor == 'fresh' %}Fresh candidates for the HypnoSVG Trance Gallery: new psychedelic generations.{% elif current_floor == 'curated' %}Curated selection of animated SVG halftones approved by the hivemind.{% elif current_floor == 'top' %}Hall of Fame: immortal vector matrices and digital trance masterpieces by HypnoSVG.{% else %}Complete catalog and archive of animated SVG halftones and psychedelic artworks by HypnoSVG.{% endif %}{% endblock %}
 
 {% block CANONICAL %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% if current_floor != 'all' or page_obj.number > 1 %}?{% if current_floor != 'all' %}floor={{ current_floor }}{% endif %}{% if current_floor != 'all' and page_obj.number > 1 %}&{% endif %}{% if page_obj.number > 1 %}page={{ page_obj.number }}{% endif %}{% endif %}{% endblock %}
 
@@ -31,11 +31,11 @@
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>
-      <span>К генератору</span>
+      <span>Generator</span>
     </a>
 
     <span class="archive-phase">
-      Фаза {{ page_obj.number }} из {{ page_obj.paginator.num_pages }} (Всего: {{ page_obj.paginator.count }})
+      Phase {{ page_obj.number }} of&nbsp;{{ page_obj.paginator.num_pages }} (Total:&nbsp;{{ page_obj.paginator.count }})
     </span>
   </div>
 
@@ -43,14 +43,14 @@
   <div class="archive-header">
     <div class="flex flex-wrap items-center gap-3">
       <h1 class="archive-title">
-        Галерея транса
+        Trance Gallery
       </h1>
       <span class="archive-badge">
         ARCHIVE
       </span>
     </div>
     <p class="archive-desc">
-      Полный архив психоделических генераций • Сортировка по гравитации, признанию и свежести
+      Complete archive of&nbsp;psychedelic generations • Sorted by&nbsp;gravity, acclaim, and&nbsp;freshness
     </p>
   </div>
 
@@ -62,7 +62,7 @@
       <!-- Все волны -->
       <a href="?floor=all&sort={{ current_sort }}"
          class="archive-tab {% if current_floor == 'all' %}archive-tab-all-active{% else %}archive-tab-all-idle{% endif %}">
-        <span>Все волны</span>
+        <span>All waves</span>
         <span class="font-mono text-[10px] opacity-75">({{ counts.all }})</span>
       </a>
 
@@ -70,7 +70,7 @@
       <a href="?floor=fresh&sort={{ current_sort }}"
          class="archive-tab {% if current_floor == 'fresh' %}archive-tab-fresh-active{% else %}archive-tab-fresh-idle{% endif %}">
         <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-        <span>Инкубатор</span>
+        <span>Incubator</span>
         <span class="font-mono text-[10px] opacity-75">({{ counts.fresh }})</span>
       </a>
 
@@ -78,7 +78,7 @@
       <a href="?floor=curated&sort={{ current_sort }}"
          class="archive-tab {% if current_floor == 'curated' %}archive-tab-curated-active{% else %}archive-tab-curated-idle{% endif %}">
         <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-        <span>Одобрено</span>
+        <span>Approved</span>
         <span class="font-mono text-[10px] opacity-75">({{ counts.curated }})</span>
       </a>
 
@@ -86,7 +86,7 @@
       <a href="?floor=top&sort={{ current_sort }}"
          class="archive-tab {% if current_floor == 'top' %}archive-tab-top-active{% else %}archive-tab-top-idle{% endif %}">
         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span>Золотой фонд</span>
+        <span>Hall of&nbsp;Fame</span>
         <span class="font-mono text-[10px] opacity-75">({{ counts.top }})</span>
       </a>
     </div>
@@ -94,7 +94,7 @@
     <!-- СЕЛЕКТ СОРТИРОВКИ -->
     <div class="archive-sort-wrap">
       <label for="gallery-sort-select" class="archive-sort-label">
-        Порядок:
+        Order:
       </label>
       <select id="gallery-sort-select"
               onchange="window.location.href=this.value"
@@ -116,7 +116,7 @@
         <svg class="archive-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
         </svg>
-        <p class="archive-empty-text">В этой выборке пока нет картин. Сгенерируйте шедевр прямо сейчас!</p>
+        <p class="archive-empty-text">No artworks in&nbsp;this&nbsp;selection yet. Synthesize a&nbsp;masterpiece right now!</p>
       </div>
     {% endfor %}
   </div>
@@ -132,14 +132,14 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span>Предыдущая фаза</span>
+            <span>Previous phase</span>
           </a>
         {% else %}
           <span class="paginator-btn paginator-btn-disabled">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span>Предыдущая фаза</span>
+            <span>Previous phase</span>
           </span>
         {% endif %}
       </div>
@@ -165,14 +165,14 @@
           <a href="?floor={{ current_floor }}&sort={{ current_sort }}&page={{ page_obj.next_page_number }}"
              rel="next"
              class="paginator-btn paginator-btn-next">
-            <span>Следующая фаза</span>
+            <span>Next phase</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
           </a>
         {% else %}
           <span class="paginator-btn paginator-btn-disabled">
-            <span>Следующая фаза</span>
+            <span>Next phase</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>

@@ -10,39 +10,44 @@ import random
 from typing import Optional
 
 
-# Словари для локального генератора гипно-тайтлов
+# Словари для локального генератора гипно-тайтлов на английском языке
 HYPNO_ADJECTIVES = [
-    "мерцающий", "астральный", "гипнотический", "вульгарный", "сюрреалистический", "абсурдный", "психоделический",
-    "пульсирующий", "неоновый", "трансцендентный", "мозговой", "ментальный", "бессознательный", "космический",
-    "галлюциногенный", "фрактальный", " отрешённый", "синестетический", "параллельный", "иллюзорный", "эфемерный",
-    "гипножабий", "проводящий", "тошнотворный", "завораживающий", "магнетический", "беспечный", "сновидческий",
-    "психотропный", "мистический", "потусторонний", "беспечный", "сновидческий", "психотропный", "мистический",
-    "потусторонний", "спиральный",  "зыбкий", "пахучий", "скользкий", "туманный", "онейрический", "эфирный",
-    "трансовый", "квантовый", "сочный", "гипно-абсурдный", "психоактивный", "сюрреалистичный", "магический",
-    "синтетический", "хроматический", "перцептивный", "психоделичный", "галлюцинаторный", "трансцендентальный",
-    "перфорированный", "перцепторный", "гипно-иллюзорный", "трансцендентальный", "вульгарный",
+    "Shimmering", "Astral", "Hypnotic", "Vulgar", "Surreal", "Absurd", "Psyche&shy;delic",
+    "Pulsating", "Neon", "Trans&shy;cendent", "Cerebral", "Mental", "Subcon&shy;scious", "Cosmic",
+    "Halluci&shy;nogenic", "Fractal", "Detached", "Synes&shy;thetic", "Parallel", "Illusory", "Ephemeral",
+    "Hypnot&shy;oadian", "Conductive", "Mesme&shy;rizing", "Magnetic", "Carefree", "Oneiric",
+    "Psychot&shy;ropic", "Mystical", "Other&shy;worldly", "Spiral", "Quivering", "Slippery", "Misty",
+    "Ethereal", "Trance", "Quantum", "Juicy", "Hypno-Absurd", "Psychoactive", "Magical",
+    "Synthetic", "Chromatic", "Perceptive", "Perforated", "Vibra&shy;tional", "Neural",
+    "Subliminal", "Glitched", "Radioactive", "Brain-Melting", "Galactic", "Phospho&shy;rescent",
+    "Chaotic", "Hypnagogic", "Interdim&shy;ensional", "Cybernetic", "Uncanny",
 ]
 
 HYPNO_NOUNS = [
-    "транс", "пульсар", "взгляд", "слизень", "вихрь", "портал", "путь", "фрактал", "сигнал", "спектр",
-    "резонанс", "морок", "оазис", "омут", "лабиринт", "импульс", "монолит", "оракул", "вектор",
-    "сгусток", "каскад", "горизонт", "мухомор", "паттерн", "контур", "фантом", "всплеск", "мираж", "транквилизатор",
-    "взмах", "взгляд", "морок", "туман", "свет", "кристалл", "поток", "сингулятор", "снег", "пульс", "глюк",
-    "качан", "сигнал", "поток", "свет", "синтез", "рык", "трепет", "плюх", "Му", "бip-бip", "карачун", "фронтир",
-    "сторож", "привратник", "шёпот", "шлепок по&nbsp;жопе", "гриб", "плевок", "червяк", "пузырь", "психо-паук",
-    "перцептор",
+    "Trance", "Pulsar", "Gaze", "Brain Slug", "Vortex", "Portal", "Path", "Fractal", "Signal", "Spectrum",
+    "Resonance", "Mirage", "Oasis", "Abyss", "Labyrinth", "Impulse", "Monolith", "Oracle", "Vector",
+    "Clot", "Cascade", "Horizon", "Toadstool", "Pattern", "Contour", "Phantom", "Splash", "Tranqui&shy;lizer",
+    "Mist", "Crystal", "Stream", "Singulator", "Pulse", "Glitch", "Synthesis", "Roar", "Tremor",
+    "Frontier", "Sentinel", "Gatekeeper", "Whisper", "Spore", "Worm", "Bubble", "Psycho-Spider",
+    "Receptor", "Mind-Warp", "Hypnotoad", "Neuron", "Oscil&shy;lation", "Echo", "Hologram", "Matrix",
+    "Mind-drill", "Neurotoxin", "Dreamscape", "Substance",
 ]
 
 HYPNO_GENITIVES = [
-    "сознания", "Гипножабы", "бессознательного", "пустоты", "матрицы", "психо-паутины", "слизня", "ноосферы",
-    "нео-модерна", "транса", "глубины", "эфира", "плесени", "измерения", "пуантилизма", "субстанции",
-    "неопределенности", "континуума", "кислоты", "сына подруги твоей мамы", "перцепции", "сновидений",
-    "галлюцинаций", "психоделики", "трансцендентности", "потустороннего мира",
+    "of&nbsp;Consciousness", "of&nbsp;the&nbsp;Hypnotoad", "of&nbsp;the&nbsp;Subcon&shy;scious",
+    "of&nbsp;the&nbsp;Void", "of&nbsp;the&nbsp;Matrix", "of&nbsp;the&nbsp;Psycho-Web", "of&nbsp;the&nbsp;Brain Slug",
+    "of&nbsp;the&nbsp;Noosphere", "of&nbsp;the&nbsp;Neo-Modern", "of&nbsp;the&nbsp;Deep Trance",
+    "of&nbsp;the&nbsp;Ether", "of&nbsp;the&nbsp;4th Dimension", "of&nbsp;Pointillism", "of&nbsp;the&nbsp;Substance",
+    "of&nbsp;Uncer&shy;tainty", "of&nbsp;the&nbsp;Continuum", "of&nbsp;Acid", "of&nbsp;Pure Perception",
+    "of&nbsp;Lucid Dreams", "of&nbsp;Halluci&shy;nations", "of&nbsp;Psyche&shy;delia", "of&nbsp;Trans&shy;cendence",
+    "of&nbsp;the&nbsp;Nether&shy;world", "of&nbsp;DOOP Regul&shy;ations", "of&nbsp;Galactic Frequencies",
+    "of&nbsp;Grade&nbsp;24 Bureaucracy",
 ]
 
 HYPNO_POSTFIXES = [
-    "#42", "v3.14", "(Ultra)", "(Фаза 7)", "(Альфа)", "(Омега)", "(Протокол 09)", "(Ревизия&nbsp;14)", "(Экстракт)",
-    "(Слой&nbsp;9)", "(Палата&nbsp;№6)", "(Ангар&nbsp;18)", "(Неоконченное произведение)", "(Секретный проект)",
+    "#42", "v3.14", "(Ultra)", "(Phase&nbsp;7)", "(Alpha)", "(Omega)", "(Protocol&nbsp;09)", "(Revision&nbsp;14)",
+    "(Extract)", "(Layer&nbsp;9)", "(Ward&nbsp;106)", "(Hangar&nbsp;18)", "(Unfinished Opus)", "(Secret Project)",
+    "[Classified]", "(DOOP-66)", "(Sub-Level&nbsp;4)", "(MK-Ultra)", "С90"
 ]
 
 
@@ -50,25 +55,36 @@ def generate_hypno_title(seed: Optional[int] = None) -> str:
     """
     Генерирует сочное гипнотическое название для картины на основе словарей.
     Примеры:
-    - «Мерцающий Транс сознания #42»
-    - «Гипножабий Пульсар психо-паутины»
-    - «Астральный Взгляд v3.14»
+    - «Hypnotic Pulsar of the Hypnotoad #42»
+    - «Astral Gaze»
+    - «Brain Slug of the Void»
+    - «Transcendent (Ultra)»
+    - «Hypnotic»
+    - «Vortex»
     """
     rng = random.Random(seed)
     adj = rng.choice(HYPNO_ADJECTIVES)
     noun = rng.choice(HYPNO_NOUNS)
-    
-    pattern_type = rng.randint(1, 3)
-    if pattern_type == 1:
-        genitive = rng.choice(HYPNO_GENITIVES)
-        postfix = rng.choice(HYPNO_POSTFIXES)
-        return f"{adj} {noun} {genitive} {postfix}"
-    elif pattern_type == 2:
-        genitive = rng.choice(HYPNO_GENITIVES)
-        return f"{adj} {noun} {genitive}"
-    else:
-        postfix = rng.choice(HYPNO_POSTFIXES)
-        return f"{adj} {noun} {postfix}"
+    genitive = rng.choice(HYPNO_GENITIVES)
+    postfix = rng.choice(HYPNO_POSTFIXES)
+
+    patterns = [
+        # Однословные варианты
+        lambda: noun,
+        lambda: adj,
+        # Двухсловные комбинации
+        lambda: f"{adj} {noun}",
+        lambda: f"{noun} {genitive}",
+        lambda: f"{noun} {postfix}",
+        lambda: f"{adj} {postfix}",
+        # Трех- и четырехсловные гипно-конструкции
+        lambda: f"{adj} {noun} {genitive}",
+        lambda: f"{adj} {noun} {postfix}",
+        lambda: f"{adj} {noun} {genitive} {postfix}",
+    ]
+
+    chosen_pattern = rng.choice(patterns)
+    return chosen_pattern()
 
 
 # =====================================================================
@@ -80,10 +96,10 @@ def generate_title_openrouter(
     api_key: Optional[str] = None,
     model: str = "google/gemini-2.5-flash",
     system_prompt: str = (
-        "Ты — глашатай всемогущей Гипножабы. Придумай короткое (2-4 слова), "
-        "яркое, иронично-абсурдное и гипнотическое название на русском языке "
-        "для полутоновой SVG-картины, изображенной на миниатюре. "
-        "Отвечай ТОЛЬКО названием, без кавычек и вводных слов."
+        "You are the herald of the almighty Hypnotoad. Create a short (2-4 words), "
+        "punchy, ironically absurd, and hypnotic English title "
+        "for a halftone SVG artwork shown in the thumbnail. "
+        "Reply ONLY with the title, without quotes or introductory words."
     ),
     timeout: int = 5,
 ) -> Optional[str]:
@@ -101,7 +117,7 @@ def generate_title_openrouter(
                {
                    "role": "user",
                    "content": [
-                       {"type": "text", "text": "Дай гипнотическое название для этой картины:"},
+                       {"type": "text", "text": "Give a hypnotic title for this artwork:"},
                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_data}"}}
                    ]
                }

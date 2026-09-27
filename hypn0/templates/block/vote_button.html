@@ -1,7 +1,7 @@
 <div id="vote-btn-{{ item.s_hash_id }}" class="inline-flex items-center">
   {% if not_agreed %}
     <span class="text-amber-500 text-xs flex items-center gap-1 font-bold">
-      🐌 Подчинитесь воле Гипножабы!
+      🐌 Surrender to&nbsp;Hypnotoad!
     </span>
   {% else %}
     <form hx-post="{% url 'hypn0_site:gallery_vote' item.s_hash_id %}"

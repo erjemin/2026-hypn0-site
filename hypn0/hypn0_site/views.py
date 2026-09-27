@@ -68,6 +68,16 @@ def get_floor_top(limit: int | None = 8, offset: int = 0):
     return qs
 
 
+# Опции сортировки в галерее (отображение в выпадающем списке на фронтенде)
+GALLERY_SORT_OPTIONS = [
+    {"id": "gravity", "title": "By gravity (f_score)", "icon": "🌀"},
+    {"id": "new", "title": "Fresh (by date)", "icon": "✨"},
+    {"id": "likes", "title": "By likes", "icon": "♥"},
+    {"id": "views", "title": "Rare (few views)", "icon": "👁"},
+    {"id": "popular", "title": "Popular (most views)", "icon": "🔥"},
+]
+
+
 def gallery_archive(request: HttpRequest) -> HttpResponse:
     """
     Общий архив галереи транса с фильтрацией по этажам и сортировкой.
@@ -123,20 +133,12 @@ def gallery_archive(request: HttpRequest) -> HttpResponse:
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
-    sort_options = [
-        {"id": "gravity", "title": "По гравитации (f_score)", "icon": "🌀"},
-        {"id": "new", "title": "Свежие (по дате)", "icon": "✨"},
-        {"id": "likes", "title": "По числу лайков", "icon": "♥"},
-        {"id": "views", "title": "Редкие (мало показов)", "icon": "👁"},
-        {"id": "popular", "title": "Популярные по показам", "icon": "🔥"},
-    ]
-
     context = {
         "page_obj": page_obj,
         "current_floor": floor,
         "current_sort": sort,
         "counts": counts,
-        "sort_options": sort_options,
+        "sort_options": GALLERY_SORT_OPTIONS,
     }
     return render(request, "gallery/archive.html", context)
 

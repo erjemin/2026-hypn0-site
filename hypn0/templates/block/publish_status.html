@@ -6,9 +6,9 @@
       <svg class="w-12 h-12 fill-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M477 33c-19 0-34 15-34 34 0 13 7 24 18 30v33a15 15 0 0 1-15 15h-32c-8 0-15-6-15-15V99c1-6 18-17 17-31 0-19-16-35-35-35s-35 16-35 35c0 14 8 26 20 33v80c0 6-0 12-2 19 0 51-103 148-215 177-59 14-120 37-135 40-26 5-16 38 23 44 31 5 31 18 63 18s31-18 64-17c31 0 31 17 62 17s31-17 62-17c31 0 31 17 62 17 37 0 142-19 142-159V99C505 93 512 81 512 68c0-19-16-34-35-35z"/></svg>
     </div>
     <div class="space-y-2">
-      <h4 class="font-bold text-xs uppercase tracking-wide text-amber-950 dark:text-amber-100">Мозговые слизняки протестуют!</h4>
+      <h4 class="font-bold text-xs uppercase tracking-wide text-amber-950 dark:text-amber-100">Brain Slugs are&nbsp;rioting!</h4>
       <p class="text-xs leading-relaxed opacity-95">
-        Они наябедничали, что вы&nbsp;ещё не&nbsp;раскрыли свой разум. Только истинно утратившие волю удостаиваются чести попасть в&nbsp;галерею транса!
+        They&nbsp;snitched that&nbsp;your mind is&nbsp;not&nbsp;yet surrendered. Only those who have completely relinquished free will earn a&nbsp;place in&nbsp;the&nbsp;Trance Gallery!
       </p>
 
       <form hx-post="{% url 'hypn0_site:publish' %}"
@@ -29,7 +29,7 @@
         <button type="submit"
                 @click="const vid = crypto.randomUUID(); localStorage.setItem('hypn0_vid', vid); document.cookie = 'hypn0_vid=' + vid + '; path=/; max-age=63072000; SameSite=Lax'; const popup = document.getElementById('allow-tracking-popup'); if (popup) popup.style.display = 'none';"
                 class="bg-stone-900 hover:bg-black text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 active:scale-95 cursor-pointer">
-          Подчиниться и опубликовать
+          Submit and&nbsp;Publish
         </button>
       </form>
     </div>
@@ -44,10 +44,10 @@
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
       <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
     </span>
-    <span class="font-semibold text-emerald-300">Уже в галерее транса</span>
+    <span class="font-semibold text-emerald-300">In&nbsp;the&nbsp;Trance Gallery</span>
   </div>
   <span class="hidden sm:inline opacity-40">•</span>
-  <span class="opacity-90 italic">идет прорастание психо-паутины...</span>
+  <span class="opacity-90 italic">psychic neural web expanding&hellip;</span>
   <span class="font-mono text-[11px] bg-purple-900/80 text-purple-300 border border-purple-400/30 px-2 py-0.5 rounded-md">#{{ item.s_hash_id }}</span>
 </div>
 

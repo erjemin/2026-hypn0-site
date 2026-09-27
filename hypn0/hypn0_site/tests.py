@@ -1,4 +1,5 @@
 import io
+import re
 import shutil
 import tempfile
 from django.contrib.admin.sites import AdminSite
@@ -322,10 +323,15 @@ class NamingServiceTests(BaseMediaTestCase):
     def test_generate_hypno_title(self):
         title = generate_hypno_title(seed=42)
         self.assertIsInstance(title, str)
-        self.assertTrue(len(title) > 5)
+        self.assertTrue(len(title) > 0)
 
         # Проверка детерминированности по seed
         self.assertEqual(generate_hypno_title(seed=42), title)
+
+        # Проверяем генерацию множества названий разной длины
+        titles = [generate_hypno_title(seed=i) for i in range(100)]
+        self.assertTrue(any(" " in t for t in titles))
+        self.assertTrue(any(" " not in t for t in titles))
 
     def test_openrouter_stub(self):
         res = generate_title_openrouter(b"dummy_bytes")
@@ -1519,3 +1525,96 @@ class BlogPostModelAndAdminTests(BaseMediaTestCase):
             slug="test-plain",
         )
         self.assertEqual(post.s_title_plain, "Записки Гипножабы: Раздел&Смысл")
+
+
+class RenameGenerationsCommandTests(BaseMediaTestCase):
+    """Тестирование management-команды массового переименования генераций rename_generations."""
+
+    def setUp(self):
+        super().setUp()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+        svg_bytes = b'<svg><circle/></svg>'
+
+        self.item_ru1 = TbHypn0Item(
+            s_title="Мерцающий транс сознания #42",
+            file_svg=ContentFile(svg_bytes, name="ru1.svg"),
+            is_public=True,
+        )
+        self.item_ru1.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_ru2 = TbHypn0Item(
+            s_title="Астральный взгляд Гипножабы",
+            file_svg=ContentFile(svg_bytes, name="ru2.svg"),
+            is_public=True,
+        )
+        self.item_ru2.save(visitor_uuid_or_fp=self.vid)
+
+        self.item_en = TbHypn0Item(
+            s_title="Brain Slug Vortex",
+            file_svg=ContentFile(svg_bytes, name="en.svg"),
+            is_public=True,
+        )
+        self.item_en.save(visitor_uuid_or_fp=self.vid)
+
+    def test_rename_dry_run_does_not_mutate_db(self):
+        out = io.StringIO()
+        call_command("rename_generations", dry_run=True, stdout=out)
+        output = out.getvalue()
+
+        self.assertIn("[DRY RUN]", output)
+        self.assertIn("Мерцающий транс сознания #42", output)
+
+        self.item_ru1.refresh_from_db()
+        self.item_ru2.refresh_from_db()
+        self.item_en.refresh_from_db()
+
+        self.assertEqual(self.item_ru1.s_title, "Мерцающий транс сознания #42")
+        self.assertEqual(self.item_ru2.s_title, "Астральный взгляд Гипножабы")
+        self.assertEqual(self.item_en.s_title, "Brain Slug Vortex")
+
+    def test_rename_only_cyrillic_by_default(self):
+        out = io.StringIO()
+        call_command("rename_generations", stdout=out)
+
+        self.item_ru1.refresh_from_db()
+        self.item_ru2.refresh_from_db()
+        self.item_en.refresh_from_db()
+
+        # Русские заголовки должны быть заменены на английские (без кириллицы)
+        self.assertFalse(re.search(r"[а-яА-ЯёЁ]", self.item_ru1.s_title))
+        self.assertFalse(re.search(r"[а-яА-ЯёЁ]", self.item_ru2.s_title))
+        self.assertTrue(len(self.item_ru1.s_title) > 0)
+        self.assertTrue(len(self.item_ru2.s_title) > 0)
+
+        # Английский заголовок не должен измениться
+        self.assertEqual(self.item_en.s_title, "Brain Slug Vortex")
+
+    def test_rename_all_flag_updates_all_items(self):
+        out = io.StringIO()
+        call_command("rename_generations", all=True, stdout=out)
+
+        self.item_ru1.refresh_from_db()
+        self.item_ru2.refresh_from_db()
+        self.item_en.refresh_from_db()
+
+        self.assertFalse(re.search(r"[а-яА-ЯёЁ]", self.item_ru1.s_title))
+        self.assertFalse(re.search(r"[а-яА-ЯёЁ]", self.item_ru2.s_title))
+        # С флагом --all английский заголовок тоже перегенерируется детерминированно
+        self.assertFalse(re.search(r"[а-яА-ЯёЁ]", self.item_en.s_title))
+
+    def test_rename_deterministic_and_seed_offset(self):
+        out = io.StringIO()
+        call_command("rename_generations", seed_offset=100, stdout=out)
+        self.item_ru1.refresh_from_db()
+        first_title = self.item_ru1.s_title
+
+        # Повторный вызов с тем же seed_offset дает точно такой же результат
+        call_command("rename_generations", seed_offset=100, all=True, stdout=out)
+        self.item_ru1.refresh_from_db()
+        self.assertEqual(self.item_ru1.s_title, first_title)
+
+    def test_rename_empty_database(self):
+        TbHypn0Item.objects.all().delete()
+        out = io.StringIO()
+        call_command("rename_generations", stdout=out)
+        self.assertIn("нет генераций для обработки", out.getvalue())

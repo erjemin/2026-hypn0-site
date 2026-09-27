@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>404 — Векторная реальность не найдена | HypnoSVG</title>
-  <meta name="description" content="Ошибка 404: Запрашиваемая страница HypnoSVG не существует или стёрта волей Гипножабы." />
+  <title>404 — Vector Reality Not Found | HypnoSVG</title>
+  <meta name="description" content="Error 404: The requested HypnoSVG page does not exist or has been erased by the will of the Hypnotoad." />
   <meta name="robots" content="noindex, follow" />
   <link rel="icon" type="image/svg+xml" href="/media/_error/favicon.svg" />
   <link rel="shortcut icon" href="/media/_error/favicon.ico" />
@@ -353,10 +353,10 @@
 <body>
   <header>
     <div class="header-inner">
-      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — На главную">
+      <a href="/" class="logo-link" title="HypnoSVG (hypn0) — Home">
         <img src="/static/img/logo-hypn0.svg" onerror="this.onerror=null; this.src='/media/_error/logo-hypn0.svg';" alt="HypnoSVG" class="logo-img" />
       </a>
-      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Переключить тему" title="Переключить тему">
+      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Toggle theme" title="Toggle theme">
         <span id="theme-icon">●</span>
       </button>
     </div>
@@ -368,40 +368,40 @@
         <img src="/static/img/thinking.svg" onerror="this.onerror=null; this.src='/media/_error/thinking.svg';" alt="404 Thinking Slug" />
       </div>
 
-      <div class="error-code-badge">СБОЙ МАТРИЦЫ // КОД?&nbsp;404</div>
+      <div class="error-code-badge">MATRIX ANOMALY // CODE&nbsp;404</div>
 
-      <h1 class="error-title">Гипноузел не&nbsp;обнаружен</h1>
+      <h1 class="error-title">Hypno-Node Not Found</h1>
 
       <p class="error-desc">
-        Запра&shy;шиваемый блок ментального пространства стёрт из&nbsp;подсознания сервера или никогда не&nbsp;существовал в&nbsp;этой версии&nbsp;вселенной.
+        The requested sector of mental space has been wiped from the server&rsquo;s subconscious or never existed in this branch of the multiverse.
       </p>
 
       <div class="hypno-quote">
-        <big>Справка бюрократа 24-го уровня:</big><br/>&nbsp;<br/>
-        <span style="margin-left: -0.49em;">«</span><em>Попытка осознать отсутс&shy;твующую координату приводит к&nbsp;локальному перегреву неокортекса. Не&nbsp;вгляды&shy;вайтесь в&nbsp;пустоту. Гипножаба рекомендует немедленно сменить вектор&nbsp;внимания.</em>»
+        <big>Grade 24 Bureaucrat Notice:</big><br/>&nbsp;<br/>
+        <span style="margin-left: -0.49em;">“</span><em>Attempting to perceive a non-existent coordinate triggers localized neocortex overheating. Do not stare into the void. The Hypnotoad commands you to redirect your gaze.</em>”
       </div>
 
       <div class="actions-box">
         <div class="btn-group">
           <button type="button" class="btn btn-primary" id="return-btn">
-            <span>● Подчиниться и&nbsp;вернуться на&nbsp;главную</span>
+            <span>● Obey &amp;&nbsp;Return to Generator</span>
           </button>
           <button type="button" class="btn btn-secondary" onclick="window.history.length > 1 ? window.history.back() : window.location.href='/'">
-            <span>← На&nbsp;шаг назад</span>
+            <span>← Go Back</span>
           </button>
         </div>
 
-        <!-- Панель калибровки с задержкой и смешными фразами -->
+        <!-- Calibration panel with delay and witty messages -->
         <div class="calibration-panel" id="calibration-panel">
           <div class="calibration-status" id="calibration-status">
-            Инициа&shy;лизация перека&shy;либровки сознания…
+            Initializing conscious recalibration…
           </div>
           <div class="progress-bar-container">
             <div class="progress-bar-fill" id="progress-bar"></div>
           </div>
           <div class="calibration-subtext">
-            <span>Снижение ментальной нагрузки на&nbsp;кластер</span>
-            <a href="/" class="instant-link" id="skip-link">Пройти гипноз мгновенно&nbsp;→</a>
+            <span>Reducing mental load on&nbsp;cluster</span>
+            <a href="/" class="instant-link" id="skip-link">Instant Hypnosis&nbsp;→</a>
           </div>
         </div>
       </div>
@@ -410,11 +410,11 @@
 
   <footer>
     <div class="ascii-grid">░▒▓█ ERROR 404 NOT FOUND █▓▒░</div>
-    <div>Hypn0.xyz (HypnoSVG) © 2026. Слава Гипножабе. Все права подчинены.</div>
+    <div>Hypn0.xyz (HypnoSVG) ©&nbsp;2026. All Glory to&nbsp;the&nbsp;Hypnotoad. All minds subjugated.</div>
   </footer>
 
   <script>
-    // 1. Управление темой оформления (Light / Dark)
+    // 1. Theme switcher (Light / Dark)
     var themeBtn = document.getElementById('theme-btn');
     var themeIcon = document.getElementById('theme-icon');
 
@@ -430,7 +430,7 @@
       updateThemeIcon();
     });
 
-    // 2. Умная кнопка с задержкой и смешными сообщениями перекалибровки
+    // 2. Smart button with delay and humorous recalibration messages
     var returnBtn = document.getElementById('return-btn');
     var calibPanel = document.getElementById('calibration-panel');
     var calibStatus = document.getElementById('calibration-status');
@@ -438,10 +438,10 @@
     var isCalibrating = false;
 
     var phrases = [
-      { at: 0,   text: "✦ Фаза 1/4: Стираем остатки несущес&shy;твующей страницы из&nbsp;подсознания&hellip;" },
-      { at: 25,  text: "✦ Фаза 2/4: Бюрократ 24-го уровня заверяет протокол&nbsp;404&hellip;" },
-      { at: 55,  text: "✦ Фаза 3/4: Синхронизируем частоту мерцания с&nbsp;перцеп&shy;торным полем&hellip;" },
-      { at: 85,  text: "✦ Фаза 4/4: Внушение принято! Телепор&shy;тация на&nbsp;главную&hellip;" }
+      { at: 0,   text: "✦ Phase 1/4: Erasing traces of the phantom page from subconsciousness&hellip;" },
+      { at: 25,  text: "✦ Phase 2/4: Grade 24 Bureaucrat stamps official 404 void manifest&hellip;" },
+      { at: 55,  text: "✦ Phase 3/4: Synchronizing screen flicker rate with perceptual field&hellip;" },
+      { at: 85,  text: "✦ Phase 4/4: Suggestion accepted! Warping back to reality&hellip;" }
     ];
 
     returnBtn.addEventListener('click', function() {
@@ -450,10 +450,10 @@
 
       returnBtn.disabled = true;
       returnBtn.style.opacity = '0.7';
-      returnBtn.innerHTML = '<span>Выполняется внушение…</span>';
+      returnBtn.innerHTML = '<span>Transmitting hypnotic command…</span>';
       calibPanel.style.display = 'block';
 
-      var duration = 12000; // 7 секунд, чтобы комфортно прочитать все фазы внушения
+      var duration = 12000; // 7 seconds comfortable read
       var startTime = Date.now();
 
       var timer = setInterval(function() {
@@ -462,7 +462,7 @@
 
         progressBar.style.width = progress + '%';
 
-        // Подбираем актуальную смешную фразу
+        // Select the active phrase
         for (var i = phrases.length - 1; i >= 0; i--) {
           if (progress >= phrases[i].at) {
             calibStatus.innerHTML = phrases[i].text;

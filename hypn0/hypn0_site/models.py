@@ -47,13 +47,13 @@ class TbHypn0Item(models.Model):
     • rescore(): пересчёт рейтинга f_score
     """
     class Level(models.IntegerChoices):
-        CANDIDATE = 0, 'Candidate: Шум сознания'             # Свежая генерация. Запрет на удаление до Х дней.
-        LEVEL_1 = 10, 'Voted: Плеск бессознательного'     # Прогрето, есть "лайки", не проверено модератором, можно удалять при низком score
-        LEVEL_2 = 30, 'Moderated: Одобрено Мозговым Слизнем'  # Есть "лайки", проверено, можно удалять при низком score
-        IMMORTAL = 1000, 'Locked: Глубокий транс'       # Нельзя удалять, даже при низком score
+        CANDIDATE = 0, 'Candidate: Conscious Noise'             # Свежая генерация. Запрет на удаление до Х дней.
+        LEVEL_1 = 10, 'Voted: Subcon\u00adscious Ripple'        # Прогрето, есть "лайки", не проверено модератором, можно удалять при низком score
+        LEVEL_2 = 30, 'Moderated: Approved by\u00a0Brain Slug'  # Есть "лайки", проверено, можно удалять при низком score
+        IMMORTAL = 1000, 'Locked: Deep Trance'                  # Нельзя удалять, даже при низком score
         # Отрицательные / проблемные уровни (аномалии)
-        SHAMED = -20, 'Шейминг (аномальный наплыв жалоб)'
-        SUSPICIOUS = -10, 'Подозрение на накрутку (спайк лайков)'
+        SHAMED = -20, 'Shamed (anomalous report flood)'
+        SUSPICIOUS = -10, 'Suspicious (vote spike anomaly)'
 
     id = models.AutoField(
         primary_key=True,
