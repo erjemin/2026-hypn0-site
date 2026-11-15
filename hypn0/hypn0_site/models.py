@@ -230,6 +230,64 @@ class TbHypn0Item(models.Model):
         return self.blog_posts.filter(is_published=True).order_by("-d_published_at")
 
     @property
+    def promo_data(self) -> dict:
+        """
+        Возвращает вложенный словарь параметров промо-блока из j_metadata или пустой словарь.
+        """
+        if isinstance(self.j_metadata, dict):
+            promo = self.j_metadata.get("promo")
+            if isinstance(promo, dict):
+                return promo
+        return {}
+
+    @property
+    def promo_desc(self) -> str:
+        """
+        Краткое описание / слоган промо-блока (из j_metadata['promo']['desc'] или плоского j_metadata['promo_desc']).
+        """
+        if isinstance(self.j_metadata, dict):
+            promo = self.j_metadata.get("promo")
+            if isinstance(promo, dict) and promo.get("desc"):
+                return str(promo["desc"]).strip()
+            if self.j_metadata.get("promo_desc"):
+                return str(self.j_metadata["promo_desc"]).strip()
+        return ""
+
+    @property
+    def promo_cta(self) -> str:
+        """
+        Текст кнопки призыва к действию (из j_metadata['promo']['cta'] или плоского j_metadata['promo_cta']).
+        """
+        if isinstance(self.j_metadata, dict):
+            promo = self.j_metadata.get("promo")
+            if isinstance(promo, dict) and promo.get("cta"):
+                return str(promo["cta"]).strip()
+            if self.j_metadata.get("promo_cta"):
+                return str(self.j_metadata["promo_cta"]).strip()
+        return ""
+
+    @property
+    def promo_disclaimer(self) -> str:
+        """
+        Юридический дисклеймер, маркировка рекламы по 347-ФЗ (ERID) или копирайт автора
+        (из j_metadata['promo']['disclaimer'] или плоского j_metadata['promo_disclaimer']).
+        """
+        if isinstance(self.j_metadata, dict):
+            promo = self.j_metadata.get("promo")
+            if isinstance(promo, dict) and promo.get("disclaimer"):
+                return str(promo["disclaimer"]).strip()
+            if self.j_metadata.get("promo_disclaimer"):
+                return str(self.j_metadata["promo_disclaimer"]).strip()
+        return ""
+
+    @property
+    def has_promo(self) -> bool:
+        """
+        Флаг наличия активного промо-блока: заполнена промо-ссылка и хотя бы заголовок или описание.
+        """
+        return bool(self.s_promo_url and (self.s_promo_title or self.promo_desc))
+
+    @property
     def card_svg(self) -> str:
         """
         Возвращает SVG-код картины для изолированного рендеринга в карточке галереи.

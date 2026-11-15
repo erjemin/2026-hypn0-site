@@ -140,27 +140,78 @@ class CodeMirrorFormMixin(forms.ModelForm):
 class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
     """
     Кастомная форма для админки svg-генераций (TbHypn0Item).
-    Добавляет виджеты CodeMirror для текстовых полей.
+    Добавляет виджеты CodeMirror для текстовых полей и виртуальные поля промо-блока (хранятся в j_metadata).
     """
+
+    # Виртуальные поля промо-блока (упаковываются в j_metadata['promo'])
+    promo_desc = forms.CharField(
+        label="Текст промо / Подпись",
+        required=False,
+        widget=forms.Textarea,
+        help_text=(
+            "Краткое описание, слоган или подпись к промо-картине (1–3 предложения, до 400 символов). "
+            "Хранится виртуально внутри <tt>j_metadata['promo']['desc']</tt>.<br/>"
+            "<b>Примеры:</b><br/>"
+            "• <i>Авторский арт:</i> «Оригинальный паттерн создан совместно с @cyber_toad к фестивалю цифрового искусства.»<br/>"
+            "• <i>Спонсор / Промокод:</i> «Скидка 20% на весь мерч по промокоду HYPNO2026 до конца месяца.»<br/>"
+            "• <i>Если пусто:</i> ключ не сохраняется в JSON."
+        ),
+    )
+    promo_cta = forms.CharField(
+        label="Текст кнопки (CTA)",
+        max_length=60,
+        required=False,
+        help_text=(
+            "Текст призыва к действию на кнопке перехода (до 60 символов). "
+            "Хранится виртуально внутри <tt>j_metadata['promo']['cta']</tt>.<br/>"
+            "<b>Примеры:</b> «Узнать больше →», «Забрать промокод →», «Портфолио автора →», «Купить мерч →».<br/>"
+            "• <i>Поведение на фронтенде:</i> если поле не заполнено, используется стандартная надпись «Узнать больше →»."
+        ),
+    )
+    promo_disclaimer = forms.CharField(
+        label="Маркировка / Дисклеймер / ERID",
+        required=False,
+        widget=forms.Textarea,
+        help_text=(
+            "Юридическая сноска, копирайт или маркировка интернет-рекламы (мелким шрифтом под промо-блоком). "
+            "Хранится виртуально внутри <tt>j_metadata['promo']['disclaimer']</tt>.<br/>"
+            "<b>Рекомендации и правовые нормы:</b><br/>"
+            "• <b>Спонсорская / коммерческая реклама в РФ (Закон № 347-ФЗ, ст. 18.1 ФЗ «О рекламе»):</b> обязательна маркировка "
+            "— слово «Реклама», указание рекламодателя (наименование юрлица/ИП или ИНН) и токен ОРД (ERID). "
+            "<i>Пример:</i> «Реклама. ООО «Слизни Консалтинг», ИНН 7700000000, erid: 2VtzquXyz12»<br/>"
+            "• <b>Авторство / Некоммерческий арт / Копирайт:</b> маркировка рекламы НЕ ТРЕБУЕТСЯ. Можно указать тип лицензии. "
+            "<i>Пример:</i> «© 2026 Studio Name. Distributed under Creative Commons CC BY-SA 4.0.»<br/>"
+            "• <i>Если поле не заполнено:</i> плашка дисклеймера не сохраняется в JSON и не отображается."
+        ),
+    )
 
     class Meta:
         model = TbHypn0Item
         fields = (
-            's_title', "s_promo_title", "s_promo_url", "i_level",
-            "i_likes_count", "i_views_count", "i_claims_count", "f_score",
-            "i_promo_clicks",
-
+            's_title', "s_promo_title", "s_promo_url",
+            "promo_desc", "promo_cta", "promo_disclaimer",
+            "i_level", "i_likes_count", "i_views_count", "i_claims_count", "f_score",
+            "i_promo_clicks", "j_metadata",
         )
 
     def __init__(self, *args, **kwargs):
         """
-        При инициализации формы подгружаем CodeMirror редактор.
+        При инициализации формы подгружаем CodeMirror редактор и считываем виртуальные поля промо из j_metadata.
         Получаем request из kwargs, переданных из get_form_kwargs в AdminClass.
         """
         # Извлекаем request из kwargs если он есть
         self.request = kwargs.pop('request', None)
 
         super().__init__(*args, **kwargs)
+
+        # Загрузка начальных значений для виртуальных промо-полей
+        if self.instance and self.instance.pk:
+            meta = self.instance.j_metadata if isinstance(self.instance.j_metadata, dict) else {}
+            promo = meta.get("promo") if isinstance(meta.get("promo"), dict) else {}
+
+            self.fields['promo_desc'].initial = promo.get('desc') or meta.get('promo_desc') or ''
+            self.fields['promo_cta'].initial = promo.get('cta') or meta.get('promo_cta') or ''
+            self.fields['promo_disclaimer'].initial = promo.get('disclaimer') or meta.get('promo_disclaimer') or ''
 
         # Конфигурируем поля для CodeMirror
         self.setup_codemirror_field('s_title', language='html',
@@ -169,6 +220,12 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
                                     css_class='codemirror-width-l')
         self.setup_codemirror_field('s_promo_url', language='text',
                                     css_class='codemirror-width-xl codemirror-no-lines')
+        self.setup_codemirror_field('promo_desc', language='text',
+                                    css_class='codemirror-width-xl codemirror-min-height-5')
+        self.setup_codemirror_field('promo_cta', language='text',
+                                    css_class='codemirror-width-l codemirror-no-lines')
+        self.setup_codemirror_field('promo_disclaimer', language='text',
+                                    css_class='codemirror-width-xl codemirror-min-height-5')
         self.setup_codemirror_field('i_likes_count', language='text',
                                     css_class='codemirror-width-s codemirror-no-lines')
         self.setup_codemirror_field('i_claims_count', language='text',
@@ -182,9 +239,61 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
         self.setup_codemirror_field('j_metadata', language='json',
                                     css_class='codemirror-width-sl codemirror-min-height-10')
 
+    def save(self, commit=True):
+        """
+        Сохранение модели с упаковкой виртуальных промо-полей в j_metadata.
+        Если поля не заполнены, пустые ключи и пустой словарь promo не создаются.
+        """
+        instance = super().save(commit=False)
+
+        # Берем актуальные метаданные (из cleaned_data если редактировалось поле j_metadata или из instance)
+        raw_meta = self.cleaned_data.get("j_metadata")
+        if isinstance(raw_meta, dict):
+            meta = dict(raw_meta)
+        elif isinstance(instance.j_metadata, dict):
+            meta = dict(instance.j_metadata)
+        else:
+            meta = {}
+
+        promo = dict(meta.get("promo")) if isinstance(meta.get("promo"), dict) else {}
+
+        desc = (self.cleaned_data.get("promo_desc") or "").strip()
+        cta = (self.cleaned_data.get("promo_cta") or "").strip()
+        disclaimer = (self.cleaned_data.get("promo_disclaimer") or "").strip()
+
+        if desc:
+            promo["desc"] = desc
+        else:
+            promo.pop("desc", None)
+            meta.pop("promo_desc", None)
+
+        if cta:
+            promo["cta"] = cta
+        else:
+            promo.pop("cta", None)
+            meta.pop("promo_cta", None)
+
+        if disclaimer:
+            promo["disclaimer"] = disclaimer
+        else:
+            promo.pop("disclaimer", None)
+            meta.pop("promo_disclaimer", None)
+
+        if promo:
+            meta["promo"] = promo
+        else:
+            meta.pop("promo", None)
+
+        instance.j_metadata = meta
+
+        if commit:
+            instance.save()
+        return instance
+
+
 # Конфигурация админки
 @admin.register(TbHypn0Item)
-class TbHypn0ItemAdmin(admin.ModelAdmin):
+class TbHypn0ItemAdmin(RequestInFormMixin, admin.ModelAdmin):
     """
     Панель управления гипно-картинами (модерация, просмотр статистики, редактирование).
     Создание новых картин через админку заблокировано (создание только на фронтенде).
@@ -213,7 +322,14 @@ class TbHypn0ItemAdmin(admin.ModelAdmin):
             "classes": ("collapse", ),
         }),
         ("Промо-блок (Спонсоры и Авторы)", {
-            "fields": ("s_promo_url", "s_promo_title", "i_promo_clicks", ),
+            "fields": (
+                "s_promo_title",
+                "s_promo_url",
+                "promo_desc",
+                "promo_cta",
+                "promo_disclaimer",
+                "i_promo_clicks",
+            ),
             "classes": ("collapse",),
         }),
         ("Метаданные генерации", {

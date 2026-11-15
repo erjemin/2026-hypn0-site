@@ -11,7 +11,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .admin import TbBlogPostAdmin
+from .admin import TbBlogPostAdmin, TbHypn0ItemAdminForm, TbHypn0ItemAdmin
 from .forms import HalftoneGenerateForm
 from .models import TbBlogPost, TbHypn0Item, TbVote
 from .services.halftone import (
@@ -1618,3 +1618,164 @@ class RenameGenerationsCommandTests(BaseMediaTestCase):
         out = io.StringIO()
         call_command("rename_generations", stdout=out)
         self.assertIn("нет генераций для обработки", out.getvalue())
+
+
+class PromoVirtualFieldsTests(BaseMediaTestCase):
+    """Тестирование виртуальных полей промо-блока (promo_desc, promo_cta, promo_disclaimer)."""
+
+    def setUp(self):
+        super().setUp()
+        self.vid = "123e4567-e89b-12d3-a456-426614174000"
+        self.svg_bytes = b'<svg><circle/></svg>'
+
+    def test_model_properties_with_promo_dict(self):
+        item = TbHypn0Item(
+            s_title="Promo Artwork",
+            s_promo_title="Brain Slug Studio",
+            s_promo_url="https://example.com/promo",
+            j_metadata={
+                "color": "#a855ff",
+                "promo": {
+                    "desc": "Limited edition hypnotic vector pattern.",
+                    "cta": "Get Discount",
+                    "disclaimer": "Реклама. ООО «Слизни», erid: 2Vtzqu123",
+                },
+            },
+        )
+        self.assertEqual(item.promo_desc, "Limited edition hypnotic vector pattern.")
+        self.assertEqual(item.promo_cta, "Get Discount")
+        self.assertEqual(item.promo_disclaimer, "Реклама. ООО «Слизни», erid: 2Vtzqu123")
+        self.assertEqual(item.promo_data, {
+            "desc": "Limited edition hypnotic vector pattern.",
+            "cta": "Get Discount",
+            "disclaimer": "Реклама. ООО «Слизни», erid: 2Vtzqu123",
+        })
+        self.assertTrue(item.has_promo)
+
+    def test_model_properties_fallback_flat_keys(self):
+        item = TbHypn0Item(
+            s_title="Flat Promo Artwork",
+            s_promo_url="https://example.com",
+            j_metadata={
+                "promo_desc": "Flat description",
+                "promo_cta": "Flat CTA",
+                "promo_disclaimer": "Flat Disclaimer",
+            },
+        )
+        self.assertEqual(item.promo_desc, "Flat description")
+        self.assertEqual(item.promo_cta, "Flat CTA")
+        self.assertEqual(item.promo_disclaimer, "Flat Disclaimer")
+        self.assertTrue(item.has_promo)
+
+    def test_model_properties_empty_or_none_metadata(self):
+        item_empty = TbHypn0Item(j_metadata={})
+        self.assertEqual(item_empty.promo_desc, "")
+        self.assertEqual(item_empty.promo_cta, "")
+        self.assertEqual(item_empty.promo_disclaimer, "")
+        self.assertEqual(item_empty.promo_data, {})
+        self.assertFalse(item_empty.has_promo)
+
+        item_none = TbHypn0Item(j_metadata=None)
+        self.assertEqual(item_none.promo_desc, "")
+        self.assertEqual(item_none.promo_cta, "")
+        self.assertEqual(item_none.promo_disclaimer, "")
+        self.assertEqual(item_none.promo_data, {})
+        self.assertFalse(item_none.has_promo)
+
+    def test_admin_form_initialization_from_j_metadata(self):
+        item = TbHypn0Item(
+            s_title="Admin Promo Test",
+            file_svg=ContentFile(self.svg_bytes, name="promo_init.svg"),
+            j_metadata={
+                "cols": 42,
+                "promo": {
+                    "desc": "Initial Desc",
+                    "cta": "Initial CTA",
+                    "disclaimer": "Initial Disclaimer",
+                },
+            },
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        form = TbHypn0ItemAdminForm(instance=item)
+        self.assertEqual(form.fields["promo_desc"].initial, "Initial Desc")
+        self.assertEqual(form.fields["promo_cta"].initial, "Initial CTA")
+        self.assertEqual(form.fields["promo_disclaimer"].initial, "Initial Disclaimer")
+
+    def test_admin_form_save_writes_promo_to_j_metadata(self):
+        item = TbHypn0Item(
+            s_title="Admin Save Test",
+            file_svg=ContentFile(self.svg_bytes, name="promo_save.svg"),
+            j_metadata={"color": "#10b981", "cols": 30},
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        form_data = {
+            "s_title": "Admin Save Test Updated",
+            "s_promo_title": "Partner Sponsor",
+            "s_promo_url": "https://sponsor.example.com",
+            "promo_desc": "Super cool sponsored pattern.",
+            "promo_cta": "Buy Now",
+            "promo_disclaimer": "Реклама. ООО «Партнер», ИНН 1234567890",
+            "i_level": TbHypn0Item.Level.LEVEL_2,
+            "i_likes_count": 10,
+            "i_views_count": 50,
+            "i_claims_count": 0,
+            "f_score": 10.0,
+            "i_promo_clicks": 0,
+        }
+        form = TbHypn0ItemAdminForm(data=form_data, instance=item)
+        self.assertTrue(form.is_valid(), form.errors)
+        saved_item = form.save()
+
+        # Проверяем, что исходные параметры (color, cols) сохранились, и добавился promo-словарь
+        self.assertEqual(saved_item.j_metadata.get("color"), "#10b981")
+        self.assertEqual(saved_item.j_metadata.get("cols"), 30)
+        self.assertEqual(saved_item.j_metadata.get("promo"), {
+            "desc": "Super cool sponsored pattern.",
+            "cta": "Buy Now",
+            "disclaimer": "Реклама. ООО «Партнер», ИНН 1234567890",
+        })
+        self.assertEqual(saved_item.promo_desc, "Super cool sponsored pattern.")
+        self.assertEqual(saved_item.promo_cta, "Buy Now")
+        self.assertEqual(saved_item.promo_disclaimer, "Реклама. ООО «Партнер», ИНН 1234567890")
+
+    def test_admin_form_save_cleans_empty_promo_without_polluting_json(self):
+        item = TbHypn0Item(
+            s_title="Admin Clean Test",
+            file_svg=ContentFile(self.svg_bytes, name="promo_clean.svg"),
+            j_metadata={
+                "color": "#ffffff",
+                "promo": {"desc": "Old description"},
+            },
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        # Отправляем форму со всеми пустыми promo-полями
+        form_data = {
+            "s_title": "Admin Clean Test",
+            "s_promo_title": "",
+            "s_promo_url": "",
+            "promo_desc": "   ",  # Пробелы должны очищаться
+            "promo_cta": "",
+            "promo_disclaimer": "",
+            "i_level": TbHypn0Item.Level.CANDIDATE,
+            "i_likes_count": 1,
+            "i_views_count": 1,
+            "i_claims_count": 0,
+            "f_score": 0.0,
+            "i_promo_clicks": 0,
+        }
+        form = TbHypn0ItemAdminForm(data=form_data, instance=item)
+        self.assertTrue(form.is_valid(), form.errors)
+        saved_item = form.save()
+
+        # Ключ promo должен быть полностью удален из j_metadata, не оставляя пустых словарей
+        self.assertEqual(saved_item.j_metadata, {"color": "#ffffff"})
+        self.assertNotIn("promo", saved_item.j_metadata)
+        self.assertEqual(saved_item.promo_desc, "")
+        self.assertEqual(saved_item.promo_cta, "")
+        self.assertEqual(saved_item.promo_disclaimer, "")
