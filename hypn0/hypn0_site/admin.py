@@ -220,12 +220,6 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
                                     css_class='codemirror-width-l')
         self.setup_codemirror_field('s_promo_url', language='text',
                                     css_class='codemirror-width-xl codemirror-no-lines')
-        self.setup_codemirror_field('promo_desc', language='text',
-                                    css_class='codemirror-width-xl codemirror-min-height-5')
-        self.setup_codemirror_field('promo_cta', language='text',
-                                    css_class='codemirror-width-l codemirror-no-lines')
-        self.setup_codemirror_field('promo_disclaimer', language='text',
-                                    css_class='codemirror-width-xl codemirror-min-height-5')
         self.setup_codemirror_field('i_likes_count', language='text',
                                     css_class='codemirror-width-s codemirror-no-lines')
         self.setup_codemirror_field('i_claims_count', language='text',
@@ -238,6 +232,13 @@ class TbHypn0ItemAdminForm(CodeMirrorFormMixin):
                                     css_class='codemirror-width-s codemirror-no-lines')
         self.setup_codemirror_field('j_metadata', language='json',
                                     css_class='codemirror-width-sl codemirror-min-height-10')
+        # Виртуальные поля для
+        self.setup_codemirror_field('promo_desc', language='html',
+                                    css_class='codemirror-width-xl codemirror-min-height-5')
+        self.setup_codemirror_field('promo_cta', language='html',
+                                    css_class='codemirror-width-l')
+        self.setup_codemirror_field('promo_disclaimer', language='html',
+                                    css_class='codemirror-width-xl codemirror-min-height-5')
 
     def save(self, commit=True):
         """

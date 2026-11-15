@@ -389,7 +389,12 @@ class TbHypn0Item(models.Model):
         """
         is_new = self.pk is None
 
-        # 0. Блокировка создания новой картины без подчинения Гипножабе
+        # 0. Автоматическая защита промо-картин: если заполнены промо-данные, переводим в Level.IMMORTAL
+        # (при последующей очистке промо уровень не понижается)
+        if (self.s_promo_url or self.s_promo_title or self.promo_desc) and self.i_level < self.Level.IMMORTAL:
+            self.i_level = self.Level.IMMORTAL
+
+        # 0.1 Блокировка создания новой картины без подчинения Гипножабе
         if is_new and not visitor_uuid_or_fp:
             raise PermissionError("Создание картины запрещено: пользователь не подчинился Гипножабе (отсутствует visitor UUID)")
 

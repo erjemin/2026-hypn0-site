@@ -1741,6 +1741,33 @@ class PromoVirtualFieldsTests(BaseMediaTestCase):
         self.assertEqual(saved_item.promo_desc, "Super cool sponsored pattern.")
         self.assertEqual(saved_item.promo_cta, "Buy Now")
         self.assertEqual(saved_item.promo_disclaimer, "Реклама. ООО «Партнер», ИНН 1234567890")
+        # Проверяем автоматический перевод в IMMORTAL
+        self.assertEqual(saved_item.i_level, TbHypn0Item.Level.IMMORTAL)
+
+    def test_promo_item_auto_promoted_to_immortal_and_kept_on_clear(self):
+        # 1. Создаем обычную картину уровня CANDIDATE
+        item = TbHypn0Item(
+            s_title="Candidate Item",
+            file_svg=ContentFile(self.svg_bytes, name="cand.svg"),
+            i_level=TbHypn0Item.Level.CANDIDATE,
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+        self.assertEqual(item.i_level, TbHypn0Item.Level.CANDIDATE)
+
+        # 2. Добавляем промо-данные (например промо-ссылку) -> уровень автоматически становится IMMORTAL (Locked)
+        item.s_promo_url = "https://example.com/promo"
+        item.save()
+        item.refresh_from_db()
+        self.assertEqual(item.i_level, TbHypn0Item.Level.IMMORTAL)
+
+        # 3. Очищаем промо-данные -> уровень остается IMMORTAL (не понижается)
+        item.s_promo_url = ""
+        item.s_promo_title = ""
+        item.j_metadata = {}
+        item.save()
+        item.refresh_from_db()
+        self.assertEqual(item.i_level, TbHypn0Item.Level.IMMORTAL)
 
     def test_admin_form_save_cleans_empty_promo_without_polluting_json(self):
         item = TbHypn0Item(
