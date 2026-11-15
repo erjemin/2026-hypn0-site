@@ -1,0 +1,1 @@
+*/30 * * * * docker compose -f /home/web/web-data/hypn0-site/docker-compose.yml exec -T web python manage.py rescore >> /var/log/hypn0-rescore.log 2>&1
