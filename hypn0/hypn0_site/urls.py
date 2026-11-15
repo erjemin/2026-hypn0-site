@@ -14,6 +14,8 @@ urlpatterns = [
     path("gallery/<str:hash_id>", views.gallery_detail, name="gallery_detail"),
     path("gallery/<str:hash_id>/download", views.gallery_download, name="gallery_download"),
     path("gallery/<str:hash_id>/vote", views.gallery_vote, name="gallery_vote"),
+    path("gallery/<str:hash_id>/promo", views.gallery_promo_redirect, name="gallery_promo_redirect"),
+    path("go/<str:hash_id>", views.gallery_promo_redirect, name="promo_redirect"),
     path("blog", views.blog_feed, name="blog_feed"),
     path("blog/<str:slug>", views.blog_detail, name="blog_detail"),
 ]

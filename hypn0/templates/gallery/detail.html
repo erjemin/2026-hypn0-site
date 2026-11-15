@@ -169,6 +169,44 @@
         <span>{{ svg_stats.total_kb }} KB</span>
       </div>
     </div>
+
+    {% if item.has_promo %}
+    <!-- Спонсорская / Промо плашка (Изумрудный сплит-блок) -->
+    <a href="{% url 'hypn0_site:gallery_promo_redirect' item.s_hash_id %}"
+       target="_blank"
+       rel="noopener sponsored"
+       class="group flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-1.5 sm:pr-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] border-0 no-underline cursor-pointer">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <!-- Левый бейдж с дисклеймером/ERID в title -->
+        <span title="{% if item.promo_disclaimer %}{{ item.promo_disclaimer|striptags }}{% elif item.s_promo_title %}{{ item.s_promo_title|striptags }}{% else %}Sponsored integration{% endif %}"
+              class="px-2.5 py-1 bg-emerald-800/90 text-emerald-100 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 shadow-inner cursor-help">
+          ADV
+        </span>
+        <!-- Описание промо -->
+        {% if item.promo_desc %}
+        <span class="text-xs font-medium text-emerald-50 truncate sm:whitespace-normal leading-tight">
+          {{ item.promo_desc|safe }}
+        </span>
+        {% elif item.s_promo_title %}
+        <span class="text-xs font-medium text-emerald-50 truncate sm:whitespace-normal leading-tight">
+          {{ item.s_promo_title|safe }}
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Правая часть / CTA и стрелочка -->
+      <div class="flex items-center justify-end gap-1.5 text-xs font-bold text-white shrink-0 pl-1 sm:pl-0">
+        {% if item.promo_cta %}
+        <span class="underline decoration-emerald-300/60 decoration-2 underline-offset-2">{{ item.promo_cta|safe }}</span>
+        {% else %}
+        <span class="underline decoration-emerald-300/60 decoration-2 underline-offset-2">Visit</span>
+        {% endif %}
+        <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+      </div>
+    </a>
+    {% endif %}
   </div>
 
   <!-- МАТЕРИАЛЫ ИЗ ХРОНИК ГИПНОЗА (БЛОГ) -->

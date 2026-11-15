@@ -4,7 +4,8 @@ import random
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.db.models import F
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -688,6 +689,18 @@ def gallery_vote(request: HttpRequest, hash_id: str) -> HttpResponse:
             "voted_now": voted,
         },
     )
+
+
+def gallery_promo_redirect(request: HttpRequest, hash_id: str) -> HttpResponse:
+    """
+    Эндпоинт для перехода по промо-ссылке картины с атомарным подсчетом переходов.
+    """
+    item = get_object_or_404(TbHypn0Item, s_hash_id=hash_id, is_public=True)
+    if not item.s_promo_url:
+        raise Http404("Промо-ссылка для данной картины не настроена")
+
+    TbHypn0Item.objects.filter(pk=item.pk).update(i_promo_clicks=F("i_promo_clicks") + 1)
+    return redirect(item.s_promo_url)
 
 
 def blog_feed(request: HttpRequest) -> HttpResponse:

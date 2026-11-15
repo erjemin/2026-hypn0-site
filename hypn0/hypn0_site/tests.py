@@ -1806,3 +1806,69 @@ class PromoVirtualFieldsTests(BaseMediaTestCase):
         self.assertEqual(saved_item.promo_desc, "")
         self.assertEqual(saved_item.promo_cta, "")
         self.assertEqual(saved_item.promo_disclaimer, "")
+
+    def test_gallery_promo_redirect_increments_clicks_and_redirects(self):
+        item = TbHypn0Item(
+            s_title="Promo Redirect Test",
+            file_svg=ContentFile(self.svg_bytes, name="promo_redirect.svg"),
+            s_promo_url="https://hypno.example.org/partner",
+            s_promo_title="Partner Link",
+            i_promo_clicks=5,
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        # Вызываем redirect эндпоинт
+        url = reverse("hypn0_site:gallery_promo_redirect", kwargs={"hash_id": item.s_hash_id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://hypno.example.org/partner")
+
+        # Проверяем инкремент счетчика кликов
+        item.refresh_from_db()
+        self.assertEqual(item.i_promo_clicks, 6)
+
+    def test_gallery_promo_redirect_404_if_no_url(self):
+        item = TbHypn0Item(
+            s_title="No Promo Url Test",
+            file_svg=ContentFile(self.svg_bytes, name="no_promo.svg"),
+            s_promo_url="",
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        url = reverse("hypn0_site:gallery_promo_redirect", kwargs={"hash_id": item.s_hash_id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_gallery_detail_renders_emerald_promo_bar(self):
+        item = TbHypn0Item(
+            s_title="Promo Visual Test",
+            file_svg=ContentFile(self.svg_bytes, name="promo_vis.svg"),
+            s_promo_url="https://sponsor.domain.com",
+            s_promo_title="CyberToad Labs",
+            j_metadata={
+                "color": "#a855ff",
+                "promo": {
+                    "desc": "Official hypno sponsor for neural protection.",
+                    "cta": "Get Shield",
+                    "disclaimer": "Реклама. ООО «Слизни», ИНН 7700000000, erid: 2VtzquX",
+                },
+            },
+            is_public=True,
+        )
+        item.save(visitor_uuid_or_fp=self.vid)
+
+        url = reverse("hypn0_site:gallery_detail", kwargs={"hash_id": item.s_hash_id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+
+        # Проверяем наличие плашки и атрибутов
+        self.assertIn("ADV", content)
+        self.assertIn("Official hypno sponsor for neural protection.", content)
+        self.assertIn("Get Shield", content)
+        self.assertIn("Реклама. ООО «Слизни», ИНН 7700000000, erid: 2VtzquX", content)
+        self.assertIn(f"/gallery/{item.s_hash_id}/promo", content)
