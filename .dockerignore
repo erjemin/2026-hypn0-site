@@ -28,9 +28,8 @@ htmlcov/
 database/
 media/
 
-# Локальная сборка фронтенда пока не нужна в Docker-контексте.
-# Если позже соберём frontend внутри Docker, это правило можно пересмотреть.
-frontend-assembly/
+# Локальные node_modules не тащим в Docker-контекст, но исходники frontend-assembly нужны для frontend-builder
+**/node_modules/
 
 # Загруженные медиа-файлы монтируются отдельно и не должны раздувать контекст.
 public/media/
