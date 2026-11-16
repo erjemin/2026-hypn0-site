@@ -58,6 +58,9 @@ services:
       sh -c "python manage.py migrate --noinput &&
              python manage.py collectstatic --noinput --clear &&
              python manage.py rehash &&
+             mkdir -p /host_public/static &&
+             cp -u -r /home/app/web/public/static/. /host_public/static/ &&
+             find /home/app/web/public -maxdepth 1 -type f -exec cp -u {} /host_public/ ';' &&
              mkdir -p /nginx_configs_host/nginx &&
               sed \"s|/home/user/app/hypn0-site|${HOST_PROJECT_PATH:-/home/default_user/projects/hypn0-site}|g\" /home/app/web/config/nginx/hypn0-app--external-nginx.conf > /nginx_configs_host/nginx/nginx_hypn0.conf.example &&
              if [ ! -f /nginx_configs_host/nginx/hypn0-app--external-nginx.conf ]; then
@@ -96,8 +99,11 @@ services:
       # Путь в контейнере: /home/app/web/database (так как Django ищет базу в BASE_DIR.parent/database)
       - ./database:/home/app/web/database
 
-      # Медиа, служебные error-pages и их ассеты лежат в папке `media` на хосте.
-      - ./media:/home/app/web/public/media
+      # Медиа, служебные error-pages и их ассеты лежат в папке `public/media` на хосте.
+      - ./public/media:/home/app/web/public/media
+
+      # Экспорт статики на хост (для прямой раздачи через Nginx)
+      - ./public:/host_public
 
       # Конфиги (Монтируем папку ./config с хоста в /nginx_configs_host внутри контейнера)
       # Это нужно, чтобы скрипт запуска мог положить туда .example конфиг и прочитать боевой конфиг.
