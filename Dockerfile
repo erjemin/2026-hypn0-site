@@ -1,5 +1,21 @@
 # =================================================
-# STAGE 1: Builder - Установка зависимостей
+# STAGE 0: Frontend Builder - Компиляция Tailwind CSS v4
+# =================================================
+FROM node:22-slim AS frontend-builder
+WORKDIR /app
+
+# Копируем конфиги npm и исходники шаблонов для сборки
+COPY frontend-assembly/tailwind/package*.json ./frontend-assembly/tailwind/
+COPY scripts/build-tailwind.sh ./scripts/
+COPY frontend-assembly ./frontend-assembly
+COPY hypn0 ./hypn0
+
+# Собираем актуальный public/static/css/tailwind.min.css
+RUN bash ./scripts/build-tailwind.sh
+
+
+# =================================================
+# STAGE 1: Builder - Установка зависимостей Python
 # =================================================
 FROM python:3.14-slim AS builder
 
@@ -56,6 +72,9 @@ COPY --from=builder /usr/local/lib/python3.14/site-packages /usr/local/lib/pytho
 # Копируем исходный код проекта и устанавливаем правильного владельца
 # ИЗМЕНЕНИЕ: app:app -> 1000:1000
 COPY --chown=1000:1000 . .
+
+# Подставляем свежесобранный Tailwind CSS из frontend-builder стадии
+COPY --from=frontend-builder --chown=1000:1000 /app/public/static/css/tailwind.min.css /home/app/web/public/static/css/tailwind.min.css
 
 # 1. Создаём директорию для конфигов nginx и даём права пользователю app
 #    Это выполняется ещё от root, поэтому проблем с permissions не будет.

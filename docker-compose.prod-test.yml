@@ -60,6 +60,8 @@ services:
              python manage.py rehash &&
              mkdir -p /host_public/static &&
              cp -u -r /home/app/web/public/static/. /host_public/static/ &&
+             mkdir -p /host_public/staticfiles &&
+             cp -u -r /home/app/web/public/staticfiles/. /host_public/staticfiles/ &&
              find /home/app/web/public -maxdepth 1 -type f -exec cp -u {} /host_public/ ';' &&
              mkdir -p /nginx_configs_host/nginx &&
               sed \"s|/home/user/app/hypn0-site|${HOST_PROJECT_PATH:-/home/default_user/projects/hypn0-site}|g\" /home/app/web/config/nginx/hypn0-app--external-nginx.conf > /nginx_configs_host/nginx/nginx_hypn0.conf.example &&
